@@ -32,9 +32,13 @@ android {
 }
 
 dependencies {
+    implementation(project(":core"))
+    implementation(project(":feature_auth"))
 
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.core.splashscreen)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

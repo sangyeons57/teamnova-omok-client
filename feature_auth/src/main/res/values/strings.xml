@@ -1,0 +1,9 @@
+<resources>
+    <string name="login_logo_description">팀노바 오목 로고</string>
+    <string name="login_welcome">팀노바 오목에 오신 것을 환영합니다</string>
+    <string name="login_guest">게스트로 로그인</string>
+    <string name="login_google">Google 계정으로 로그인</string>
+    <string name="login_disclaimer">버튼을 눌러 체험을 시작하세요. 실제 인증은 구현되어 있지 않습니다.</string>
+    <string name="login_guest_feedback">게스트 모드로 진입합니다.</string>
+    <string name="login_google_feedback">Google 로그인을 준비합니다.</string>
+</resources>

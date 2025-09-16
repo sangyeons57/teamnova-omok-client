@@ -21,4 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "TeamnovaOmok"
 include(":app")
- 
+include(":feature_auth")
+include(":domain")
+include(":data")
+include(":core")

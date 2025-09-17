@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -42,11 +41,17 @@ public class LoginFragment extends Fragment {
                 return;
             }
 
-            int messageRes = action == LoginAction.GUEST
-                    ? R.string.login_guest_feedback
-                    : R.string.login_google_feedback;
-            Toast.makeText(requireContext(), messageRes, Toast.LENGTH_SHORT).show();
+            if (action == LoginAction.GUEST || action == LoginAction.GOOGLE) {
+                showTermsAgreementDialog();
+            }
             viewModel.onActionHandled();
         });
+    }
+
+    private void showTermsAgreementDialog() {
+        if (getChildFragmentManager().findFragmentByTag(TermsAgreementDialog.TAG) != null) {
+            return;
+        }
+        new TermsAgreementDialog().show(getChildFragmentManager(), TermsAgreementDialog.TAG);
     }
 }

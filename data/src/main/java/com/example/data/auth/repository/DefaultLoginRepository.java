@@ -2,7 +2,11 @@ package com.example.data.auth.repository;
 
 import com.example.core.network.http.HttpClientManager;
 import com.example.data.auth.datasource.HelloWorldRemoteDataSource;
+import com.example.data.auth.datasource.remote.AuthRemoteDataSource;
+import com.example.data.auth.mapper.GuestSignupMapper;
 import com.example.data.auth.mapper.HelloWorldMapper;
+import com.example.data.auth.model.GuestSignupResponse;
+import com.example.domain.auth.model.GuestSignupResult;
 import com.example.domain.auth.model.HelloWorldMessage;
 import com.example.domain.auth.model.LoginAction;
 import com.example.domain.auth.repository.LoginRepository;
@@ -15,30 +19,38 @@ import java.util.Objects;
  */
 public class DefaultLoginRepository implements LoginRepository {
 
-    private final HelloWorldRemoteDataSource remoteDataSource;
-    private final HelloWorldMapper mapper;
+    private final HelloWorldRemoteDataSource helloWorldRemoteDataSource;
+    private final HelloWorldMapper helloWorldMapper;
+    private final AuthRemoteDataSource authRemoteDataSource;
+    private final GuestSignupMapper guestSignupMapper;
 
     public DefaultLoginRepository() {
-        this(new HelloWorldRemoteDataSource(HttpClientManager.getInstance()), new HelloWorldMapper());
+        this(
+                new HelloWorldRemoteDataSource(HttpClientManager.getInstance()),
+                new HelloWorldMapper(),
+                new AuthRemoteDataSource(HttpClientManager.getInstance()),
+                new GuestSignupMapper()
+        );
     }
 
-    public DefaultLoginRepository(HelloWorldRemoteDataSource remoteDataSource, HelloWorldMapper mapper) {
-        this.remoteDataSource = Objects.requireNonNull(remoteDataSource, "remoteDataSource");
-        this.mapper = Objects.requireNonNull(mapper, "mapper");
+    public DefaultLoginRepository(HelloWorldRemoteDataSource remoteDataSource,
+                                   HelloWorldMapper mapper,
+                                   AuthRemoteDataSource authRemoteDataSource,
+                                   GuestSignupMapper guestSignupMapper) {
+        this.helloWorldRemoteDataSource = Objects.requireNonNull(remoteDataSource, "remoteDataSource");
+        this.helloWorldMapper = Objects.requireNonNull(mapper, "mapper");
+        this.authRemoteDataSource = Objects.requireNonNull(authRemoteDataSource, "authRemoteDataSource");
+        this.guestSignupMapper = Objects.requireNonNull(guestSignupMapper, "guestSignupMapper");
     }
 
     @Override
-    public LoginAction loginAsGuest() {
-        return LoginAction.GUEST;
-    }
-
-    @Override
-    public LoginAction loginWithGoogle() {
-        return LoginAction.GOOGLE;
+    public GuestSignupResult createAccount(LoginAction provider, String providerUserId) {
+        GuestSignupResponse response = authRemoteDataSource.createAccount(provider.name(), providerUserId);
+        return guestSignupMapper.toDomain(response);
     }
 
     @Override
     public HelloWorldMessage getHelloWorldMessage() {
-        return mapper.toDomain(remoteDataSource.getHelloWorld());
+        return helloWorldMapper.toDomain(helloWorldRemoteDataSource.getHelloWorld());
     }
 }

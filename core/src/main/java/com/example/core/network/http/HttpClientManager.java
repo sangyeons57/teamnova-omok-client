@@ -3,8 +3,10 @@ package com.example.core.network.http;
 import java.io.IOException;
 import java.util.Objects;
 
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
@@ -46,9 +48,36 @@ public final class HttpClientManager {
                 .get()
                 .build();
 
+        return execute(request);
+    }
+
+    public HttpResponse getFromPath(String path) throws IOException {
+        return get(resolveUrl(path));
+    }
+
+    public HttpResponse postJson(String url, String jsonBody) throws IOException {
+        Objects.requireNonNull(jsonBody, "jsonBody");
+
+        MediaType mediaType = MediaType.get("application/json; charset=utf-8");
+        RequestBody requestBody = RequestBody.create(jsonBody, mediaType);
+
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .build();
+
+        return execute(request);
+    }
+
+    public HttpResponse postJsonToPath(String path, String jsonBody) throws IOException {
+        return postJson(resolveUrl(path), jsonBody);
+    }
+
+    private HttpResponse execute(Request request) throws IOException {
         try (Response response = client.newCall(request).execute()) {
             ResponseBody body = response.body();
-            String payload = body.string();
+            String payload = body != null ? body.string() : "";
             return new HttpResponse(
                     response.code(),
                     response.message(),
@@ -56,10 +85,6 @@ public final class HttpClientManager {
                     response.isSuccessful()
             );
         }
-    }
-
-    public HttpResponse getFromPath(String path) throws IOException {
-        return get(resolveUrl(path));
     }
 
     private String resolveUrl(String path) {

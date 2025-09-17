@@ -7,23 +7,16 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.core.token.TokenManager;
 import com.example.data.auth.repository.DefaultLoginRepository;
-import com.example.domain.auth.model.HelloWorldMessage;
+import com.example.domain.auth.model.GuestSignupResult;
 import com.example.domain.auth.model.LoginAction;
-import com.example.domain.auth.usecase.LoginActionUseCase;
+import com.example.domain.auth.usecase.CreateAccountUseCase;
 
-import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 /**
  * ViewModel orchestrating login related interactions while preserving the MVVM boundaries.
@@ -31,25 +24,25 @@ import okhttp3.ResponseBody;
 public class LoginViewModel extends ViewModel {
 
     private static final String TAG = "LoginViewModel";
+    private static final String DEFAULT_GOOGLE_PROVIDER_USER_ID = "\uAD6C\uAE00 \uC2DD\uBCC4\uC790";
 
-    private final LoginActionUseCase loginActionUseCase;
+    private final CreateAccountUseCase createAccountUseCase;
+    private final TokenManager tokenManager;
     private final ExecutorService executorService;
 
     private final MutableLiveData<LoginAction> loginAction = new MutableLiveData<>();
-    private final MutableLiveData<String> helloWorldMessage = new MutableLiveData<>();
-    private final MutableLiveData<String> helloWorldError = new MutableLiveData<>();
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
-    public LoginViewModel() {
-        this(new LoginActionUseCase(new DefaultLoginRepository()));
+    // This constructor will be used by the ViewModelFactory
+    public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase, @NonNull TokenManager tokenManager) {
+        this(createAccountUseCase, tokenManager, Executors.newSingleThreadExecutor());
     }
 
-    public LoginViewModel(@NonNull LoginActionUseCase loginActionUseCase) {
-        this(loginActionUseCase, Executors.newSingleThreadExecutor());
-    }
-
-    public LoginViewModel(@NonNull LoginActionUseCase loginActionUseCase,
+    public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
+                          @NonNull TokenManager tokenManager,
                           @NonNull ExecutorService executorService) {
-        this.loginActionUseCase = Objects.requireNonNull(loginActionUseCase, "loginActionUseCase");
+        this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
+        this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
         this.executorService = Objects.requireNonNull(executorService, "executorService");
     }
 
@@ -57,61 +50,24 @@ public class LoginViewModel extends ViewModel {
         return loginAction;
     }
 
-    public LiveData<String> getHelloWorldMessage() {
-        return helloWorldMessage;
-    }
-
-    public LiveData<String> getHelloWorldError() {
-        return helloWorldError;
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
     }
 
     public void onGuestLoginClicked() {
-        try {
-            executorService.execute(() -> {
-                String json = ""
-                        + "{"
-                        + "  \"provider\": \"GUEST\","
-                        + "  \"display_name\": \"새 유저\","
-                        + "  \"issue_tokens\": true"
-                        + "}";
-
-                RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
-
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder()
-                        .url("https://bamsol.net/public/create-account.php")
-                        .post(body)
-                        .header("Content-Type", "application/json; charset=UTF-8")
-                        .build();
-
-                try (Response response = client.newCall(request).execute()) {
-                    ResponseBody responseBody = response.body();
-                    if (responseBody == null) {
-                        helloWorldError.postValue("Empty response body");
-                        return;
-                    }
-
-                    String payload = responseBody.string();
-                    Log.d(TAG, "onGuestLoginClicked: " + payload);
-                    Log.d(TAG, "onGuestLoginClicked: " + responseBody);
-                    helloWorldMessage.postValue(payload);
-                } catch (IOException e) {
-                    Log.e(TAG, "onGuestLoginClicked network error", e);
-                    helloWorldError.postValue(resolveErrorMessage(e));
-                }
-            });
-        } catch (RejectedExecutionException e) {
-            Log.e(TAG, "onGuestLoginClicked execution rejected", e);
-            helloWorldError.setValue(resolveErrorMessage(e));
-        }
+        executeCreateAccount(CreateAccountUseCase.Params.forGuest(), LoginAction.GUEST);
     }
 
     public void onGoogleLoginClicked() {
-        loginAction.setValue(loginActionUseCase.loginWithGoogle());
+        executeCreateAccount(CreateAccountUseCase.Params.forGoogle(DEFAULT_GOOGLE_PROVIDER_USER_ID), LoginAction.GOOGLE);
     }
 
     public void onActionHandled() {
         loginAction.setValue(null);
+    }
+
+    public void onErrorShown() {
+        errorMessage.setValue(null);
     }
 
     @Override
@@ -120,10 +76,35 @@ public class LoginViewModel extends ViewModel {
         super.onCleared();
     }
 
+    private void executeCreateAccount(CreateAccountUseCase.Params params, LoginAction action) {
+        try {
+            executorService.execute(() -> {
+                try {
+                    GuestSignupResult result = createAccountUseCase.execute(params);
+                    Log.d(TAG, "executeCreateAccount result: " + result.toString());
+
+                    if (result.isSuccess()) {
+                        tokenManager.saveTokens(result.getAccessToken(), result.getRefreshToken());
+                        loginAction.postValue(action);
+                    } else {
+                        errorMessage.postValue(result.getErrorMessage());
+                    }
+
+                } catch (Exception exception) {
+                    Log.e(TAG, "executeCreateAccount failed", exception);
+                    errorMessage.postValue(resolveErrorMessage(exception));
+                }
+            });
+        } catch (RejectedExecutionException exception) {
+            Log.e(TAG, "executeCreateAccount rejected", exception);
+            errorMessage.postValue("Request rejected. Please try again later.");
+        }
+    }
+
     private String resolveErrorMessage(Exception exception) {
         String message = exception.getMessage();
         return (message == null || message.trim().isEmpty())
-                ? "Failed to load hello world message"
+                ? "Failed to complete guest sign-up"
                 : message;
     }
 }

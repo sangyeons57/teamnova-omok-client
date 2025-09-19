@@ -1,6 +1,9 @@
 package com.example.core.network.http;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import okhttp3.MediaType;
@@ -11,11 +14,13 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * Provides a lightweight wrapper around OkHttp to keep HTTP logic within the core layer.
+ * Provides a lightweight wrapper around OkHttp while exposing only the
+ * {@link HttpClient} abstraction to other modules.
  */
-public final class HttpClientManager {
+public final class HttpClientManager implements HttpClient {
 
     private static final HttpClientManager INSTANCE = new HttpClientManager(new OkHttpClient());
+    private static final MediaType JSON_MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
 
     private final OkHttpClient client;
 
@@ -27,7 +32,8 @@ public final class HttpClientManager {
         return INSTANCE;
     }
 
-    public Response get(String url) throws IOException {
+    @Override
+    public HttpResponse get(String url) throws IOException {
         Objects.requireNonNull(url, "url");
 
         Request request = new Request.Builder()
@@ -38,12 +44,12 @@ public final class HttpClientManager {
         return execute(request);
     }
 
-    public Response postJson(String url, String jsonBody) throws IOException {
+    @Override
+    public HttpResponse postJson(String url, String jsonBody) throws IOException {
         Objects.requireNonNull(url, "url");
         Objects.requireNonNull(jsonBody, "jsonBody");
 
-        MediaType mediaType = MediaType.get("application/json; charset=utf-8");
-        RequestBody requestBody = RequestBody.create(jsonBody, mediaType);
+        RequestBody requestBody = RequestBody.create(jsonBody, JSON_MEDIA_TYPE);
 
         Request request = new Request.Builder()
                 .url(url)
@@ -54,7 +60,16 @@ public final class HttpClientManager {
         return execute(request);
     }
 
-    private Response execute(Request request) throws IOException {
-        return client.newCall(request).execute();
+    private HttpResponse execute(Request request) throws IOException {
+        try (Response response = client.newCall(request).execute()) {
+            ResponseBody responseBody = response.body();
+            String body = responseBody != null ? responseBody.string() : "";
+            Map<String, String> headers = new HashMap<>();
+            for (String name : response.headers().names()) {
+                List<String> values = response.headers(name);
+                headers.put(name, String.join(", ", values));
+            }
+            return new HttpResponse(response.code(), response.message(), body, headers);
+        }
     }
 }

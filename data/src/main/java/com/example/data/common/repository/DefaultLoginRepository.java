@@ -1,24 +1,29 @@
 package com.example.data.common.repository;
 
 import com.example.core.network.http.HttpClientManager;
-import com.example.core.network.http.HttpResponse;
+import com.example.data.common.datasource.DefaultPhpServerDataSource;
 import com.example.data.common.exception.GuestSignupRemoteException;
 import com.example.data.common.exception.HelloWorldRemoteException;
 import com.example.data.common.mapper.GuestSignupMapper;
 import com.example.data.common.mapper.HelloWorldMapper;
 import com.example.data.common.model.GuestSignupResponse;
 import com.example.data.common.model.HelloWorldResponse;
-import com.example.data.common.datasource.DefaultPhpServerDataSource;
+import com.example.data.common.model.request.Path;
+import com.example.data.common.model.request.Request;
+import com.example.data.common.model.response.Error;
+import com.example.data.common.model.response.ResponseSingle;
 import com.example.domain.auth.model.GuestSignupResult;
 import com.example.domain.auth.model.HelloWorldMessage;
 import com.example.domain.auth.model.LoginAction;
 import com.example.domain.auth.repository.LoginRepository;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Default implementation of the login repository which orchestrates
@@ -26,13 +31,12 @@ import java.util.Objects;
  */
 public class DefaultLoginRepository implements LoginRepository {
 
-    private static final String HELLO_WORLD_PATH = "hello-world.php";
-    private static final String CREATE_ACCOUNT_PATH = "create-account.php";
     private static final String DEFAULT_PROVIDER = "GUEST";
 
     private final DefaultPhpServerDataSource phpServerDataSource;
     private final HelloWorldMapper helloWorldMapper;
     private final GuestSignupMapper guestSignupMapper;
+    private final Gson gson = new Gson();
 
     public DefaultLoginRepository() {
         this(
@@ -53,13 +57,21 @@ public class DefaultLoginRepository implements LoginRepository {
     @Override
     public GuestSignupResult createAccount(LoginAction provider, String providerUserId) {
         try {
-            String payload = buildCreateAccountPayload(resolveProvider(provider), providerUserId);
-            HttpResponse response = phpServerDataSource.postJson(CREATE_ACCOUNT_PATH, payload);
-            if (!response.isSuccessful()) {
-                String message = "Unexpected HTTP " + response.getCode() + ' ' + response.getMessage();
-                throw new GuestSignupRemoteException(message);
+            Request request = buildRequest(Path.CREATE_ACCOUNT);
+            Map<String, String> body = new HashMap<>();
+            body.put("provider", resolveProvider(provider));
+            if (providerUserId != null && !providerUserId.trim().isEmpty()) {
+                body.put("provider_user_id", providerUserId);
             }
-            GuestSignupResponse dto = new GuestSignupResponse(response.getBody());
+            request.setBody(body);
+
+            ResponseSingle response = phpServerDataSource.postSingle(request);
+            if (!response.isSuccess()) {
+                throw new GuestSignupRemoteException(
+                        extractErrorMessage(response.getError(), "Failed to create account"));
+            }
+
+            GuestSignupResponse dto = new GuestSignupResponse(serializeResponseData(response));
             return guestSignupMapper.toDomain(dto);
         } catch (IOException exception) {
             throw new GuestSignupRemoteException("Failed to create account", exception);
@@ -69,12 +81,13 @@ public class DefaultLoginRepository implements LoginRepository {
     @Override
     public HelloWorldMessage getHelloWorldMessage() {
         try {
-            HttpResponse response = phpServerDataSource.get(HELLO_WORLD_PATH);
-            if (!response.isSuccessful()) {
-                String message = "Unexpected HTTP " + response.getCode() + ' ' + response.getMessage();
-                throw new HelloWorldRemoteException(message);
+            Request request = buildRequest(Path.HELLO_WORLD);
+            ResponseSingle response = phpServerDataSource.postSingle(request);
+            if (!response.isSuccess()) {
+                throw new HelloWorldRemoteException(
+                        extractErrorMessage(response.getError(), "Failed to fetch hello world message"));
             }
-            HelloWorldResponse dto = new HelloWorldResponse(response.getBody());
+            HelloWorldResponse dto = new HelloWorldResponse(extractHelloWorldMessage(response));
             return helloWorldMapper.toDomain(dto);
         } catch (IOException exception) {
             throw new HelloWorldRemoteException("Failed to fetch hello world message", exception);
@@ -85,17 +98,48 @@ public class DefaultLoginRepository implements LoginRepository {
         return provider != null ? provider.name() : DEFAULT_PROVIDER;
     }
 
-    private String buildCreateAccountPayload(String provider, String providerUserId) {
-        try {
-            JSONObject payload = new JSONObject();
-            payload.put("provider", provider);
-            if (providerUserId != null && !providerUserId.trim().isEmpty()) {
-                payload.put("provider_user_id", providerUserId);
-            }
-            return payload.toString();
-        } catch (JSONException exception) {
-            throw new GuestSignupRemoteException("Failed to build account payload", exception);
+    private Request buildRequest(Path path) {
+        Request request = new Request();
+        request.setPath(path);
+        request.setRequestId(UUID.randomUUID().toString());
+        request.setTimestamp(Instant.now());
+        return request;
+    }
+
+    private String serializeResponseData(ResponseSingle response) {
+        if (response != null && response.getData() != null && response.getData().getData() != null) {
+            return gson.toJson(response.getData().getData());
         }
+        Map<String, Object> fallback = new HashMap<>();
+        fallback.put("success", false);
+        if (response != null && response.getError() != null) {
+            fallback.put("message", response.getError().getMessage());
+            fallback.put("code", response.getError().getCode());
+        }
+        return gson.toJson(fallback);
+    }
+
+    private String extractHelloWorldMessage(ResponseSingle response) {
+        if (response != null && response.getData() != null && response.getData().getData() != null) {
+            Object value = response.getData().getData().get("message");
+            if (value != null) {
+                return String.valueOf(value);
+            }
+        }
+        if (response != null && response.getError() != null) {
+            return response.getError().getMessage();
+        }
+        return "";
+    }
+
+    private String extractErrorMessage(Error error, String defaultMessage) {
+        if (error == null) {
+            return defaultMessage;
+        }
+        String message = error.getMessage();
+        if (message != null && !message.trim().isEmpty()) {
+            return message;
+        }
+        return defaultMessage;
     }
 }
-

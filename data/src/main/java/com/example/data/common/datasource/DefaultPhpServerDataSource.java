@@ -1,15 +1,15 @@
 package com.example.data.common.datasource;
 
-import android.net.Uri;
-
-import com.example.core.network.http.HttpClientManager;
+import com.example.core.network.http.HttpClient;
+import com.example.core.network.http.HttpEndpointResolver;
 import com.example.core.network.http.HttpResponse;
 import com.example.data.common.model.request.Request;
 import com.example.data.common.model.response.ResponseList;
+import com.example.data.common.model.response.ResponseSingle;
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -17,78 +17,63 @@ import java.util.Objects;
  */
 public class DefaultPhpServerDataSource {
 
-    private static final String DEFAULT_PUBLIC_BASE_PATH = "https://bamsol.net/public/";
-    private final HttpClientManager httpClientManager;
+    private final HttpClient httpClient;
     private final Gson gson;
 
-
-    public DefaultPhpServerDataSource(HttpClientManager httpClientManager) {
-        this.httpClientManager = Objects.requireNonNull(httpClientManager, "httpClientManager");
-        this.gson = new Gson();
+    public DefaultPhpServerDataSource(HttpClient httpClient) {
+        this(httpClient, new Gson());
     }
 
-
-    /**
-     * Executes a GET request after building the URL with parameters from the Request object.
-     * @param resourcePath The base path for the API endpoint.
-     * @param request The request object containing query parameters.
-     * @return The HttpResponse from the server.
-     * @throws IOException If a network error occurs.
-     */
-    public HttpResponse get(Request request) throws IOException {
-        String baseUrl = resolvePublicPath(request.getPath().toString());
-
-        Uri.Builder uriBuilder = Uri.parse(baseUrl).buildUpon();
-        for (HashMap.Entry<String, String> entry : request.getBody().entrySet()) {
-            uriBuilder.appendQueryParameter(entry.getKey(), entry.getValue());
-        }
-
-        uriBuilder.appendQueryParameter("apiVersion", request.getApiVersion());
-        uriBuilder.appendQueryParameter("requestId", request.getRequestId());
-        uriBuilder.appendQueryParameter("timestamp", request.getTimestamp().toString());
-
-        Response response = httpClientManager.get(uriBuilder.build().toString());
-        return
+    public DefaultPhpServerDataSource(HttpClient httpClient, Gson gson) {
+        this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
+        this.gson = Objects.requireNonNull(gson, "gson");
     }
 
+    public HttpResponse post(Request request) throws IOException {
+        Objects.requireNonNull(request, "request");
+        String jsonBody = request.toJson(gson);
+        return executePost(request, jsonBody);
+    }
 
     public HttpResponse postJson(String resourcePath, String jsonBody) throws IOException {
-        String url = resolvePublicPath(resourcePath);
-        return httpClientManager.postJson(url, jsonBody);
+        Objects.requireNonNull(resourcePath, "resourcePath");
+        Objects.requireNonNull(jsonBody, "jsonBody");
+        String url = HttpEndpointResolver.resolvePublicPath(resourcePath);
+        return httpClient.postJson(url, jsonBody);
     }
 
-    /**
-     * Executes a POST request after serializing the Request object's body to JSON.
-     * @param resourcePath The base path for the API endpoint.
-     * @param request The request object containing the body to be sent as JSON.
-     * @return The HttpResponse from the server.
-     * @throws IOException If a network error occurs.
-     */
-    public HttpResponse post(String resourcePath, Request request) throws IOException {
-        String jsonBody = gson.toJson(request.getBody());
-        return postJson(resourcePath, jsonBody);
+    public ResponseSingle postSingle(Request request) throws IOException {
+        HttpResponse response = post(request);
+        return parseResponse(response, ResponseSingle.class);
     }
 
-    private String buildUrlForGet(String resourcePath, HashMap<String, String> params) {
-
+    public ResponseList postList(Request request) throws IOException {
+        HttpResponse response = post(request);
+        return parseResponse(response, ResponseList.class);
     }
 
+    private HttpResponse executePost(Request request, String jsonBody) throws IOException {
+        String resolvedPath = request.getPath() != null ? request.getPath().toString() : null;
+        String url = HttpEndpointResolver.resolvePublicPath(resolvedPath);
+        return httpClient.postJson(url, jsonBody);
+    }
 
-    private static String resolvePublicPath(String relativePath) {
-        if (relativePath == null || relativePath.trim().isEmpty()) {
-            return DEFAULT_PUBLIC_BASE_PATH;
+    private <T> T parseResponse(HttpResponse response, Class<T> responseType) throws IOException {
+        if (response == null) {
+            throw new IOException("response == null");
         }
-
-        String trimmed = relativePath.trim();
-        if (isAbsolute(trimmed)) {
-            return trimmed;
+        String body = response.getBody();
+        if (body == null || body.trim().isEmpty()) {
+            throw new IOException("Expected JSON body but was empty");
         }
-
-        return DEFAULT_PUBLIC_BASE_PATH + trimmed;
+        try {
+            T parsed = gson.fromJson(body, responseType);
+            if (parsed == null) {
+                throw new IOException("Failed to parse JSON into " + responseType.getSimpleName());
+            }
+            return parsed;
+        } catch (JsonParseException exception) {
+            throw new IOException("Malformed JSON received", exception);
+        }
     }
-
-    private static boolean isAbsolute(String value) {
-        return value.startsWith("http://") || value.startsWith("https://");
-    }
-
 }

@@ -3,13 +3,11 @@ package com.example.core.token;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.example.core.navigation.NavigationHelper;
 import com.example.core.network.http.HttpClientManager;
+import com.example.core.network.http.HttpEndpointResolver;
 import com.example.core.network.http.HttpResponse;
 
 import org.json.JSONObject;
-
-import java.io.IOException;
 
 public class TokenManager {
 
@@ -37,7 +35,7 @@ public class TokenManager {
     }
 
     public static TokenManager getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             throw new IllegalStateException("TokenManager is not initialized. Call TokenManager.getInstance(Context) first.");
         }
         return instance;
@@ -84,7 +82,7 @@ public class TokenManager {
                 jsonBody.put("refresh_token", refreshToken);
 
                 HttpClientManager client = HttpClientManager.getInstance();
-                String endpoint = NavigationHelper.resolvePublicPath(REFRESH_TOKEN_RESOURCE);
+                String endpoint = HttpEndpointResolver.resolvePublicPath(REFRESH_TOKEN_RESOURCE);
                 HttpResponse response = client.postJson(endpoint, jsonBody.toString());
 
                 if (response.isSuccessful()) {

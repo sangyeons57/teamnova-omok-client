@@ -2,11 +2,13 @@ package com.example.domain.auth.usecase;
 
 import com.example.domain.auth.model.HelloWorldMessage;
 import com.example.domain.auth.repository.LoginRepository;
+import com.example.domain.usecase.SyncUseCase;
 import com.example.domain.usecase.UseCase;
+import com.example.domain.usecase.UseCaseException;
 
 import java.util.Objects;
 
-public class GetHelloWorldMessageUseCase implements UseCase<UseCase.None, HelloWorldMessage> {
+public class GetHelloWorldMessageUseCase extends SyncUseCase<UseCase.None, HelloWorldMessage> {
 
     private final LoginRepository repository;
 
@@ -15,7 +17,7 @@ public class GetHelloWorldMessageUseCase implements UseCase<UseCase.None, HelloW
     }
 
     @Override
-    public HelloWorldMessage execute(UseCase.None none) {
+    protected HelloWorldMessage run(UseCase.None none) throws UseCaseException {
         return repository.getHelloWorldMessage();
     }
 }

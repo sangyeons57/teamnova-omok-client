@@ -3,11 +3,13 @@ package com.example.domain.auth.usecase;
 import com.example.domain.auth.model.GuestSignupResult;
 import com.example.domain.auth.model.LoginAction;
 import com.example.domain.auth.repository.LoginRepository;
+import com.example.domain.usecase.SyncUseCase;
 import com.example.domain.usecase.UseCase;
+import com.example.domain.usecase.UseCaseException;
 
 import java.util.Objects;
 
-public class CreateAccountUseCase implements UseCase<CreateAccountUseCase.Params, GuestSignupResult> {
+public class CreateAccountUseCase extends SyncUseCase<CreateAccountUseCase.Params, GuestSignupResult> {
 
     private final LoginRepository repository;
 
@@ -16,7 +18,7 @@ public class CreateAccountUseCase implements UseCase<CreateAccountUseCase.Params
     }
 
     @Override
-    public GuestSignupResult execute(Params params) {
+    protected GuestSignupResult run(Params params) throws UseCaseException {
         Objects.requireNonNull(params, "params");
         return repository.createAccount(params.getProvider(), params.getProviderUserId());
     }

@@ -9,8 +9,6 @@ public final class UseCaseContainer{
 
     public final UseCaseRegistry registry = new UseCaseRegistry();
 
-    public final LoginRepository loginRepository = new LoginRepository()
-
 
     public UseCaseContainer() {
         registry.register(CreateAccountUseCase.class, UseCaseProviders.singleton(()-> new CreateAccountUseCase()));

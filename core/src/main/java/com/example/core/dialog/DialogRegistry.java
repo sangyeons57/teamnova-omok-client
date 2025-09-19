@@ -10,10 +10,28 @@ import java.util.Map;
  */
 public final class DialogRegistry<T extends Enum<T>> {
 
+    private final Class<T> keyType;
     private final Map<T, DialogEntry<T>> entries;
 
     public DialogRegistry(@NonNull Class<T> keyType) {
+        this.keyType = keyType;
         this.entries = new EnumMap<>(keyType);
+    }
+
+    @NonNull
+    public Class<T> getKeyType() {
+        return keyType;
+    }
+
+    public void registerProvider(@NonNull DialogProvider<T> provider) {
+        Class<T> providerKeyType = provider.getDialogKeyType();
+        if (!keyType.equals(providerKeyType)) {
+            throw new IllegalArgumentException(
+                    "Provider key type does not match registry key type. Expected " +
+                            keyType.getName() + " but was " + providerKeyType.getName()
+            );
+        }
+        provider.register(this);
     }
 
     public void register(@NonNull T type, @NonNull DialogController<T> controller) {

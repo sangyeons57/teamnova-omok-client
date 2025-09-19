@@ -12,23 +12,25 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.core.dialog.DialogManager;
-import com.example.core.dialog.DialogRegistry;
+import com.example.core.dialog.DialogHost;
 import com.example.domain.auth.model.LoginAction;
 import com.example.feature_auth.R;
+import com.example.feature_auth.login.di.AuthDialogHostOwner;
 import com.google.android.material.button.MaterialButton;
 
 public class LoginFragment extends Fragment {
 
     private LoginViewModel viewModel;
-    private DialogManager<AuthDialogType> dialogManager;
+    private DialogHost<AuthDialogType> dialogHost;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        DialogRegistry<AuthDialogType> registry = new DialogRegistry<>(AuthDialogType.class);
-        registry.register(AuthDialogType.TERMS_AGREEMENT, new TermsAgreementDialogController());
-        dialogManager = new DialogManager<>(registry);
+        if (context instanceof AuthDialogHostOwner) {
+            dialogHost = ((AuthDialogHostOwner) context).getDialogHost();
+        } else {
+            throw new IllegalStateException("Host activity must implement AuthDialogHostOwner");
+        }
     }
 
     @Nullable
@@ -43,9 +45,9 @@ public class LoginFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-        if (dialogManager != null && !dialogManager.isAttached()) {
+        if (dialogHost != null && !dialogHost.isAttached()) {
             FragmentActivity activity = requireActivity();
-            dialogManager.attach(activity);
+            dialogHost.attach(activity);
         }
 
         MaterialButton guestButton = view.findViewById(R.id.buttonGuestLogin);
@@ -66,17 +68,9 @@ public class LoginFragment extends Fragment {
         });
     }
 
-    @Override
-    public void onDestroyView() {
-        if (dialogManager != null && dialogManager.isAttached()) {
-            dialogManager.detach(requireActivity());
-        }
-        super.onDestroyView();
-    }
-
     private void showTermsAgreementDialog() {
-        if (dialogManager != null && dialogManager.isAttached()) {
-            dialogManager.enqueue(AuthDialogType.TERMS_AGREEMENT);
+        if (dialogHost != null && dialogHost.isAttached()) {
+            dialogHost.enqueue(AuthDialogType.TERMS_AGREEMENT);
         }
     }
 }

@@ -19,7 +19,7 @@ import java.util.Iterator;
  * Presents dialogs in a LIFO stack so the most recent request is always visible and can be
  * dismissed in reverse order (similar to a back stack).
  */
-public final class DialogManager<T extends Enum<T>> {
+public final class DialogHost<T extends Enum<T>> {
 
     private final DialogRegistry<T> registry;
     private final Deque<DialogSession<T>> dialogStack = new ArrayDeque<>();
@@ -27,7 +27,7 @@ public final class DialogManager<T extends Enum<T>> {
     private WeakReference<FragmentActivity> activityRef = new WeakReference<>(null);
     private OnBackPressedCallback backPressedCallback;
 
-    public DialogManager(@NonNull DialogRegistry<T> registry) {
+    public DialogHost(@NonNull DialogRegistry<T> registry) {
         this.registry = registry;
     }
 
@@ -187,14 +187,14 @@ public final class DialogManager<T extends Enum<T>> {
     private FragmentActivity requireActivity() {
         FragmentActivity activity = activityRef.get();
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
-            throw new IllegalStateException("DialogManager requires an attached FragmentActivity");
+            throw new IllegalStateException("DialogHost requires an attached FragmentActivity");
         }
         return activity;
     }
 
     private void ensureMainThread() {
         if (Looper.getMainLooper() != Looper.myLooper()) {
-            throw new IllegalStateException("DialogManager must be accessed from the main thread");
+            throw new IllegalStateException("DialogHost must be accessed from the main thread");
         }
     }
 

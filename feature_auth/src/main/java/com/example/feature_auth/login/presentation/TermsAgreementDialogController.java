@@ -17,7 +17,7 @@ import com.example.feature_auth.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-final class TermsAgreementDialogController implements DialogController<AuthDialogType> {
+public final class TermsAgreementDialogController implements DialogController<AuthDialogType> {
 
     private static final String LOG_TAG = "TermsAgreementDlg";
 

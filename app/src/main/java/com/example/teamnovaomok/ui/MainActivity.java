@@ -9,18 +9,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
 import com.example.core.dialog.DialogHost;
-import com.example.feature_auth.login.di.AuthDialogHostOwner;
-import com.example.feature_auth.login.presentation.AuthDialogType;
-import com.example.feature_auth.login.presentation.LoginFragment;
-import com.example.teamnovaomok.R;
-import com.example.teamnovaomok.ui.di.DialogAssembler;
+import com.example.core.dialog.MainDialogType;
 import com.example.core.navigation.NavigationHelper;
 import com.example.core.token.TokenManager;
+import com.example.feature_auth.login.di.MainDialogHostOwner;
+import com.example.feature_auth.login.presentation.LoginFragment;
+import com.example.teamnovaomok.R;
+import com.example.teamnovaomok.ui.di.DialogContainer;
 
-public class MainActivity extends AppCompatActivity implements AuthDialogHostOwner {
+public class MainActivity extends AppCompatActivity implements MainDialogHostOwner {
 
     private NavigationHelper navigationHelper;
-    private DialogAssembler dialogAssembler;
+    private DialogContainer dialogContainer;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -30,8 +30,8 @@ public class MainActivity extends AppCompatActivity implements AuthDialogHostOwn
 
         initializeManager(getApplicationContext());
 
-        dialogAssembler = new DialogAssembler();
-        dialogAssembler.getAuthDialogHost().attach(this);
+        dialogContainer = new DialogContainer();
+        dialogContainer.getMainDialogHost().attach(this);
 
         navigationHelper = new NavigationHelper(getSupportFragmentManager(), R.id.main_fragment_container, "MainNavigation");
 
@@ -45,14 +45,14 @@ public class MainActivity extends AppCompatActivity implements AuthDialogHostOwn
 
     @NonNull
     @Override
-    public DialogHost<AuthDialogType> getDialogHost() {
-        return dialogAssembler.getAuthDialogHost();
+    public DialogHost<MainDialogType> getDialogHost() {
+        return dialogContainer.getMainDialogHost();
     }
 
     @Override
     protected void onDestroy() {
-        if (dialogAssembler != null) {
-            DialogHost<AuthDialogType> host = dialogAssembler.getAuthDialogHost();
+        if (dialogContainer != null) {
+            DialogHost<MainDialogType> host = dialogContainer.getMainDialogHost();
             if (host.isAttached()) {
                 host.detach(this);
             }

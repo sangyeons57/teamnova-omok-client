@@ -9,27 +9,27 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.core.dialog.DialogHost;
+import com.example.core.dialog.MainDialogType;
 import com.example.domain.auth.model.LoginAction;
 import com.example.feature_auth.R;
-import com.example.feature_auth.login.di.AuthDialogHostOwner;
+import com.example.feature_auth.login.di.MainDialogHostOwner;
 import com.google.android.material.button.MaterialButton;
 
 public class LoginFragment extends Fragment {
 
     private LoginViewModel viewModel;
-    private DialogHost<AuthDialogType> dialogHost;
+    private DialogHost<MainDialogType> dialogHost;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof AuthDialogHostOwner) {
-            dialogHost = ((AuthDialogHostOwner) context).getDialogHost();
+        if (context instanceof MainDialogHostOwner) {
+            dialogHost = ((MainDialogHostOwner) context).getDialogHost();
         } else {
-            throw new IllegalStateException("Host activity must implement AuthDialogHostOwner");
+            throw new IllegalStateException("Host activity must implement MainDialogHostOwner");
         }
     }
 
@@ -44,11 +44,6 @@ public class LoginFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
-
-        if (dialogHost != null && !dialogHost.isAttached()) {
-            FragmentActivity activity = requireActivity();
-            dialogHost.attach(activity);
-        }
 
         MaterialButton guestButton = view.findViewById(R.id.buttonGuestLogin);
         MaterialButton googleButton = view.findViewById(R.id.buttonGoogleLogin);
@@ -70,7 +65,7 @@ public class LoginFragment extends Fragment {
 
     private void showTermsAgreementDialog() {
         if (dialogHost != null && dialogHost.isAttached()) {
-            dialogHost.enqueue(AuthDialogType.TERMS_AGREEMENT);
+            dialogHost.enqueue(MainDialogType.TERMS_AGREEMENT);
         }
     }
 }

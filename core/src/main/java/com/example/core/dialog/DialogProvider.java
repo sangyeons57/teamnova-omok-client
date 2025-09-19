@@ -3,18 +3,21 @@ package com.example.core.dialog;
 import androidx.annotation.NonNull;
 
 /**
- * Supplies dialog registrations for a specific enum-backed dialog key set.
+ * Supplies a single dialog controller binding for an enum-backed key.
  */
 public interface DialogProvider<T extends Enum<T>> {
 
-    /**
-     * @return the enum class that represents dialog keys handled by this provider.
-     */
     @NonNull
     Class<T> getDialogKeyType();
 
-    /**
-     * Register dialog controllers and configuration with the provided registry instance.
-     */
-    void register(@NonNull DialogRegistry<T> registry);
+    @NonNull
+    T getDialogKey();
+
+    @NonNull
+    DialogController<T> createController();
+
+    @NonNull
+    default DialogConfig getDialogConfig() {
+        return DialogConfig.DEFAULT;
+    }
 }

@@ -2,15 +2,21 @@ package com.example.feature_auth.login.presentation;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.core.token.TokenManager;
+import com.example.data.common.repository.DefaultLoginRepository;
 import com.example.domain.auth.model.GuestSignupResult;
 import com.example.domain.auth.model.LoginAction;
 import com.example.domain.auth.usecase.CreateAccountUseCase;
+import com.example.domain.usecase.UResult;
 
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
@@ -21,13 +27,24 @@ public class LoginViewModel extends ViewModel {
     private static final String TAG = "LoginViewModel";
     private static final String DEFAULT_GOOGLE_PROVIDER_USER_ID = "\uAD6C\uAE00 \uC2DD\uBCC4\uC790";
 
-
     private final MutableLiveData<LoginAction> loginAction = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private final ExecutorService executorService;
+    private final CreateAccountUseCase createAccountUseCase;
+    private final TokenManager tokenManager;
 
-    // This constructor will be used by the ViewModelFactory
     public LoginViewModel() {
+        this(new CreateAccountUseCase(new DefaultLoginRepository()),
+                TokenManager.getInstance(),
+                Executors.newSingleThreadExecutor());
+    }
 
+    LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
+                   @NonNull TokenManager tokenManager,
+                   @NonNull ExecutorService executorService) {
+        this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
+        this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
+        this.executorService = Objects.requireNonNull(executorService, "executorService");
     }
 
     public LiveData<LoginAction> getLoginAction() {
@@ -64,16 +81,12 @@ public class LoginViewModel extends ViewModel {
         try {
             executorService.execute(() -> {
                 try {
-                    GuestSignupResult result = createAccountUseCase.execute(params);
-                    Log.d(TAG, "executeCreateAccount result: " + result.toString());
-
-                    if (result.isSuccess()) {
-                        TokenManager.getInstance().saveTokens(result.getAccessToken(), result.getRefreshToken());
-                        loginAction.postValue(action);
-                    } else {
-                        errorMessage.postValue(result.getErrorMessage());
+                    UResult<GuestSignupResult> result = createAccountUseCase.execute(params);
+                    if (result instanceof UResult.Ok<GuestSignupResult> ok) {
+                        handleSuccess(ok.value(), action);
+                    } else if (result instanceof UResult.Err<GuestSignupResult> err) {
+                        handleFailure(err.message());
                     }
-
                 } catch (Exception exception) {
                     Log.e(TAG, "executeCreateAccount failed", exception);
                     errorMessage.postValue(resolveErrorMessage(exception));
@@ -82,6 +95,19 @@ public class LoginViewModel extends ViewModel {
         } catch (RejectedExecutionException exception) {
             Log.e(TAG, "executeCreateAccount rejected", exception);
             errorMessage.postValue("Request rejected. Please try again later.");
+        }
+    }
+
+    private void handleSuccess(GuestSignupResult result, LoginAction action) {
+        tokenManager.saveTokens(result.getAccessToken(), result.getRefreshToken());
+        loginAction.postValue(action);
+    }
+
+    private void handleFailure(String message) {
+        if (message == null || message.trim().isEmpty()) {
+            errorMessage.postValue("Failed to complete guest sign-up");
+        } else {
+            errorMessage.postValue(message);
         }
     }
 

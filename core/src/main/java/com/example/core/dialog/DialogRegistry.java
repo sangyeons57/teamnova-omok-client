@@ -31,19 +31,15 @@ public final class DialogRegistry<T extends Enum<T>> {
                             keyType.getName() + " but was " + providerKeyType.getName()
             );
         }
-        provider.register(this);
-    }
 
-    public void register(@NonNull T type, @NonNull DialogController<T> controller) {
-        register(type, controller, DialogConfig.DEFAULT);
-    }
+        T key = provider.getDialogKey();
+        if (entries.containsKey(key)) {
+            throw new IllegalStateException("Dialog already registered for key: " + key.name());
+        }
 
-    public void register(
-            @NonNull T type,
-            @NonNull DialogController<T> controller,
-            @NonNull DialogConfig config
-    ) {
-        entries.put(type, new DialogEntry<>(controller, config));
+        DialogController<T> controller = provider.createController();
+        DialogConfig config = provider.getDialogConfig();
+        entries.put(key, new DialogEntry<>(controller, config));
     }
 
     /* package */ @NonNull

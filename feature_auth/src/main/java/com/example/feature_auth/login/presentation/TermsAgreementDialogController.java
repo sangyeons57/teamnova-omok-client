@@ -13,17 +13,18 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogRequest;
+import com.example.core.dialog.MainDialogType;
 import com.example.feature_auth.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-public final class TermsAgreementDialogController implements DialogController<AuthDialogType> {
+public final class TermsAgreementDialogController implements DialogController<MainDialogType> {
 
     private static final String LOG_TAG = "TermsAgreementDlg";
 
     @NonNull
     @Override
-    public AlertDialog create(@NonNull FragmentActivity activity, @NonNull DialogRequest<AuthDialogType> request) {
+    public AlertDialog create(@NonNull FragmentActivity activity, @NonNull DialogRequest<MainDialogType> request) {
         View contentView = LayoutInflater.from(activity).inflate(R.layout.dialog_terms_agreement, null, false);
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(activity)

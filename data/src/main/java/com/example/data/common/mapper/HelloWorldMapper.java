@@ -1,6 +1,6 @@
-package com.example.data.auth.mapper;
+package com.example.data.common.mapper;
 
-import com.example.data.auth.model.HelloWorldResponse;
+import com.example.data.common.model.HelloWorldResponse;
 import com.example.domain.auth.model.HelloWorldMessage;
 
 /**

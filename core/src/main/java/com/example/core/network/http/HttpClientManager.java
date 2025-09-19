@@ -15,34 +15,21 @@ import okhttp3.ResponseBody;
  */
 public final class HttpClientManager {
 
-    private static final String DEFAULT_BASE_URL = "https://bamsol.net";
-    private static final HttpClientManager INSTANCE = new HttpClientManager(new OkHttpClient(), DEFAULT_BASE_URL);
+    private static final HttpClientManager INSTANCE = new HttpClientManager(new OkHttpClient());
 
     private final OkHttpClient client;
-    private final String baseUrl;
 
-    private HttpClientManager(OkHttpClient client, String baseUrl) {
+    private HttpClientManager(OkHttpClient client) {
         this.client = Objects.requireNonNull(client, "client");
-        this.baseUrl = Objects.requireNonNull(baseUrl, "baseUrl");
     }
 
     public static HttpClientManager getInstance() {
         return INSTANCE;
     }
 
-    public static HttpClientManager from(OkHttpClient client) {
-        return new HttpClientManager(client, DEFAULT_BASE_URL);
-    }
+    public Response get(String url) throws IOException {
+        Objects.requireNonNull(url, "url");
 
-    public static HttpClientManager from(OkHttpClient client, String baseUrl) {
-        return new HttpClientManager(client, baseUrl);
-    }
-
-    public static HttpClientManager withBaseUrl(String baseUrl) {
-        return new HttpClientManager(new OkHttpClient(), baseUrl);
-    }
-
-    public HttpResponse get(String url) throws IOException {
         Request request = new Request.Builder()
                 .url(url)
                 .get()
@@ -51,11 +38,8 @@ public final class HttpClientManager {
         return execute(request);
     }
 
-    public HttpResponse getFromPath(String path) throws IOException {
-        return get(resolveUrl(path));
-    }
-
-    public HttpResponse postJson(String url, String jsonBody) throws IOException {
+    public Response postJson(String url, String jsonBody) throws IOException {
+        Objects.requireNonNull(url, "url");
         Objects.requireNonNull(jsonBody, "jsonBody");
 
         MediaType mediaType = MediaType.get("application/json; charset=utf-8");
@@ -70,48 +54,7 @@ public final class HttpClientManager {
         return execute(request);
     }
 
-    public HttpResponse postJsonToPath(String path, String jsonBody) throws IOException {
-        return postJson(resolveUrl(path), jsonBody);
-    }
-
-    private HttpResponse execute(Request request) throws IOException {
-        try (Response response = client.newCall(request).execute()) {
-            ResponseBody body = response.body();
-            String payload = body != null ? body.string() : "";
-            return new HttpResponse(
-                    response.code(),
-                    response.message(),
-                    payload,
-                    response.isSuccessful()
-            );
-        }
-    }
-
-    private String resolveUrl(String path) {
-        if (path == null || path.trim().isEmpty()) {
-            return baseUrl;
-        }
-
-        String trimmed = path.trim();
-        if (isAbsolute(trimmed)) {
-            return trimmed;
-        }
-
-        boolean pathStartsWithSlash = trimmed.startsWith("/");
-        boolean baseEndsWithSlash = baseUrl.endsWith("/");
-
-        if (pathStartsWithSlash && baseEndsWithSlash) {
-            return baseUrl + trimmed.substring(1);
-        }
-
-        if (!pathStartsWithSlash && !baseEndsWithSlash) {
-            return baseUrl + '/' + trimmed;
-        }
-
-        return baseUrl + trimmed;
-    }
-
-    private boolean isAbsolute(String value) {
-        return value.startsWith("http://") || value.startsWith("https://");
+    private Response execute(Request request) throws IOException {
+        return client.newCall(request).execute();
     }
 }

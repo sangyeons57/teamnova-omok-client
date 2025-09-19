@@ -26,13 +26,15 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":domain"))
+    implementation(project(":data"))
     implementation(project(":feature_auth"))
 
     implementation(libs.appcompat)

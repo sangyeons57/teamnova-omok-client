@@ -1,4 +1,4 @@
-package com.example.data.auth.model;
+package com.example.data.common.model;
 
 import java.util.Objects;
 

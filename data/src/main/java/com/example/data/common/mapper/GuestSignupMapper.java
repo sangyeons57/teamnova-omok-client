@@ -1,6 +1,6 @@
-package com.example.data.auth.mapper;
+package com.example.data.common.mapper;
 
-import com.example.data.auth.model.GuestSignupResponse;
+import com.example.data.common.model.GuestSignupResponse;
 import com.example.domain.auth.model.GuestSignupResult;
 import com.example.domain.auth.model.User;
 

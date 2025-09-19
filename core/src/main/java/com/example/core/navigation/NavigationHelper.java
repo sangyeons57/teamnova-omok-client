@@ -11,41 +11,6 @@ import androidx.fragment.app.FragmentTransaction;
 import java.util.Objects;
 
 public class NavigationHelper {
-
-    private static final String DEFAULT_PUBLIC_BASE_PATH = "https://bamsol.net/public";
-
-    public static String getPublicBasePath() {
-        return DEFAULT_PUBLIC_BASE_PATH;
-    }
-
-    public static String resolvePublicPath(String relativePath) {
-        if (relativePath == null || relativePath.trim().isEmpty()) {
-            return DEFAULT_PUBLIC_BASE_PATH;
-        }
-
-        String trimmed = relativePath.trim();
-        if (isAbsolute(trimmed)) {
-            return trimmed;
-        }
-
-        boolean baseEndsWithSlash = DEFAULT_PUBLIC_BASE_PATH.endsWith("/");
-        boolean pathStartsWithSlash = trimmed.startsWith("/");
-
-        if (baseEndsWithSlash && pathStartsWithSlash) {
-            return DEFAULT_PUBLIC_BASE_PATH + trimmed.substring(1);
-        }
-
-        if (!baseEndsWithSlash && !pathStartsWithSlash) {
-            return DEFAULT_PUBLIC_BASE_PATH + '/' + trimmed;
-        }
-
-        return DEFAULT_PUBLIC_BASE_PATH + trimmed;
-    }
-
-    private static boolean isAbsolute(String value) {
-        return value.startsWith("http://") || value.startsWith("https://");
-    }
-
     public static class NavigationOptions {
         public final boolean addToBackStack;
         public final String tag;

@@ -2,20 +2,15 @@ package com.example.feature_auth.login.presentation;
 
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.core.token.TokenManager;
-import com.example.data.auth.repository.DefaultLoginRepository;
 import com.example.domain.auth.model.GuestSignupResult;
 import com.example.domain.auth.model.LoginAction;
 import com.example.domain.auth.usecase.CreateAccountUseCase;
 
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
@@ -26,24 +21,13 @@ public class LoginViewModel extends ViewModel {
     private static final String TAG = "LoginViewModel";
     private static final String DEFAULT_GOOGLE_PROVIDER_USER_ID = "\uAD6C\uAE00 \uC2DD\uBCC4\uC790";
 
-    private final CreateAccountUseCase createAccountUseCase;
-    private final TokenManager tokenManager;
-    private final ExecutorService executorService;
 
     private final MutableLiveData<LoginAction> loginAction = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
     // This constructor will be used by the ViewModelFactory
-    public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase, @NonNull TokenManager tokenManager) {
-        this(createAccountUseCase, tokenManager, Executors.newSingleThreadExecutor());
-    }
+    public LoginViewModel() {
 
-    public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
-                          @NonNull TokenManager tokenManager,
-                          @NonNull ExecutorService executorService) {
-        this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
-        this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
-        this.executorService = Objects.requireNonNull(executorService, "executorService");
     }
 
     public LiveData<LoginAction> getLoginAction() {
@@ -84,7 +68,7 @@ public class LoginViewModel extends ViewModel {
                     Log.d(TAG, "executeCreateAccount result: " + result.toString());
 
                     if (result.isSuccess()) {
-                        tokenManager.saveTokens(result.getAccessToken(), result.getRefreshToken());
+                        TokenManager.getInstance().saveTokens(result.getAccessToken(), result.getRefreshToken());
                         loginAction.postValue(action);
                     } else {
                         errorMessage.postValue(result.getErrorMessage());

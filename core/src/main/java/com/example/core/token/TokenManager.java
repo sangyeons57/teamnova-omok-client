@@ -3,6 +3,7 @@ package com.example.core.token;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.example.core.navigation.NavigationHelper;
 import com.example.core.network.http.HttpClientManager;
 import com.example.core.network.http.HttpResponse;
 
@@ -15,6 +16,7 @@ public class TokenManager {
     private static final String PREF_NAME = "com.example.core.token";
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
+    private static final String REFRESH_TOKEN_RESOURCE = "refresh-token.php";
 
     private static volatile TokenManager instance;
     private final SharedPreferences sharedPreferences;
@@ -30,6 +32,13 @@ public class TokenManager {
                     instance = new TokenManager(context);
                 }
             }
+        }
+        return instance;
+    }
+
+    public static TokenManager getInstance() {
+        if(instance == null) {
+            throw new IllegalStateException("TokenManager is not initialized. Call TokenManager.getInstance(Context) first.");
         }
         return instance;
     }
@@ -75,7 +84,8 @@ public class TokenManager {
                 jsonBody.put("refresh_token", refreshToken);
 
                 HttpClientManager client = HttpClientManager.getInstance();
-                HttpResponse response = client.postJsonToPath("/public/refresh-token.php", jsonBody.toString());
+                String endpoint = NavigationHelper.resolvePublicPath(REFRESH_TOKEN_RESOURCE);
+                HttpResponse response = client.postJson(endpoint, jsonBody.toString());
 
                 if (response.isSuccessful()) {
                     JSONObject jsonResponse = new JSONObject(response.getBody());

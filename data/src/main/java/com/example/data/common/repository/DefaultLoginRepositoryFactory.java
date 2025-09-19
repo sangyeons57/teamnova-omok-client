@@ -1,0 +1,34 @@
+package com.example.data.common.repository;
+
+import com.example.core.network.http.HttpClientManager;
+import com.example.data.common.mapper.GuestSignupMapper;
+import com.example.data.common.mapper.HelloWorldMapper;
+import com.example.data.common.datasource.DefaultPhpServerDataSource;
+import com.example.domain.auth.repository.LoginRepository;
+
+public final class DefaultLoginRepositoryFactory{
+    private final DefaultPhpServerDataSource phpServerDataSource;
+    private final HelloWorldMapper helloWorldMapper;
+    private final GuestSignupMapper guestSignupMapper;
+    private volatile LoginRepository singleton;
+
+
+    public DefaultLoginRepositoryFactory(HttpClientManager httpClientManager) {
+        phpServerDataSource = new DefaultPhpServerDataSource(httpClientManager);
+        helloWorldMapper = new HelloWorldMapper();
+        guestSignupMapper = new GuestSignupMapper();
+    }
+
+    public LoginRepository create() {
+        if(singleton == null) return singleton;
+        synchronized (this) {
+            if(singleton == null) singleton = new DefaultLoginRepository(
+                    phpServerDataSource,
+                    helloWorldMapper,
+                    guestSignupMapper
+            );
+
+            return singleton;
+        }
+    }
+}

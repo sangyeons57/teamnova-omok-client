@@ -1,4 +1,4 @@
-package com.example.data.auth.exception;
+package com.example.data.common.exception;
 
 /**
  * Signals an error occurred while attempting to create an account through the remote API.

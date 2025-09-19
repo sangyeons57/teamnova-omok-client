@@ -1,5 +1,6 @@
 package com.example.teamnovaomok.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -7,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
 import com.example.core.navigation.NavigationHelper;
+import com.example.core.token.TokenManager;
 import com.example.feature_auth.login.presentation.LoginFragment;
 import com.example.teamnovaomok.R;
 
@@ -19,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initializeManager(getApplicationContext());
 
         navigationHelper = new NavigationHelper(getSupportFragmentManager(), R.id.main_fragment_container, "MainNavigation");
 
@@ -34,10 +38,8 @@ public class MainActivity extends AppCompatActivity {
         return navigationHelper;
     }
 
-    @Override
-    public void onBackPressed() {
-        if (!navigationHelper.popBackStack()) {
-            super.onBackPressed();
-        }
+    private void initializeManager(Context context) {
+        TokenManager.getInstance(context);
     }
+
 }

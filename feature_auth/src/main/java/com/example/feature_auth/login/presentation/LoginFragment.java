@@ -1,5 +1,6 @@
 package com.example.feature_auth.login.presentation;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,15 +9,27 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.feature_auth.R;
+import com.example.core.dialog.DialogManager;
+import com.example.core.dialog.DialogRegistry;
 import com.example.domain.auth.model.LoginAction;
+import com.example.feature_auth.R;
 import com.google.android.material.button.MaterialButton;
 
 public class LoginFragment extends Fragment {
 
     private LoginViewModel viewModel;
+    private DialogManager<AuthDialogType> dialogManager;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        DialogRegistry<AuthDialogType> registry = new DialogRegistry<>(AuthDialogType.class);
+        registry.register(AuthDialogType.TERMS_AGREEMENT, new TermsAgreementDialogController());
+        dialogManager = new DialogManager<>(registry);
+    }
 
     @Nullable
     @Override
@@ -29,6 +42,11 @@ public class LoginFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+
+        if (dialogManager != null && !dialogManager.isAttached()) {
+            FragmentActivity activity = requireActivity();
+            dialogManager.attach(activity);
+        }
 
         MaterialButton guestButton = view.findViewById(R.id.buttonGuestLogin);
         MaterialButton googleButton = view.findViewById(R.id.buttonGoogleLogin);
@@ -48,10 +66,17 @@ public class LoginFragment extends Fragment {
         });
     }
 
-    private void showTermsAgreementDialog() {
-        if (getChildFragmentManager().findFragmentByTag(TermsAgreementDialog.TAG) != null) {
-            return;
+    @Override
+    public void onDestroyView() {
+        if (dialogManager != null && dialogManager.isAttached()) {
+            dialogManager.detach(requireActivity());
         }
-        new TermsAgreementDialog().show(getChildFragmentManager(), TermsAgreementDialog.TAG);
+        super.onDestroyView();
+    }
+
+    private void showTermsAgreementDialog() {
+        if (dialogManager != null && dialogManager.isAttached()) {
+            dialogManager.enqueue(AuthDialogType.TERMS_AGREEMENT);
+        }
     }
 }

@@ -7,11 +7,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class Request {
     private String apiVersion;
     private Path path;
-    private String requestId;
+    private UUID requestId = UUID.randomUUID();
     private Instant timestamp = Instant.now();
     private Map<String, String> body = new HashMap<>();
 
@@ -31,11 +32,11 @@ public class Request {
         this.path = path;
     }
 
-    public String getRequestId() {
+    public UUID getRequestId() {
         return requestId;
     }
 
-    public void setRequestId(String requestId) {
+    public void setRequestId(UUID requestId) {
         this.requestId = requestId;
     }
 
@@ -58,7 +59,7 @@ public class Request {
     public Map<String, Object> toJsonStructure() {
         Map<String, Object> payload = new LinkedHashMap<>();
         putIfNotBlank(payload, "apiVersion", apiVersion);
-        putIfNotBlank(payload, "requestId", requestId);
+        putIfNotBlank(payload, "requestId", requestId.toString());
         if (timestamp != null) {
             payload.put("timestamp", timestamp.toString());
         }

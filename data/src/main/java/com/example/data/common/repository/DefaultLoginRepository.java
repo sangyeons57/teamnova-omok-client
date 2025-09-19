@@ -101,14 +101,14 @@ public class DefaultLoginRepository implements LoginRepository {
     private Request buildRequest(Path path) {
         Request request = new Request();
         request.setPath(path);
-        request.setRequestId(UUID.randomUUID().toString());
+        request.setRequestId(UUID.randomUUID());
         request.setTimestamp(Instant.now());
         return request;
     }
 
     private String serializeResponseData(ResponseSingle response) {
-        if (response != null && response.getData() != null && response.getData().getData() != null) {
-            return gson.toJson(response.getData().getData());
+        if (response != null && response.getData() != null && response.getData().getPayload() != null) {
+            return gson.toJson(response.getData().getPayload());
         }
         Map<String, Object> fallback = new HashMap<>();
         fallback.put("success", false);
@@ -120,8 +120,8 @@ public class DefaultLoginRepository implements LoginRepository {
     }
 
     private String extractHelloWorldMessage(ResponseSingle response) {
-        if (response != null && response.getData() != null && response.getData().getData() != null) {
-            Object value = response.getData().getData().get("message");
+        if (response != null && response.getData() != null && response.getData().getPayload() != null) {
+            Object value = response.getData().getPayload().get("message");
             if (value != null) {
                 return String.valueOf(value);
             }

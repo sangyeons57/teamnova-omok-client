@@ -5,7 +5,7 @@ import java.util.Map;
 public class Data {
     private String type;
     private String id;
-    private Map<String, Object> data;
+    private Map<String, Object> payload;
 
     public String getType() {
         return type;
@@ -23,11 +23,11 @@ public class Data {
         this.id = id;
     }
 
-    public Map<String, Object> getData() {
-        return data;
+    public Map<String, Object> getPayload() {
+        return payload;
     }
 
-    public void setData(Map<String, Object> data) {
-        this.data = data;
+    public void setPayload(Map<String, Object> payload) {
+        this.payload = payload;
     }
 }

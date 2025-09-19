@@ -1,6 +1,7 @@
 package com.example.data.common.model.response;
 
 import java.util.List;
+import java.util.Map;
 
 public class Error {
     public static class FieldError {
@@ -29,6 +30,7 @@ public class Error {
     private String message;
     private String detail;
     private List<FieldError> fields;
+    private Map<String, Object> extra;
 
     public String getCode() {
         return code;
@@ -68,5 +70,13 @@ public class Error {
 
     public void setFields(List<FieldError> fields) {
         this.fields = fields;
+    }
+
+    public Map<String, Object> getExtra() {
+        return extra;
+    }
+
+    public void setExtra(Map<String, Object> extra) {
+        this.extra = extra;
     }
 }

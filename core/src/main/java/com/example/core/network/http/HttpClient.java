@@ -8,7 +8,5 @@ import java.io.IOException;
  */
 public interface HttpClient {
 
-    HttpResponse get(String url) throws IOException;
-
     HttpResponse postJson(String url, String jsonBody) throws IOException;
 }

@@ -33,18 +33,6 @@ public final class HttpClientManager implements HttpClient {
     }
 
     @Override
-    public HttpResponse get(String url) throws IOException {
-        Objects.requireNonNull(url, "url");
-
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        return execute(request);
-    }
-
-    @Override
     public HttpResponse postJson(String url, String jsonBody) throws IOException {
         Objects.requireNonNull(url, "url");
         Objects.requireNonNull(jsonBody, "jsonBody");

@@ -3,11 +3,12 @@ plugins {
 }
 
 android {
-    namespace = "com.example.feature_auth"
+    namespace = "com.example.application"
     compileSdk = 36
 
     defaultConfig {
         minSdk = 29
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -28,21 +29,10 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
     implementation(project(":domain"))
-    implementation(project(":application"))
-    implementation(project(":data"))
-    implementation(project(":designsystem"))
 
     implementation(libs.appcompat)
     implementation(libs.material)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.lifecycle.viewmodel)
-    implementation(libs.androidx.lifecycle.livedata)
-    implementation(libs.okhttp)
-    implementation(libs.play.services.base)
-
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

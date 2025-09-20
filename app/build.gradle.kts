@@ -33,6 +33,7 @@ android {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":application"))
     implementation(project(":domain"))
     implementation(project(":data"))
     implementation(project(":feature_auth"))

@@ -8,4 +8,12 @@
     <string name="login_google_feedback">Google 로그인을 준비합니다.</string>
     <string name="guest_play">게스트 플레이</string>
     <string name="google_play">Google 계정으로 계속하기</string>
+    <string name="terms_agreement_title">약관 동의</string>
+    <string name="terms_agreement_back">뒤로 가기</string>
+    <string name="terms_privacy_policy">개인정보 처리방침</string>
+    <string name="terms_check_privacy_policy">개인정보 처리방침에 동의합니다.</string>
+    <string name="terms_terms_of_service">이용약관</string>
+    <string name="terms_check_terms_of_service">이용약관에 동의합니다.</string>
+    <string name="terms_confirm_over_fifteen">만 15세 이상입니다.</string>
+    <string name="terms_agree_button">약관에 동의하고 계속</string>
 </resources>

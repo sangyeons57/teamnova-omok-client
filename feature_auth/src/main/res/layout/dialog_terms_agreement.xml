@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#E5E5E5">
+    android:background="?attr/colorSurface">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardTerms"
@@ -25,124 +25,122 @@
             android:padding="20dp">
 
             <LinearLayout
+                android:id="@+id/headerTerms"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:weightSum="3">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonTabOne"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:text="1" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonTabTwo"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:text="2" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonTabThree"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/textTermsTitle"
+                    style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="3" />
+                    android:text="@string/terms_agreement_title"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonTermsBack"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@string/terms_agreement_back"
+                    android:insetBottom="0dp"
+                    android:insetTop="0dp"
+                    android:padding="0dp"
+                    app:icon="@drawable/ic_arrow_back"
+                    app:iconTint="?attr/colorOnSurface" />
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="16dp"
-                android:background="#33000000" />
+                android:alpha="0.2"
+                android:background="?attr/colorOutlineVariant" />
 
             <LinearLayout
-                android:id="@+id/rowOne"
+                android:id="@+id/rowPrivacyPolicy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonPrimaryTerm"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="4" />
-
-                <CheckBox
-                    android:id="@+id/checkPrimaryTerm"
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/checkPrivacyPolicy"
+                    style="@style/Widget.Material3.CompoundButton.CheckBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/terms_check_privacy_policy" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/textPrivacyPolicy"
+                    style="@style/TextAppearance.Material3.BodyLarge"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:text="5" />
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:drawableEnd="@drawable/ic_arrow_right"
+                    android:drawablePadding="8dp"
+                    android:drawableTint="?attr/colorPrimary"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="8dp"
+                    android:text="@string/terms_privacy_policy"
+                    android:textColor="?attr/colorPrimary" />
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/rowTwo"
+                android:id="@+id/rowTermsOfService"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonSecondaryTerm"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="6" />
-
-                <CheckBox
-                    android:id="@+id/checkSecondaryTerm"
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/checkTermsOfService"
+                    style="@style/Widget.Material3.CompoundButton.CheckBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/terms_check_terms_of_service" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/textTermsOfService"
+                    style="@style/TextAppearance.Material3.BodyLarge"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:text="7" />
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:drawableEnd="@drawable/ic_arrow_right"
+                    android:drawablePadding="8dp"
+                    android:drawableTint="?attr/colorPrimary"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="8dp"
+                    android:text="@string/terms_terms_of_service"
+                    android:textColor="?attr/colorPrimary" />
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/rowThree"
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/checkAgeConfirmation"
+                style="@style/Widget.Material3.CompoundButton.CheckBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonTertiaryTerm"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="8" />
-
-                <CheckBox
-                    android:id="@+id/checkTertiaryTerm"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="9" />
-            </LinearLayout>
+                android:text="@string/terms_confirm_over_fifteen"
+                android:textColor="?attr/colorOnSurface" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonConfirm"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.FilledButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="10" />
+                android:text="@string/terms_agree_button" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

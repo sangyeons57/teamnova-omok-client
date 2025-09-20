@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":data"))
     implementation(project(":feature_auth"))
+    implementation(project(":designsystem"))
 
     implementation(libs.appcompat)
     implementation(libs.material)

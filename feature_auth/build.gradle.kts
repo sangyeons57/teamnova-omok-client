@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
     implementation(project(":data"))
+    implementation(project(":designsystem"))
 
     implementation(libs.appcompat)
     implementation(libs.material)

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E5E5E5"
+    android:background="?attr/colorSurface"
     tools:context="com.example.feature_home.home.presentation.HomeFragment">
 
     <com.google.android.material.button.MaterialButton
@@ -90,3 +90,4 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

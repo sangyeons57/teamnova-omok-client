@@ -5,7 +5,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -16,7 +15,9 @@ import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
 import com.example.feature_auth.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textview.MaterialTextView;
 
 public final class TermsAgreementDialogController implements DialogController<MainDialogType> {
 
@@ -45,20 +46,19 @@ public final class TermsAgreementDialogController implements DialogController<Ma
     }
 
     private void bindButtons(@NonNull View contentView, @NonNull AlertDialog dialog) {
-        MaterialButton buttonTabOne = contentView.findViewById(R.id.buttonTabOne);
-        MaterialButton buttonTabTwo = contentView.findViewById(R.id.buttonTabTwo);
-        MaterialButton buttonTabThree = contentView.findViewById(R.id.buttonTabThree);
-        MaterialButton buttonPrimaryTerm = contentView.findViewById(R.id.buttonPrimaryTerm);
-        MaterialButton buttonSecondaryTerm = contentView.findViewById(R.id.buttonSecondaryTerm);
-        MaterialButton buttonTertiaryTerm = contentView.findViewById(R.id.buttonTertiaryTerm);
+        MaterialButton buttonTermsBack = contentView.findViewById(R.id.buttonTermsBack);
         MaterialButton buttonConfirm = contentView.findViewById(R.id.buttonConfirm);
+        MaterialTextView privacyPolicyLink = contentView.findViewById(R.id.textPrivacyPolicy);
+        MaterialTextView termsOfServiceLink = contentView.findViewById(R.id.textTermsOfService);
 
-        buttonTabOne.setOnClickListener(v -> android.util.Log.d(LOG_TAG, "Tab 1 clicked"));
-        buttonTabTwo.setOnClickListener(v -> android.util.Log.d(LOG_TAG, "Tab 2 clicked"));
-        buttonTabThree.setOnClickListener(v -> android.util.Log.d(LOG_TAG, "Tab 3 clicked"));
-        buttonPrimaryTerm.setOnClickListener(v -> android.util.Log.d(LOG_TAG, "Primary term button clicked"));
-        buttonSecondaryTerm.setOnClickListener(v -> android.util.Log.d(LOG_TAG, "Secondary term button clicked"));
-        buttonTertiaryTerm.setOnClickListener(v -> android.util.Log.d(LOG_TAG, "Tertiary term button clicked"));
+        buttonTermsBack.setOnClickListener(v -> {
+            android.util.Log.d(LOG_TAG, "Back button clicked");
+            dialog.dismiss();
+        });
+        privacyPolicyLink.setOnClickListener(v ->
+                android.util.Log.d(LOG_TAG, "Privacy policy link clicked"));
+        termsOfServiceLink.setOnClickListener(v ->
+                android.util.Log.d(LOG_TAG, "Terms of service link clicked"));
         buttonConfirm.setOnClickListener(v -> {
             android.util.Log.d(LOG_TAG, "Confirm button clicked");
             dialog.dismiss();
@@ -66,15 +66,15 @@ public final class TermsAgreementDialogController implements DialogController<Ma
     }
 
     private void bindCheckboxes(@NonNull View contentView) {
-        CheckBox checkPrimaryTerm = contentView.findViewById(R.id.checkPrimaryTerm);
-        CheckBox checkSecondaryTerm = contentView.findViewById(R.id.checkSecondaryTerm);
-        CheckBox checkTertiaryTerm = contentView.findViewById(R.id.checkTertiaryTerm);
+        MaterialCheckBox checkPrivacyPolicy = contentView.findViewById(R.id.checkPrivacyPolicy);
+        MaterialCheckBox checkTermsOfService = contentView.findViewById(R.id.checkTermsOfService);
+        MaterialCheckBox checkAgeConfirmation = contentView.findViewById(R.id.checkAgeConfirmation);
 
-        checkPrimaryTerm.setOnCheckedChangeListener((buttonView, isChecked) ->
-                android.util.Log.d(LOG_TAG, "Primary term checkbox " + (isChecked ? "checked" : "unchecked")));
-        checkSecondaryTerm.setOnCheckedChangeListener((buttonView, isChecked) ->
-                android.util.Log.d(LOG_TAG, "Secondary term checkbox " + (isChecked ? "checked" : "unchecked")));
-        checkTertiaryTerm.setOnCheckedChangeListener((buttonView, isChecked) ->
-                android.util.Log.d(LOG_TAG, "Tertiary term checkbox " + (isChecked ? "checked" : "unchecked")));
+        checkPrivacyPolicy.setOnCheckedChangeListener((buttonView, isChecked) ->
+                android.util.Log.d(LOG_TAG, "Privacy policy checkbox " + (isChecked ? "checked" : "unchecked")));
+        checkTermsOfService.setOnCheckedChangeListener((buttonView, isChecked) ->
+                android.util.Log.d(LOG_TAG, "Terms of service checkbox " + (isChecked ? "checked" : "unchecked")));
+        checkAgeConfirmation.setOnCheckedChangeListener((buttonView, isChecked) ->
+                android.util.Log.d(LOG_TAG, "Age confirmation checkbox " + (isChecked ? "checked" : "unchecked")));
     }
 }

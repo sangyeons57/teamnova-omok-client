@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F6FA"
+    android:background="?attr/colorSurface"
     tools:context="com.example.feature_auth.login.presentation.LoginFragment">
 
     <LinearLayout
@@ -39,7 +39,7 @@
             android:paddingBottom="18dp"
             android:text="게스트 플레이"
             android:textAllCaps="false"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="17sp"
             app:icon="@drawable/ic_guest_avatar"
             app:iconGravity="textStart"
@@ -66,7 +66,7 @@
             android:paddingBottom="16dp"
             android:text="Google 계정으로 계속하기"
             android:textAllCaps="false"
-            android:textColor="#202124"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             app:icon="@drawable/ic_google_logo"
             app:iconGravity="textStart"
@@ -77,3 +77,4 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -9,15 +9,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
 import com.example.core.dialog.DialogHost;
+import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
 import com.example.core.navigation.NavigationHelper;
 import com.example.core.token.TokenManager;
-import com.example.feature_auth.login.di.MainDialogHostOwner;
 import com.example.feature_auth.login.presentation.LoginFragment;
 import com.example.teamnovaomok.R;
 import com.example.teamnovaomok.ui.di.DialogContainer;
 
-public class MainActivity extends AppCompatActivity implements MainDialogHostOwner {
+public class MainActivity extends AppCompatActivity implements DialogHostOwner<MainDialogType> {
 
     private NavigationHelper navigationHelper;
     private DialogContainer dialogContainer;

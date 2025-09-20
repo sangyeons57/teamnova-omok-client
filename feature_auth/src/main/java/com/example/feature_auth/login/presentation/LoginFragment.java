@@ -12,10 +12,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.core.dialog.DialogHost;
+import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
 import com.example.domain.auth.model.LoginAction;
 import com.example.feature_auth.R;
-import com.example.feature_auth.login.di.MainDialogHostOwner;
 import com.google.android.material.button.MaterialButton;
 
 public class LoginFragment extends Fragment {
@@ -24,10 +24,11 @@ public class LoginFragment extends Fragment {
     private DialogHost<MainDialogType> dialogHost;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof MainDialogHostOwner) {
-            dialogHost = ((MainDialogHostOwner) context).getDialogHost();
+        if (context instanceof DialogHostOwner<?>) {
+            dialogHost = ((DialogHostOwner<MainDialogType>) context).getDialogHost();
         } else {
             throw new IllegalStateException("Host activity must implement MainDialogHostOwner");
         }

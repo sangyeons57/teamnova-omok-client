@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom attributes mirroring Material color slots for compatibility -->
+    <attr name="colorBackground" format="color" />
+    <attr name="colorSurfaceTint" format="color" />
+</resources>

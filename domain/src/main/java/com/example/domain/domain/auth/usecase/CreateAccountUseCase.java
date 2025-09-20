@@ -1,11 +1,10 @@
-package com.example.domain.auth.usecase;
+package com.example.domain.domain.auth.usecase;
 
-import com.example.domain.auth.model.GuestSignupResult;
-import com.example.domain.auth.model.LoginAction;
-import com.example.domain.auth.repository.LoginRepository;
-import com.example.domain.usecase.SyncUseCase;
-import com.example.domain.usecase.UseCase;
-import com.example.domain.usecase.UseCaseException;
+import com.example.domain.domain.auth.model.GuestSignupResult;
+import com.example.domain.domain.auth.model.LoginAction;
+import com.example.domain.domain.auth.repository.LoginRepository;
+import com.example.domain.application.SyncUseCase;
+import com.example.domain.application.UseCaseException;
 
 import java.util.Objects;
 

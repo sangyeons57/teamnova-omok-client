@@ -1,8 +1,4 @@
-package com.example.domain.usecase;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
+package com.example.domain.application;
 
 /**
  * Describes a synchronous unit of domain work.

@@ -1,11 +1,9 @@
 package com.example.data.common.repository;
 
 import com.example.core.network.http.HttpClient;
-import com.example.core.network.http.HttpClientManager;
 import com.example.data.common.datasource.DefaultPhpServerDataSource;
 import com.example.data.common.mapper.GuestSignupMapper;
-import com.example.data.common.mapper.HelloWorldMapper;
-import com.example.domain.auth.repository.LoginRepository;
+import com.example.domain.domain.auth.repository.LoginRepository;
 
 public final class DefaultLoginRepositoryFactory {
     private final DefaultPhpServerDataSource phpServerDataSource;

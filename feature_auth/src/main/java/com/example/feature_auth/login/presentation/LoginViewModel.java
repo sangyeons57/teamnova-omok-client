@@ -9,10 +9,10 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.core.token.TokenManager;
 import com.example.data.common.repository.DefaultLoginRepository;
-import com.example.domain.auth.model.GuestSignupResult;
-import com.example.domain.auth.model.LoginAction;
-import com.example.domain.auth.usecase.CreateAccountUseCase;
-import com.example.domain.usecase.UResult;
+import com.example.domain.domain.auth.model.GuestSignupResult;
+import com.example.domain.domain.auth.model.LoginAction;
+import com.example.domain.domain.auth.usecase.CreateAccountUseCase;
+import com.example.domain.application.UResult;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;

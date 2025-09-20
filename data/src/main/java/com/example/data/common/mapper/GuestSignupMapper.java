@@ -1,8 +1,8 @@
 package com.example.data.common.mapper;
 
 import com.example.data.common.model.GuestSignupResponse;
-import com.example.domain.auth.model.GuestSignupResult;
-import com.example.domain.auth.model.User;
+import com.example.domain.domain.auth.model.GuestSignupResult;
+import com.example.domain.domain.auth.model.User;
 
 import org.json.JSONException;
 import org.json.JSONObject;

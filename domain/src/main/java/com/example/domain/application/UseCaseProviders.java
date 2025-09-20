@@ -1,4 +1,4 @@
-package com.example.domain.usecase;
+package com.example.domain.application;
 
 import java.util.function.Supplier;
 

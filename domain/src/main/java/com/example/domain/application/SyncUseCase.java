@@ -1,6 +1,4 @@
-package com.example.domain.usecase;
-
-import java.util.concurrent.CompletableFuture;
+package com.example.domain.application;
 
 public abstract class SyncUseCase<I, O> implements UseCase<I, O> {
     @Override

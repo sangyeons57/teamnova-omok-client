@@ -1,4 +1,4 @@
-package com.example.domain.auth.model;
+package com.example.domain.domain.auth.model;
 
 import java.util.Objects;
 

@@ -1,4 +1,4 @@
-package com.example.domain.usecase;
+package com.example.domain.application;
 
 /**
  * Base contract for synchronous or asynchronous use cases that return a

@@ -5,19 +5,15 @@ import android.util.Log;
 import com.example.core.network.http.HttpClientManager;
 import com.example.data.common.datasource.DefaultPhpServerDataSource;
 import com.example.data.common.exception.GuestSignupRemoteException;
-import com.example.data.common.exception.HelloWorldRemoteException;
 import com.example.data.common.mapper.GuestSignupMapper;
-import com.example.data.common.mapper.HelloWorldMapper;
 import com.example.data.common.model.GuestSignupResponse;
-import com.example.data.common.model.HelloWorldResponse;
 import com.example.data.common.model.request.Path;
 import com.example.data.common.model.request.Request;
 import com.example.data.common.model.response.Error;
 import com.example.data.common.model.response.ResponseSingle;
-import com.example.domain.auth.model.GuestSignupResult;
-import com.example.domain.auth.model.HelloWorldMessage;
-import com.example.domain.auth.model.LoginAction;
-import com.example.domain.auth.repository.LoginRepository;
+import com.example.domain.domain.auth.model.GuestSignupResult;
+import com.example.domain.domain.auth.model.LoginAction;
+import com.example.domain.domain.auth.repository.LoginRepository;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -36,23 +32,19 @@ public class DefaultLoginRepository implements LoginRepository {
     private static final String DEFAULT_PROVIDER = "GUEST";
 
     private final DefaultPhpServerDataSource phpServerDataSource;
-    private final HelloWorldMapper helloWorldMapper;
     private final GuestSignupMapper guestSignupMapper;
     private final Gson gson = new Gson();
 
     public DefaultLoginRepository() {
         this(
                 new DefaultPhpServerDataSource(HttpClientManager.getInstance()),
-                new HelloWorldMapper(),
                 new GuestSignupMapper()
         );
     }
 
     public DefaultLoginRepository(DefaultPhpServerDataSource phpServerDataSource,
-                                  HelloWorldMapper helloWorldMapper,
                                   GuestSignupMapper guestSignupMapper) {
         this.phpServerDataSource = Objects.requireNonNull(phpServerDataSource, "phpServerDataSource");
-        this.helloWorldMapper = Objects.requireNonNull(helloWorldMapper, "helloWorldMapper");
         this.guestSignupMapper = Objects.requireNonNull(guestSignupMapper, "guestSignupMapper");
     }
 
@@ -81,22 +73,6 @@ public class DefaultLoginRepository implements LoginRepository {
             return guestSignupMapper.toDomain(dto);
         } catch (IOException exception) {
             throw new GuestSignupRemoteException("Failed to create account", exception);
-        }
-    }
-
-    @Override
-    public HelloWorldMessage getHelloWorldMessage() {
-        try {
-            Request request = buildRequest(Path.HELLO_WORLD);
-            ResponseSingle response = phpServerDataSource.postSingle(request);
-            if (!response.isSuccess()) {
-                throw new HelloWorldRemoteException(
-                        extractErrorMessage(response.getError(), "Failed to fetch hello world message"));
-            }
-            HelloWorldResponse dto = new HelloWorldResponse(extractHelloWorldMessage(response));
-            return helloWorldMapper.toDomain(dto);
-        } catch (IOException exception) {
-            throw new HelloWorldRemoteException("Failed to fetch hello world message", exception);
         }
     }
 

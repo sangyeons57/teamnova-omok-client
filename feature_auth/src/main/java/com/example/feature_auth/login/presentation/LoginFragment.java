@@ -14,7 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
-import com.example.domain.auth.model.LoginAction;
+import com.example.domain.domain.auth.model.LoginAction;
 import com.example.feature_auth.R;
 import com.google.android.material.button.MaterialButton;
 

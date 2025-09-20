@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.0-rc02"
+agp = "8.13.0"
 constraintlayout = "2.2.1"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -11,6 +11,7 @@ material = "1.13.0"
 coreSplashscreen = "1.0.1"
 okhttp = "5.1.0"
 gson = "2.13.2"
+playServicesBase = "18.8.0"
 
 [libraries]
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata", version.ref = "lifecycleLivedata" }
@@ -24,6 +25,7 @@ appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "a
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+play-services-base = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServicesBase" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

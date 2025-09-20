@@ -8,6 +8,7 @@ public class ResponseSingle {
     private Error error;
 
     public boolean isSuccess() { return error == null; }
+    public boolean isError() { return error != null; }
 
     public Meta getMeta() {
         return meta;

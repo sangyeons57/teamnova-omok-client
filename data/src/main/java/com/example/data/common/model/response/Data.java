@@ -30,4 +30,12 @@ public class Data {
     public void setPayload(Map<String, Object> payload) {
         this.payload = payload;
     }
+
+    @Override
+    public String toString() {
+        return
+                "type='" + type + '\'' + "\n" +
+                "id='" + id + '\'' + "\n" +
+                "payload=" + payload;
+    }
 }

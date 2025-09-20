@@ -79,4 +79,15 @@ public class Error {
     public void setExtra(Map<String, Object> extra) {
         this.extra = extra;
     }
+
+    @Override
+    public String toString() {
+        return
+                "code='" + code + '\'' + "\n" +
+                "httpStatus=" + httpStatus + "\n" +
+                "message='" + message + '\'' + "\n" +
+                "detail='" + detail + '\'' + "\n" +
+                "fields=" + fields + "\n" +
+                "extra=" + extra;
+    }
 }

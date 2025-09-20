@@ -1,5 +1,7 @@
 package com.example.data.common.repository;
 
+import android.util.Log;
+
 import com.example.core.network.http.HttpClientManager;
 import com.example.data.common.datasource.DefaultPhpServerDataSource;
 import com.example.data.common.exception.GuestSignupRemoteException;
@@ -65,11 +67,15 @@ public class DefaultLoginRepository implements LoginRepository {
             }
             request.setBody(body);
 
+            Log.d("createAccount", "request: " + request.toJson(new Gson()));
             ResponseSingle response = phpServerDataSource.postSingle(request);
-            if (!response.isSuccess()) {
+            Log.d("createAccount", "response: " + response.getMeta().toString());
+            if (response.isError()) {
+                Log.d("createAccount", "response: " + response.getError().toString());
                 throw new GuestSignupRemoteException(
                         extractErrorMessage(response.getError(), "Failed to create account"));
             }
+            Log.d("createAccount", "response: " + response.getData().toString());
 
             GuestSignupResponse dto = new GuestSignupResponse(serializeResponseData(response));
             return guestSignupMapper.toDomain(dto);

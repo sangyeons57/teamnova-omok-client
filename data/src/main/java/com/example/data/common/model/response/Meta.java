@@ -37,4 +37,13 @@ public class Meta {
     public void setElapsedMs(Long elapsedMs) {
         this.elapsedMs = elapsedMs;
     }
+
+    @Override
+    public String toString() {
+        return
+                "apiVersion='" + apiVersion + '\'' + "\n" +
+                "requestId='" + requestId + '\'' + "\n" +
+                "traceId='" + traceId + '\'' + "\n" +
+                "elapsedMs=" + elapsedMs;
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.feature_auth.login.presentation;
+package com.example.feature_auth.login.presentation.viewmodel;
 
 import android.util.Log;
 
@@ -7,16 +7,16 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.application.dto.command.CreateAccountCommand;
+import com.example.application.port.in.UResult;
+import com.example.application.usecase.CreateAccountUseCase;
 import com.example.core.token.TokenManager;
-import com.example.data.common.repository.DefaultLoginRepository;
-import com.example.domain.domain.auth.model.GuestSignupResult;
-import com.example.domain.domain.auth.model.LoginAction;
-import com.example.domain.domain.auth.usecase.CreateAccountUseCase;
-import com.example.domain.application.UResult;
+import com.example.domain.common.value.LoginAction;
+import com.example.domain.identity.entity.Identity;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
@@ -33,15 +33,9 @@ public class LoginViewModel extends ViewModel {
     private final CreateAccountUseCase createAccountUseCase;
     private final TokenManager tokenManager;
 
-    public LoginViewModel() {
-        this(new CreateAccountUseCase(new DefaultLoginRepository()),
-                TokenManager.getInstance(),
-                Executors.newSingleThreadExecutor());
-    }
-
-    LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
-                   @NonNull TokenManager tokenManager,
-                   @NonNull ExecutorService executorService) {
+    public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
+                          @NonNull TokenManager tokenManager,
+                          @NonNull ExecutorService executorService) {
         this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
         this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
         this.executorService = Objects.requireNonNull(executorService, "executorService");
@@ -56,11 +50,11 @@ public class LoginViewModel extends ViewModel {
     }
 
     public void onGuestLoginClicked() {
-        executeCreateAccount(CreateAccountUseCase.Params.forGuest(), LoginAction.GUEST);
+        executeCreateAccount(CreateAccountCommand.forGuest(), LoginAction.GUEST);
     }
 
     public void onGoogleLoginClicked() {
-        executeCreateAccount(CreateAccountUseCase.Params.forGoogle(DEFAULT_GOOGLE_PROVIDER_USER_ID), LoginAction.GOOGLE);
+        executeCreateAccount(CreateAccountCommand.forGoogle(DEFAULT_GOOGLE_PROVIDER_USER_ID), LoginAction.GOOGLE);
     }
 
     public void onActionHandled() {
@@ -77,29 +71,19 @@ public class LoginViewModel extends ViewModel {
         super.onCleared();
     }
 
-    private void executeCreateAccount(CreateAccountUseCase.Params params, LoginAction action) {
-        try {
-            executorService.execute(() -> {
-                try {
-                    UResult<GuestSignupResult> result = createAccountUseCase.execute(params);
-                    if (result instanceof UResult.Ok<GuestSignupResult> ok) {
-                        handleSuccess(ok.value(), action);
-                    } else if (result instanceof UResult.Err<GuestSignupResult> err) {
-                        handleFailure(err.message());
-                    }
-                } catch (Exception exception) {
-                    Log.e(TAG, "executeCreateAccount failed", exception);
-                    errorMessage.postValue(resolveErrorMessage(exception));
-                }
-            });
-        } catch (RejectedExecutionException exception) {
-            Log.e(TAG, "executeCreateAccount rejected", exception);
-            errorMessage.postValue("Request rejected. Please try again later.");
-        }
+    private void executeCreateAccount(CreateAccountCommand command, LoginAction action) {
+        createAccountUseCase.executeAsync(command, executorService).thenAccept(result -> {
+            Log.d(TAG, "executeCreateAccount: " + result);
+            if (result instanceof UResult.Ok<Identity> ok) {
+                handleSuccess(ok.value(), action);
+            } else if (result instanceof UResult.Err<Identity> err) {
+                handleFailure(err.message());
+            }
+        });
     }
 
-    private void handleSuccess(GuestSignupResult result, LoginAction action) {
-        tokenManager.saveTokens(result.getAccessToken(), result.getRefreshToken());
+    private void handleSuccess(Identity response, LoginAction action) {
+        tokenManager.saveTokens(response.getAccessToken().value(), response.getRefreshToken().value());
         loginAction.postValue(action);
     }
 

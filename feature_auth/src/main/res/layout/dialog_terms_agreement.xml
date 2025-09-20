@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="?attr/colorSurface">
+    android:layout_height="wrap_content">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardTerms"
@@ -51,7 +50,8 @@
                     android:insetTop="0dp"
                     android:padding="0dp"
                     app:icon="@drawable/ic_arrow_back"
-                    app:iconTint="?attr/colorOnSurface" />
+                    app:iconTint="?attr/colorOnSurface"
+                    app:rippleColor="@android:color/transparent" />
             </LinearLayout>
 
             <View
@@ -140,9 +140,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="@string/terms_agree_button" />
+                android:text="@string/terms_agree_button"
+                app:rippleColor="@android:color/transparent" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
 

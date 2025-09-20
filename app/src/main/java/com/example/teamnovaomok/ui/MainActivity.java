@@ -8,19 +8,24 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
+import com.example.application.port.in.UseCaseRegistry;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
 import com.example.core.navigation.NavigationHelper;
 import com.example.core.token.TokenManager;
-import com.example.feature_auth.login.presentation.LoginFragment;
+import com.example.feature_auth.login.di.LoginDependencyProvider;
+import com.example.feature_auth.login.presentation.ui.LoginFragment;
 import com.example.teamnovaomok.R;
 import com.example.teamnovaomok.ui.di.DialogContainer;
+import com.example.teamnovaomok.ui.di.UseCaseContainer;
 
-public class MainActivity extends AppCompatActivity implements DialogHostOwner<MainDialogType> {
+public class MainActivity extends AppCompatActivity implements DialogHostOwner<MainDialogType>, LoginDependencyProvider {
 
     private NavigationHelper navigationHelper;
     private DialogContainer dialogContainer;
+    private UseCaseContainer useCaseContainer;
+    private TokenManager tokenManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -32,6 +37,8 @@ public class MainActivity extends AppCompatActivity implements DialogHostOwner<M
 
         dialogContainer = new DialogContainer();
         dialogContainer.getMainDialogHost().attach(this);
+
+        useCaseContainer = new UseCaseContainer();
 
         navigationHelper = new NavigationHelper(getSupportFragmentManager(), R.id.main_fragment_container, "MainNavigation");
 
@@ -47,6 +54,18 @@ public class MainActivity extends AppCompatActivity implements DialogHostOwner<M
     @Override
     public DialogHost<MainDialogType> getDialogHost() {
         return dialogContainer.getMainDialogHost();
+    }
+
+    @NonNull
+    @Override
+    public UseCaseRegistry getUseCaseRegistry() {
+        return useCaseContainer.registry;
+    }
+
+    @NonNull
+    @Override
+    public TokenManager getTokenManager() {
+        return tokenManager;
     }
 
     @Override
@@ -65,6 +84,6 @@ public class MainActivity extends AppCompatActivity implements DialogHostOwner<M
     }
 
     private void initializeManager(Context context) {
-        TokenManager.getInstance(context);
+        tokenManager = TokenManager.getInstance(context);
     }
 }

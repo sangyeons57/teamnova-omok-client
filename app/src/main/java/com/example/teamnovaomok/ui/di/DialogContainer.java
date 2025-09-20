@@ -5,7 +5,7 @@ import androidx.annotation.NonNull;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogRegistry;
 import com.example.core.dialog.MainDialogType;
-import com.example.feature_auth.login.di.LoginDialogProvider;
+import com.example.feature_auth.login.di.TermsAgreementDialogProvider;
 
 /**
  * Composes dialog hosts by wiring feature-level providers into core infrastructure.
@@ -16,7 +16,8 @@ public final class DialogContainer {
 
     public DialogContainer() {
         DialogRegistry<MainDialogType> registry = new DialogRegistry<>(MainDialogType.class);
-        registry.registerProvider(new LoginDialogProvider());
+        registry.registerProvider(new TermsAgreementDialogProvider());
+
         mainDialogHost = new DialogHost<>(registry);
     }
 

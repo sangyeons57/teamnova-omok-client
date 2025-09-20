@@ -1,4 +1,4 @@
-package com.example.feature_auth.login.presentation;
+package com.example.feature_auth.login.presentation.dialog;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;

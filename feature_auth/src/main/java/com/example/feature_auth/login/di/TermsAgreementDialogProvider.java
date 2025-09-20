@@ -6,12 +6,12 @@ import com.example.core.dialog.DialogConfig;
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogProvider;
 import com.example.core.dialog.MainDialogType;
-import com.example.feature_auth.login.presentation.TermsAgreementDialogController;
+import com.example.feature_auth.login.presentation.dialog.TermsAgreementDialogController;
 
 /**
  * Supplies the terms agreement dialog binding for the main host.
  */
-public final class LoginDialogProvider implements DialogProvider<MainDialogType> {
+public final class TermsAgreementDialogProvider implements DialogProvider<MainDialogType> {
 
     @NonNull
     @Override
@@ -31,9 +31,4 @@ public final class LoginDialogProvider implements DialogProvider<MainDialogType>
         return new TermsAgreementDialogController();
     }
 
-    @NonNull
-    @Override
-    public DialogConfig getDialogConfig() {
-        return DialogConfig.DEFAULT;
-    }
 }

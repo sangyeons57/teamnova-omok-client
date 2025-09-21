@@ -41,7 +41,6 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             }
         });
-
         return dialog;
     }
 

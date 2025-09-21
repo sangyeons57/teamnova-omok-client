@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home -->
+    <string name="home_banner">배너 광고</string>
+    <string name="home_matching">매칭 시작</string>
+    <string name="home_game_mode">게임 모드</string>
+    <string name="home_score">점수 확인</string>
+    <string name="home_ranking">랭킹</string>
+    <string name="home_settings">설정</string>
+    <string name="home_log_only">로그 전용</string>
+
+    <!-- Matching -->
+    <string name="matching_banner">매칭 배너</string>
+    <string name="matching_resume_home">홈으로 돌아가기</string>
+    <string name="matching_status">매칭 상대를 찾는 중...</string>
+
+    <!-- Dialog commons -->
+    <string name="dialog_close">닫기</string>
+
+    <!-- Game mode dialog -->
+    <string name="dialog_game_mode_title">게임 모드 선택</string>
+    <string name="dialog_game_mode_primary">빠른 시작</string>
+    <string name="dialog_game_mode_ranked">랭크 매치</string>
+    <string name="dialog_game_mode_casual">캐주얼</string>
+    <string name="dialog_game_mode_tutorial">튜토리얼</string>
+    <string name="dialog_game_mode_friends">친구와 대전</string>
+    <string name="dialog_game_mode_event">이벤트 모드</string>
+    <string name="dialog_game_mode_custom">커스텀 방</string>
+
+    <!-- Settings dialog -->
+    <string name="dialog_setting_title">설정</string>
+    <string name="dialog_setting_sound">사운드</string>
+    <string name="dialog_setting_notifications">알림</string>
+    <string name="dialog_setting_graphics">그래픽</string>
+    <string name="dialog_setting_profile">프로필 관리</string>
+    <string name="dialog_setting_support">고객센터</string>
+
+    <!-- Settings profile dialog -->
+    <string name="dialog_setting_profile_title">프로필 설정</string>
+    <string name="dialog_setting_profile_label">닉네임</string>
+    <string name="dialog_setting_profile_hint">닉네임을 입력하세요</string>
+    <string name="dialog_setting_profile_display_label">현재 닉네임</string>
+    <string name="dialog_setting_profile_apply">적용</string>
+
+    <!-- Ranking dialog -->
+    <string name="dialog_ranking_title">랭킹</string>
+    <string name="dialog_ranking_daily">일간</string>
+    <string name="dialog_ranking_weekly">주간</string>
+    <string name="dialog_ranking_monthly">월간</string>
+    <string name="dialog_ranking_overall">전체</string>
+    <string name="dialog_ranking_empty">랭킹 데이터를 불러오는 중...</string>
+
+    <!-- Score dialog -->
+    <string name="dialog_score_title">점수 요약</string>
+    <string name="dialog_score_share">공유하기</string>
+</resources>

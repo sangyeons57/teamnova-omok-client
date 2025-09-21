@@ -15,12 +15,13 @@ import com.example.core.dialog.MainDialogType;
 import com.example.core.navigation.NavigationHelper;
 import com.example.core.token.TokenManager;
 import com.example.feature_auth.login.di.LoginDependencyProvider;
+import com.example.feature_home.home.di.HomeDependencyProvider;
 import com.example.feature_auth.login.presentation.ui.LoginFragment;
 import com.example.teamnovaomok.R;
 import com.example.teamnovaomok.ui.di.DialogContainer;
 import com.example.teamnovaomok.ui.di.UseCaseContainer;
 
-public class MainActivity extends AppCompatActivity implements DialogHostOwner<MainDialogType>, LoginDependencyProvider {
+public class MainActivity extends AppCompatActivity implements DialogHostOwner<MainDialogType>, LoginDependencyProvider, HomeDependencyProvider {
 
     private NavigationHelper navigationHelper;
     private DialogContainer dialogContainer;
@@ -79,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements DialogHostOwner<M
         super.onDestroy();
     }
 
+    @NonNull
+    @Override
     public NavigationHelper getNavigationHelper() {
         return navigationHelper;
     }
@@ -87,3 +90,5 @@ public class MainActivity extends AppCompatActivity implements DialogHostOwner<M
         tokenManager = TokenManager.getInstance(context);
     }
 }
+
+

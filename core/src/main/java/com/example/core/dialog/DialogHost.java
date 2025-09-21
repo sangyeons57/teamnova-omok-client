@@ -2,6 +2,7 @@ package com.example.core.dialog;
 
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.MainThread;
@@ -109,7 +110,9 @@ public final class DialogHost<T extends Enum<T>> {
         DialogSession<T> session = new DialogSession<>(request, dialog);
         dialog.setOnDismissListener(ignored -> handleDismiss(session));
 
+
         dialogStack.addLast(session);
+        Log.d("DialogHost", ""+dialogStack.stream().count());
         dialog.show();
         updateBackCallbackState();
     }

@@ -5,89 +5,87 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
-    tools:context="com.example.feature_home.home.presentation.HomeFragment">
+    tools:context="com.example.feature_home.home.presentation.ui.HomeFragment">
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonTopLeft"
+        android:id="@+id/buttonRanking"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
-        android:text="5"
+        android:text="@string/home_ranking"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonTopRight"
+        android:id="@+id/buttonSettings"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
-        android:text="6"
+        android:text="@string/home_settings"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonTopRightSecondary"
+        android:id="@+id/buttonLogOnly"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="24dp"
-        android:text="7"
+        android:text="@string/home_log_only"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonTopRight" />
+        app:layout_constraintTop_toBottomOf="@id/buttonSettings" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonCenter"
+        android:id="@+id/buttonScore"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="48dp"
         android:layout_marginTop="200dp"
-        android:text="4"
+        android:text="@string/home_score"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonBottomBar"
+        android:id="@+id/buttonBannerAd"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="0dp"
-        android:text="1"
+        android:text="@string/home_banner"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonBottomRight"
+        android:id="@+id/buttonMatching"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
-        android:text="2"
-        app:layout_constraintBottom_toTopOf="@id/buttonBottomBar"
+        android:text="@string/home_matching"
+        app:layout_constraintBottom_toTopOf="@id/buttonBannerAd"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/buttonBottomLeft" />
+        app:layout_constraintStart_toEndOf="@id/buttonGameMode" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonBottomLeft"
+        android:id="@+id/buttonGameMode"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="3"
-        app:layout_constraintBottom_toTopOf="@id/buttonBottomBar"
-        app:layout_constraintEnd_toStartOf="@id/buttonBottomRight"
+        android:text="@string/home_game_mode"
+        app:layout_constraintBottom_toTopOf="@id/buttonBannerAd"
+        app:layout_constraintEnd_toStartOf="@id/buttonMatching"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

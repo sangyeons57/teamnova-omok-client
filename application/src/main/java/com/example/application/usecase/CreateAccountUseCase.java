@@ -1,7 +1,8 @@
 package com.example.application.usecase;
 
 import com.example.application.port.in.UseCase;
-import com.example.application.port.in.UseCaseException;
+import com.example.application.port.in.UseCaseConfig;
+import com.example.core.exception.UseCaseException;
 import com.example.application.dto.command.CreateAccountCommand;
 import com.example.application.port.out.IdentifyRepository;
 import com.example.domain.identity.entity.Identity;
@@ -17,7 +18,8 @@ public class CreateAccountUseCase extends UseCase<CreateAccountCommand, Identity
 
     private final IdentifyRepository repository;
 
-    public CreateAccountUseCase(IdentifyRepository repository) {
+    public CreateAccountUseCase(UseCaseConfig config, IdentifyRepository repository) {
+        super(config);
         this.repository = Objects.requireNonNull(repository, "repository");
     }
 

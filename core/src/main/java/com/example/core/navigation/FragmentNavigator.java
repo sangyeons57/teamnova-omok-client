@@ -10,8 +10,8 @@ import androidx.fragment.app.FragmentTransaction;
 
 import java.util.Objects;
 
-public class NavigationHelper {
-    public static class NavigationOptions {
+public class FragmentNavigator {
+    public static class Options {
         public final boolean addToBackStack;
         public final String tag;
         public final int enterAnim;
@@ -19,7 +19,7 @@ public class NavigationHelper {
         public final int popEnterAnim;
         public final int popExitAnim;
 
-        private NavigationOptions(Builder builder) {
+        private Options(Builder builder) {
             this.addToBackStack = builder.addToBackStack;
             this.tag = builder.tag;
             this.enterAnim = builder.enterAnim;
@@ -58,8 +58,8 @@ public class NavigationHelper {
                 return this;
             }
 
-            public NavigationOptions build() {
-                return new NavigationOptions(this);
+            public Options build() {
+                return new Options(this);
             }
         }
     }
@@ -68,21 +68,21 @@ public class NavigationHelper {
     private final int containerId;
     private final String logTag;
 
-    public NavigationHelper(@NonNull FragmentManager fragmentManager, @IdRes int containerId) {
-        this(fragmentManager, containerId, "NavigationHelper");
+    public FragmentNavigator(@NonNull FragmentManager fragmentManager, @IdRes int containerId) {
+        this(fragmentManager, containerId, "FragmentNavigator");
     }
 
-    public NavigationHelper(@NonNull FragmentManager fragmentManager, @IdRes int containerId, @NonNull String logTag) {
+    public FragmentNavigator(@NonNull FragmentManager fragmentManager, @IdRes int containerId, @NonNull String logTag) {
         this.fragmentManager = Objects.requireNonNull(fragmentManager, "fragmentManager");
         this.containerId = containerId;
         this.logTag = Objects.requireNonNull(logTag, "logTag");
     }
 
     public void navigateTo(@NonNull Fragment fragment) {
-        navigateTo(fragment, NavigationOptions.builder().build());
+        navigateTo(fragment, Options.builder().build());
     }
 
-    public void navigateTo(@NonNull Fragment fragment, @NonNull NavigationOptions options) {
+    public void navigateTo(@NonNull Fragment fragment, @NonNull Options options) {
         Objects.requireNonNull(fragment, "fragment");
         Objects.requireNonNull(options, "options");
 

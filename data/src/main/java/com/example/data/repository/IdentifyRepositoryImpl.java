@@ -51,23 +51,18 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
     public Identity createAccount(LoginAction provider, String providerUserId) {
         try {
             Request request = buildRequest(Path.CREATE_ACCOUNT);
-            Map<String, String> body = new HashMap<>();
+            Map<String, Object> body = new HashMap<>();
             body.put("provider", resolveProvider(provider));
             if (providerUserId != null && !providerUserId.trim().isEmpty()) {
                 body.put("provider_user_id", providerUserId);
             }
             request.setBody(body);
 
-            Log.d("createAccount", "request: " + request.toJson(new Gson()));
             ResponseSingle response = phpServerDataSource.postSingle(request);
-            Log.d("createAccount", "response: " + response.getMeta());
             if (response.isError()) {
-                Log.d("createAccount", "response: " + response.getError());
                 throw new GuestSignupRemoteException(
                         extractErrorMessage(response.getError(), "Failed to create account"));
             }
-            Log.d("createAccount", "response: " + response.getData());
-
             return identityMapper.toIdentity(response);
         } catch (IOException exception) {
             throw new GuestSignupRemoteException("Failed to create account", exception);

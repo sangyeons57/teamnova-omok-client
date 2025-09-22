@@ -28,7 +28,6 @@ public final class SettingDialogController implements DialogController<MainDialo
 
     @NonNull
     @Override
-    @SuppressWarnings("unchecked")
     public AlertDialog create(@NonNull FragmentActivity activity, @NonNull DialogRequest<MainDialogType> request) {
         View contentView = LayoutInflater.from(activity).inflate(R.layout.dialog_setting, null, false);
         AlertDialog dialog = new MaterialAlertDialogBuilder(activity)
@@ -48,6 +47,7 @@ public final class SettingDialogController implements DialogController<MainDialo
         return dialog;
     }
 
+    /** @noinspection unchecked*/
     private void bindButtons(@NonNull FragmentActivity activity,
                              @NonNull View contentView,
                              @NonNull AlertDialog dialog,

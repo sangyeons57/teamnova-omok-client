@@ -14,7 +14,7 @@ public class Request {
     private Path path;
     private UUID requestId = UUID.randomUUID();
     private Instant timestamp = Instant.now();
-    private Map<String, String> body = new HashMap<>();
+    private Map<String, Object> body = new HashMap<>();
 
     public String getApiVersion() {
         return apiVersion;
@@ -48,12 +48,20 @@ public class Request {
         this.timestamp = timestamp != null ? timestamp : Instant.now();
     }
 
-    public Map<String, String> getBody() {
+    public Map<String, Object> getBody() {
         return Collections.unmodifiableMap(body);
     }
 
-    public void setBody(Map<String, String> body) {
-        this.body = body != null ? new HashMap<>(body) : new HashMap<>();
+    public void setBody(Map<String, ?> body) {
+        if (body == null || body.isEmpty()) {
+            this.body = new HashMap<>();
+            return;
+        }
+        Map<String, Object> copy = new HashMap<>(body.size());
+        for (Map.Entry<String, ?> entry : body.entrySet()) {
+            copy.put(entry.getKey(), entry.getValue());
+        }
+        this.body = copy;
     }
 
     public Map<String, Object> toJsonStructure() {

@@ -14,11 +14,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
-import com.example.core.navigation.NavigationHelper;
+import com.example.core.navigation.AppNavigationKey;
+import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core.navigation.FragmentNavigator;
+import com.example.core.navigation.FragmentNavigatorHost;
 import com.example.feature_home.R;
-import com.example.feature_home.home.di.HomeDependencyProvider;
 import com.example.feature_home.home.di.HomeViewModelFactory;
-import com.example.feature_home.home.presentation.state.HomeViewEvent;
 import com.example.feature_home.home.presentation.viewmodel.HomeViewModel;
 import com.google.android.material.button.MaterialButton;
 
@@ -29,7 +30,7 @@ public class HomeFragment extends Fragment {
 
     private HomeViewModel viewModel;
     private DialogHost<MainDialogType> dialogHost;
-    private HomeDependencyProvider dependencyProvider;
+    private FragmentNavigatorHost<AppNavigationKey> fragmentNavigatorHost;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -41,10 +42,10 @@ public class HomeFragment extends Fragment {
             throw new IllegalStateException("Host must implement DialogHostOwner");
         }
 
-        if (context instanceof HomeDependencyProvider provider) {
-            dependencyProvider = provider;
+        if (context instanceof FragmentNavigationHostOwner<?> owner) {
+            fragmentNavigatorHost = ((FragmentNavigationHostOwner<AppNavigationKey>) owner).getFragmentNavigatorHost();
         } else {
-            throw new IllegalStateException("Host must implement HomeDependencyProvider");
+            throw new IllegalStateException("Host must provide FragmentNavigatorHost");
         }
     }
 
@@ -57,7 +58,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDetach() {
         dialogHost = null;
-        dependencyProvider = null;
+        fragmentNavigatorHost = null;
         super.onDetach();
     }
 
@@ -106,10 +107,12 @@ public class HomeFragment extends Fragment {
     }
 
     private void navigateToMatching() {
-        NavigationHelper helper = dependencyProvider.getNavigationHelper();
-        helper.navigateTo(new MatchingFragment(), NavigationHelper.NavigationOptions.builder()
+        if (fragmentNavigatorHost == null) {
+            return;
+        }
+        fragmentNavigatorHost.navigateTo(AppNavigationKey.MATCHING, FragmentNavigator.Options.builder()
                 .addToBackStack(true)
-                .tag("Matching")
+                .tag(AppNavigationKey.MATCHING.name())
                 .build());
     }
 

@@ -43,13 +43,11 @@ public class DefaultPhpServerDataSource {
     }
 
     public ResponseSingle postSingle(Request request) throws IOException {
-        HttpResponse response = post(request);
-        return parseResponse(response, ResponseSingle.class);
+        return parseResponse(post(request), ResponseSingle.class);
     }
 
     public ResponseList postList(Request request) throws IOException {
-        HttpResponse response = post(request);
-        return parseResponse(response, ResponseList.class);
+        return parseResponse(post(request), ResponseList.class);
     }
 
     private HttpResponse executePost(Request request, String jsonBody) throws IOException {

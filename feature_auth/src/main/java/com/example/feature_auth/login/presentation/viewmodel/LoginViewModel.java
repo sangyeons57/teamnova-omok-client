@@ -15,9 +15,7 @@ import com.example.domain.common.value.LoginAction;
 import com.example.domain.identity.entity.Identity;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionException;
 
 /**
  * ViewModel orchestrating login related interactions while preserving the MVVM boundaries.

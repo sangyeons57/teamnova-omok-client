@@ -9,23 +9,33 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
 import com.example.application.port.in.UseCaseRegistry;
+import com.example.application.port.in.UseCaseRegistryProvider;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
-import com.example.core.navigation.NavigationHelper;
+import com.example.core.navigation.AppNavigationKey;
+import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core.navigation.FragmentNavigator;
+import com.example.core.navigation.FragmentNavigatorHost;
 import com.example.core.token.TokenManager;
-import com.example.feature_auth.login.di.LoginDependencyProvider;
-import com.example.feature_home.home.di.HomeDependencyProvider;
-import com.example.feature_auth.login.presentation.ui.LoginFragment;
+import com.example.core.token.TokenManagerProvider;
+import com.example.feature_auth.login.di.TermsAgreementHandler;
 import com.example.teamnovaomok.R;
 import com.example.teamnovaomok.ui.di.DialogContainer;
+import com.example.teamnovaomok.ui.di.FragmentNavigationContainer;
 import com.example.teamnovaomok.ui.di.UseCaseContainer;
 
-public class MainActivity extends AppCompatActivity implements DialogHostOwner<MainDialogType>, LoginDependencyProvider, HomeDependencyProvider {
+public class MainActivity extends AppCompatActivity implements
+        DialogHostOwner<MainDialogType>,
+        FragmentNavigationHostOwner<AppNavigationKey>,
+        UseCaseRegistryProvider,
+        TokenManagerProvider,
+        TermsAgreementHandler {
 
-    private NavigationHelper navigationHelper;
+    private FragmentNavigator fragmentNavigator;
     private DialogContainer dialogContainer;
     private UseCaseContainer useCaseContainer;
+    private FragmentNavigationContainer fragmentNavigationContainer;
     private TokenManager tokenManager;
 
     @Override
@@ -41,12 +51,13 @@ public class MainActivity extends AppCompatActivity implements DialogHostOwner<M
 
         useCaseContainer = new UseCaseContainer();
 
-        navigationHelper = new NavigationHelper(getSupportFragmentManager(), R.id.main_fragment_container, "MainNavigation");
+        fragmentNavigator = new FragmentNavigator(getSupportFragmentManager(), R.id.main_fragment_container, "MainNavigation");
+        fragmentNavigationContainer = new FragmentNavigationContainer();(fragmentNavigator);
 
         if (savedInstanceState == null) {
-            navigationHelper.navigateTo(new LoginFragment(), NavigationHelper.NavigationOptions.builder()
+            getFragmentNavigatorHost().navigateTo(AppNavigationKey.LOGIN, FragmentNavigator.Options.builder()
                     .addToBackStack(false)
-                    .tag("Login")
+                    .tag(AppNavigationKey.LOGIN.name())
                     .build());
         }
     }
@@ -69,6 +80,12 @@ public class MainActivity extends AppCompatActivity implements DialogHostOwner<M
         return tokenManager;
     }
 
+    @NonNull
+    @Override
+    public FragmentNavigatorHost<AppNavigationKey> getFragmentNavigatorHost() {
+        return fragmentNavigationContainer.getHost();
+    }
+
     @Override
     protected void onDestroy() {
         if (dialogContainer != null) {
@@ -80,15 +97,17 @@ public class MainActivity extends AppCompatActivity implements DialogHostOwner<M
         super.onDestroy();
     }
 
-    @NonNull
     @Override
-    public NavigationHelper getNavigationHelper() {
-        return navigationHelper;
+    public void onAllTermsAccepted() {
+        FragmentNavigatorHost<AppNavigationKey> host = getFragmentNavigatorHost();
+        host.clearBackStack();
+        host.navigateTo(AppNavigationKey.HOME, FragmentNavigator.Options.builder()
+                .addToBackStack(false)
+                .tag(AppNavigationKey.HOME.name())
+                .build());
     }
 
     private void initializeManager(Context context) {
         tokenManager = TokenManager.getInstance(context);
     }
 }
-
-

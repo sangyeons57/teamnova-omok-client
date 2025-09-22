@@ -80,6 +80,10 @@ public class Error {
         this.extra = extra;
     }
 
+    public boolean isAccessTokenExpired() {
+        return "ACCESS_TOKEN_EXPIRED".equals(code);
+    }
+
     @Override
     public String toString() {
         return

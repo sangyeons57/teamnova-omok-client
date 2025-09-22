@@ -110,9 +110,7 @@ public final class DialogHost<T extends Enum<T>> {
         DialogSession<T> session = new DialogSession<>(request, dialog);
         dialog.setOnDismissListener(ignored -> handleDismiss(session));
 
-
         dialogStack.addLast(session);
-        Log.d("DialogHost", ""+dialogStack.stream().count());
         dialog.show();
         updateBackCallbackState();
     }

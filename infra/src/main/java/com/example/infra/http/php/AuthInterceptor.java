@@ -30,7 +30,6 @@ public class AuthInterceptor implements Interceptor {
         if(BYPASS_PATHS.contains(path)) {
             return chain.proceed(request);
         }
-
         String at = tokenStore.getAccessToken();
         if (at != null && !at.isEmpty()) {
             request = request.newBuilder().header("Authorization", "Bearer " + at).build();

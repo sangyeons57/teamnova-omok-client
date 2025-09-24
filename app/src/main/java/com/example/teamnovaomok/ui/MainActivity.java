@@ -10,11 +10,14 @@ import androidx.core.splashscreen.SplashScreen;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
+import com.example.core.event.AppEvent;
+import com.example.core.event.SessionInvalidatedEvent;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigator;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core_di.TokenContainer;
+import com.example.core_di.EventBusContainer;
 import com.example.teamnovaomok.R;
 import com.example.teamnovaomok.ui.di.DialogContainer;
 import com.example.teamnovaomok.ui.di.FragmentNavigationContainer;
@@ -25,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private DialogContainer dialogContainer;
     private FragmentNavigationContainer fragmentNavigationContainer;
+    private long sessionInvalidatedListenerId = -1L;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -36,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements
         dialogContainer = new DialogContainer();
         dialogContainer.getMainDialogHost().attach(this);
         TokenContainer.init(getApplication());
+        sessionInvalidatedListenerId = EventBusContainer.getInstance().register(this::onAppEvent);
 
         fragmentNavigationContainer = new FragmentNavigationContainer(
                 new FragmentNavigator(getSupportFragmentManager(), R.id.main_fragment_container)
@@ -68,5 +73,20 @@ public class MainActivity extends AppCompatActivity implements
             }
         }
         super.onDestroy();
+        if (sessionInvalidatedListenerId != -1L) {
+            EventBusContainer.getInstance().unregister(sessionInvalidatedListenerId);
+            sessionInvalidatedListenerId = -1L;
+        }
+    }
+
+    private void onAppEvent(AppEvent event) {
+        if (!(event instanceof SessionInvalidatedEvent)) {
+            return;
+        }
+        runOnUiThread(() -> {
+            FragmentNavigationHost<AppNavigationKey> host = getFragmentNavigatorHost();
+            host.clearBackStack();
+            host.navigateTo(AppNavigationKey.LOGIN, false);
+        });
     }
 }

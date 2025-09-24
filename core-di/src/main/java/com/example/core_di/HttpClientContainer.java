@@ -13,7 +13,9 @@ public class HttpClientContainer {
     }
     private final HttpClientManager httpClientManager;
     public  HttpClientContainer() {
-        httpClientManager = new HttpClientManager( TokenContainer.getInstance() );
+        httpClientManager = new HttpClientManager(
+                TokenContainer.getInstance(),
+                EventBusContainer.getInstance());
     }
 
     public HttpClient get() {

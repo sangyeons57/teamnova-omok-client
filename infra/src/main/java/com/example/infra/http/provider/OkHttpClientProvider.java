@@ -1,5 +1,6 @@
 package com.example.infra.http.provider;
 
+import com.example.core.event.AppEventBus;
 import com.example.core.token.TokenStore;
 import com.example.infra.http.php.AuthInterceptor;
 import com.example.infra.http.php.LoggingInterceptor;
@@ -18,33 +19,33 @@ public class OkHttpClientProvider {
         }
         return instance;
     }
-    public static OkHttpClientProvider init(TokenStore tokenStore) {
+    public static OkHttpClientProvider init(TokenStore tokenStore, AppEventBus eventBus) {
         if(instance != null) return instance;
         synchronized (OkHttpClientProvider.class) {
             if(instance == null) {
-                instance = new OkHttpClientProvider(tokenStore);
+                instance = new OkHttpClientProvider(tokenStore, eventBus);
             }
             return instance;
         }
     }
 
     private final OkHttpClient defaultValue;
-    private OkHttpClientProvider(TokenStore tokenStore) {
+    private OkHttpClientProvider(TokenStore tokenStore, AppEventBus eventBus) {
         OkHttpClient refreshClient = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
                 .connectTimeout(20, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
-                .addInterceptor( new LoggingInterceptor() )
+                //.addInterceptor( new LoggingInterceptor() )
                 .build();
         defaultValue = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(true)
                 .connectTimeout(20, TimeUnit.SECONDS)
-                .readTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(80, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
                 .addInterceptor(new AuthInterceptor(tokenStore))
-                .authenticator(new TokenAuthenticator(refreshClient, tokenStore))
-                .addInterceptor( new LoggingInterceptor() )
+                .authenticator(new TokenAuthenticator(refreshClient, tokenStore, eventBus))
+                //.addInterceptor( new LoggingInterceptor() )
                 .build();
 
     }

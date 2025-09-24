@@ -56,6 +56,7 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
             }
             return identityMapper.toIdentity(response);
         } catch (IOException exception) {
+            Log.e("IdentifyRepositoryImpl", "error:" + Arrays.toString(exception.getStackTrace()));
             throw new GuestSignupRemoteException("Failed to create account", exception);
         }
     }

@@ -5,6 +5,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.core.event.AppEventBus;
+import com.example.core.event.SessionInvalidatedEvent;
 import com.example.core.token.TokenStore;
 
 import org.json.JSONException;
@@ -25,19 +27,24 @@ public class TokenAuthenticator implements Authenticator {
     private final OkHttpClient refreshClient;
     private final Object lock = new Object();
     private final TokenStore tokenStore;
+    private final AppEventBus eventBus;
 
     private static final MediaType MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
     private final static String URL = "https://bamsol.net/public/refresh-token.php";
 
-    public TokenAuthenticator(OkHttpClient refreshClient, TokenStore tokenStore) {
+    public TokenAuthenticator(OkHttpClient refreshClient, TokenStore tokenStore, AppEventBus eventBus) {
         this.refreshClient = Objects.requireNonNull(refreshClient, "refreshClient");
         this.tokenStore = Objects.requireNonNull(tokenStore, "tokenStore");
+        this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
     }
 
     @Nullable
     @Override
     public Request authenticate(@Nullable Route route, @NonNull Response response) throws IOException {
-        if (responseCount(response) >= 2) return null;
+        if (responseCount(response) >= 2) {
+            handleRefreshFailure();
+            return null;
+        }
 
         String fresh = tokenStore.getAccessToken();
         String reqAuth = response.request().header("Authorization");
@@ -55,10 +62,16 @@ public class TokenAuthenticator implements Authenticator {
                         .build();
             }
 
-            if(!refreshBlocking()) return null;
+            if(!refreshBlocking()) {
+                handleRefreshFailure();
+                return null;
+            }
 
             String newAt = tokenStore.getAccessToken();
-            if(newAt == null || newAt.isEmpty()) return null;
+            if(newAt == null || newAt.isEmpty()) {
+                handleRefreshFailure();
+                return null;
+            }
 
             return response.request().newBuilder()
                     .header("Authorization", "Bearer " + newAt)
@@ -111,6 +124,11 @@ public class TokenAuthenticator implements Authenticator {
             Log.e("TokenAuthenticator", "refresh exception: " + e);
             return false;
         }
+    }
+
+    private void handleRefreshFailure() {
+        tokenStore.clearAllTokens();
+        eventBus.post(new SessionInvalidatedEvent(SessionInvalidatedEvent.Reason.TOKEN_REFRESH_FAILURE));
     }
 
     private int responseCount(Response r) {

@@ -9,6 +9,7 @@ import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.AllTermsAcceptancesUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
+import com.example.core.event.AppEventBus;
 import com.example.core.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.mapper.IdentityMapper;
@@ -31,6 +32,7 @@ public final class UseCaseContainer {
     public final IdentifyRepository identifyRepository = new IdentifyRepositoryImpl(phpServerDataSource, new IdentityMapper());
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);
     public final TokenStore token = TokenContainer.getInstance();
+    public final AppEventBus eventBus = EventBusContainer.getInstance();
 
     public UseCaseContainer() {
         registry.register(CreateAccountUseCase.class,
@@ -40,6 +42,6 @@ public final class UseCaseContainer {
         registry.register(LoginUseCase.class,
                 UseCaseProviders.singleton(() -> new LoginUseCase(defaultConfig, identifyRepository)));
         registry.register(LogoutUseCase.class,
-                UseCaseProviders.singleton(() -> new LogoutUseCase(defaultConfig, identifyRepository, token)));
+                UseCaseProviders.singleton(() -> new LogoutUseCase(defaultConfig, identifyRepository, token, eventBus)));
     }
 }

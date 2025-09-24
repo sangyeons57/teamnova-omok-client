@@ -2,6 +2,7 @@ package com.example.infra.http.php;
 
 import android.util.Log;
 
+import com.example.core.event.AppEventBus;
 import com.example.core.network.http.HttpClient;
 import com.example.core.network.http.HttpRequest;
 import com.example.core.network.http.HttpResponse;
@@ -34,9 +35,10 @@ public final class HttpClientManager implements HttpClient {
 
     private final OkHttpClient client;
 
-    public HttpClientManager(TokenStore tokenStore) {
+    public HttpClientManager(TokenStore tokenStore, AppEventBus eventBus) {
         Objects.requireNonNull(tokenStore, "tokenStore");
-        this.client = OkHttpClientProvider.init(tokenStore).get();
+        Objects.requireNonNull(eventBus, "eventBus");
+        this.client = OkHttpClientProvider.init(tokenStore, eventBus).get();
     }
 
     @Override

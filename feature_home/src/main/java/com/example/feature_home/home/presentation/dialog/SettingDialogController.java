@@ -53,21 +53,26 @@ public final class SettingDialogController implements DialogController<MainDialo
                              @NonNull AlertDialog dialog,
                              @NonNull SettingDialogViewModel viewModel) {
         MaterialButton close = contentView.findViewById(R.id.buttonSettingClose);
-        MaterialButton sound = contentView.findViewById(R.id.buttonSettingSound);
-        MaterialButton notifications = contentView.findViewById(R.id.buttonSettingNotifications);
-        MaterialButton graphics = contentView.findViewById(R.id.buttonSettingGraphics);
+        MaterialButton google = contentView.findViewById(R.id.buttonSettingGoogle);
         MaterialButton profile = contentView.findViewById(R.id.buttonSettingProfile);
-        MaterialButton support = contentView.findViewById(R.id.buttonSettingSupport);
+        MaterialButton language = contentView.findViewById(R.id.buttonSettingLanguage);
+        MaterialButton privacy = contentView.findViewById(R.id.buttonSettingPrivacy);
+        MaterialButton terms = contentView.findViewById(R.id.buttonSettingTerms);
+        MaterialButton logout = contentView.findViewById(R.id.buttonSettingLogout);
+        MaterialButton withdraw = contentView.findViewById(R.id.buttonSettingWithdraw);
 
         close.setOnClickListener(v -> {
             viewModel.onCloseClicked();
             dialog.dismiss();
         });
-        sound.setOnClickListener(v -> viewModel.onGeneralSettingClicked("sound"));
-        notifications.setOnClickListener(v -> viewModel.onGeneralSettingClicked("notifications"));
-        graphics.setOnClickListener(v -> viewModel.onGeneralSettingClicked("graphics"));
-        support.setOnClickListener(v -> viewModel.onGeneralSettingClicked("support"));
+        google.setOnClickListener(v -> viewModel.onGeneralSettingClicked("google_link"));
+        language.setOnClickListener(v -> viewModel.onGeneralSettingClicked("language"));
+        privacy.setOnClickListener(v -> viewModel.onGeneralSettingClicked("privacy_policy"));
+        terms.setOnClickListener(v -> viewModel.onGeneralSettingClicked("terms_of_service"));
+        logout.setOnClickListener(v -> viewModel.onGeneralSettingClicked("logout"));
+        withdraw.setOnClickListener(v -> viewModel.onGeneralSettingClicked("withdraw"));
         profile.setOnClickListener(v -> {
+            viewModel.onGeneralSettingClicked("profile");
             viewModel.onOpenProfileClicked();
             if (activity instanceof DialogHostOwner<?>) {
                 DialogHost<MainDialogType> host = ((DialogHostOwner<MainDialogType>) activity).getDialogHost();

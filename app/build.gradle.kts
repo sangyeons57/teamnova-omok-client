@@ -32,11 +32,14 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":designsystem"))
+
+    implementation(project(":core-di"))
+
     implementation(project(":application"))
     implementation(project(":domain"))
     implementation(project(":data"))
-    implementation(project(":designsystem"))
+    implementation(project(":infra"))
 
     implementation(project(":feature_auth"))
     implementation(project(":feature_home"))

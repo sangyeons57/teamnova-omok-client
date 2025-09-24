@@ -12,11 +12,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.application.port.in.UseCaseRegistryProvider;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
-import com.example.core.token.TokenManagerProvider;
+import com.example.core.navigation.AppNavigationKey;
+import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core_di.TokenContainer;
 import com.example.domain.common.value.LoginAction;
 import com.example.feature_auth.R;
 import com.example.feature_auth.login.di.LoginViewModelFactory;
@@ -27,8 +29,7 @@ public class LoginFragment extends Fragment {
 
     private LoginViewModel viewModel;
     private DialogHost<MainDialogType> dialogHost;
-    private UseCaseRegistryProvider useCaseRegistryProvider;
-    private TokenManagerProvider tokenManagerProvider;
+
 
     @Override
     @SuppressWarnings("unchecked")
@@ -38,18 +39,6 @@ public class LoginFragment extends Fragment {
             dialogHost = ((DialogHostOwner<MainDialogType>) context).getDialogHost();
         } else {
             throw new IllegalStateException("Host activity must implement MainDialogHostOwner");
-        }
-
-        if (context instanceof UseCaseRegistryProvider registryProvider) {
-            useCaseRegistryProvider = registryProvider;
-        } else {
-            throw new IllegalStateException("Host activity must provide UseCaseRegistryProvider");
-        }
-
-        if (context instanceof TokenManagerProvider provider) {
-            tokenManagerProvider = provider;
-        } else {
-            throw new IllegalStateException("Host activity must provide TokenManagerProvider");
         }
     }
 
@@ -62,8 +51,6 @@ public class LoginFragment extends Fragment {
     @Override
     public void onDetach() {
         dialogHost = null;
-        useCaseRegistryProvider = null;
-        tokenManagerProvider = null;
         super.onDetach();
     }
 
@@ -71,9 +58,10 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        //noinspection unchecked
         LoginViewModelFactory factory = LoginViewModelFactory.create(
-                useCaseRegistryProvider.getUseCaseRegistry(),
-                tokenManagerProvider.getTokenManager());
+                (FragmentNavigationHostOwner<AppNavigationKey>)getActivity()
+        );
         viewModel = new ViewModelProvider(this, factory).get(LoginViewModel.class);
 
         MaterialButton guestButton = view.findViewById(R.id.buttonGuestLogin);

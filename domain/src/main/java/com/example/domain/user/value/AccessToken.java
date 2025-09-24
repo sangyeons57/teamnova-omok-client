@@ -19,15 +19,22 @@ import java.util.regex.Pattern;
  */
 public final class AccessToken {
 
-    private final String value;
+    public static final AccessToken EMPTY = new AccessToken("====EMPTY=====");
     private static final Pattern JWT_PATTERN = Pattern.compile("^[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*$");
 
-    public AccessToken(String value) {
+    private final String value;
+
+    private AccessToken(String value) {
         this.value = Objects.requireNonNull(value, "value");
-        validateFormat(this.value);
     }
 
-    public String value() {
+    public static AccessToken of(String value) {
+        Objects.requireNonNull(value, "value");
+        validateFormat(value);
+        return new AccessToken(value);
+    }
+
+    public String getValue() {
         return value;
     }
 
@@ -72,8 +79,12 @@ public final class AccessToken {
      *
      * @param token The token string to validate.
      */
-    private void validateFormat(String token) {
-        if (!JWT_PATTERN.matcher(token).matches()) {
+    private static void validateFormat(String token) {
+        Log.d("AccessToken", "value03:" + token + " " + EMPTY.equals(token));
+        if (EMPTY.equals(token)) {
+            Log.d("AccessToken", "value:" + token);
+            return;
+        } else if (!JWT_PATTERN.matcher(token).matches()) {
             throw new RuntimeException("Invalid JWT token format.");
         }
     }

@@ -4,7 +4,7 @@ import com.example.application.dto.command.AcceptTermsCommand;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.core.exception.UseCaseException;
-import com.example.application.port.out.TermsRepository;
+import com.example.application.port.out.user.TermsRepository;
 
 import java.util.Objects;
 

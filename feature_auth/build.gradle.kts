@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core-di"))
     implementation(project(":domain"))
     implementation(project(":application"))
     implementation(project(":data"))

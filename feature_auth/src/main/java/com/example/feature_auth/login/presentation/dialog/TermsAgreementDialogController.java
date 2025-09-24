@@ -14,21 +14,27 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.example.application.dto.command.AcceptTermsCommand;
 import com.example.application.port.in.UResult;
+import com.example.application.port.in.UResults;
 import com.example.application.port.in.UseCase;
-import com.example.application.port.in.UseCaseRegistryProvider;
+import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.usecase.AllTermsAcceptancesUseCase;
+import com.example.application.usecase.LoginUseCase;
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
-import com.example.core.token.TokenManager;
-import com.example.core.token.TokenManagerProvider;
+import com.example.core.navigation.AppNavigationKey;
+import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core.token.TokenStore;
+import com.example.core_di.TokenContainer;
+import com.example.core_di.UseCaseContainer;
 import com.example.feature_auth.R;
-import com.example.feature_auth.login.di.TermsAgreementHandler;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textview.MaterialTextView;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -39,12 +45,13 @@ public final class TermsAgreementDialogController implements DialogController<Ma
     @NonNull
     @Override
     public AlertDialog create(@NonNull FragmentActivity activity, @NonNull DialogRequest<MainDialogType> request) {
-        UseCaseRegistryProvider registryProvider = resolveUseCaseRegistryProvider(activity);
-        TokenManagerProvider tokenProvider = resolveTokenManagerProvider(activity);
+        UseCaseRegistry registry = UseCaseContainer.getInstance().registry;
 
-        AllTermsAcceptancesUseCase useCase = registryProvider.getUseCaseRegistry().get(AllTermsAcceptancesUseCase.class);
-        TokenManager tokenManager = tokenProvider.getTokenManager();
-        TermsAgreementHandler agreementHandler = activity instanceof TermsAgreementHandler handler ? handler : null;
+        AllTermsAcceptancesUseCase allTermsAcceptancesUseCase = registry.get(AllTermsAcceptancesUseCase.class);
+        LoginUseCase loginUseCase = registry.get(LoginUseCase.class);
+        TokenStore tokenManager = TokenContainer.getInstance();
+        //noinspection unchecked
+        FragmentNavigationHost<AppNavigationKey> host = ((FragmentNavigationHostOwner<AppNavigationKey>)activity).getFragmentNavigatorHost();
 
         View contentView = LayoutInflater.from(activity).inflate(R.layout.dialog_terms_agreement, null, false);
 
@@ -80,7 +87,7 @@ public final class TermsAgreementDialogController implements DialogController<Ma
 
         buttonConfirm.setOnClickListener(v -> {
             android.util.Log.d(LOG_TAG, "Confirm button clicked");
-            handleConfirmClicked(activity, dialog, buttonConfirm, useCase, tokenManager, agreementHandler);
+            handleConfirmClicked(activity, dialog, buttonConfirm, allTermsAcceptancesUseCase, loginUseCase, tokenManager, host);
         });
 
         dialog.setOnShowListener(ignored -> {
@@ -92,19 +99,6 @@ public final class TermsAgreementDialogController implements DialogController<Ma
         return dialog;
     }
 
-    private UseCaseRegistryProvider resolveUseCaseRegistryProvider(@NonNull FragmentActivity activity) {
-        if (activity instanceof UseCaseRegistryProvider provider) {
-            return provider;
-        }
-        throw new IllegalStateException("Host activity must provide UseCaseRegistryProvider");
-    }
-
-    private TokenManagerProvider resolveTokenManagerProvider(@NonNull FragmentActivity activity) {
-        if (activity instanceof TokenManagerProvider provider) {
-            return provider;
-        }
-        throw new IllegalStateException("Host activity must provide TokenManagerProvider");
-    }
 
     private void updateConfirmState(@NonNull MaterialButton buttonConfirm,
                                     @NonNull MaterialCheckBox checkPrivacyPolicy,
@@ -119,9 +113,11 @@ public final class TermsAgreementDialogController implements DialogController<Ma
     private void handleConfirmClicked(@NonNull FragmentActivity activity,
                                       @NonNull AlertDialog dialog,
                                       @NonNull MaterialButton buttonConfirm,
-                                      @NonNull AllTermsAcceptancesUseCase useCase,
-                                      @NonNull TokenManager tokenManager,
-                                      TermsAgreementHandler agreementHandler) {
+                                      @NonNull AllTermsAcceptancesUseCase allTermsAcceptancesUseCase,
+                                      @NonNull LoginUseCase loginUseCase,
+                                      @NonNull TokenStore tokenManager,
+                                      FragmentNavigationHost<AppNavigationKey> host
+    ) {
         String accessToken = tokenManager.getAccessToken();
         if (accessToken == null || accessToken.trim().isEmpty()) {
             android.util.Log.w(LOG_TAG, "Access token is missing");
@@ -132,38 +128,26 @@ public final class TermsAgreementDialogController implements DialogController<Ma
         AcceptTermsCommand command = AcceptTermsCommand.acceptAll(accessToken);
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         buttonConfirm.setEnabled(false);
-        useCase.executeAsync(command, executorService)
-                .whenComplete((result, throwable) -> {
-                    executorService.shutdown();
-                    activity.runOnUiThread(() -> {
-                        if (throwable != null) {
-                            android.util.Log.e(LOG_TAG, "Failed to accept terms", throwable);
-                            buttonConfirm.setEnabled(true);
-                            Toast.makeText(activity, R.string.error_terms_acceptance_failed, Toast.LENGTH_SHORT).show();
-                        } else {
-                            handleResult(dialog, buttonConfirm, result, agreementHandler);
+        allTermsAcceptancesUseCase.executeAsync(command, executorService)
+                .thenCompose(res -> {
+                    if(UResults.isSuccess(res)) {
+                        return loginUseCase.executeAsync(UseCase.None.INSTANCE, executorService);
+                    } else {
+                        return CompletableFuture.completedFuture(UResults.err( UResults.getErrMessage(res), UResults.getErrCode(res)));
+                    }
+                }).whenComplete((result, throwable) -> {
+                    if(result instanceof UResult.Ok<?> data) {
+                        dialog.dismiss();
+                        host.clearBackStack();
+                        host.navigateTo(AppNavigationKey.HOME, false);
+                    } else if (result instanceof UResult.Err<?> err) {
+                        buttonConfirm.setEnabled(true);
+                        String message = err.message();
+                        if (message == null || message.trim().isEmpty()) {
+                            message = dialog.getContext().getString(R.string.error_terms_acceptance_failed);
                         }
-                    });
+                        Toast.makeText(dialog.getContext(), message, Toast.LENGTH_SHORT).show();
+                    }
                 });
-    }
-
-    private void handleResult(@NonNull AlertDialog dialog,
-                              @NonNull MaterialButton buttonConfirm,
-                              @NonNull UResult<UseCase.None> result,
-                              TermsAgreementHandler agreementHandler) {
-        if (result instanceof UResult.Ok<?>) {
-            dialog.dismiss();
-            if (agreementHandler != null) {
-                agreementHandler.onAllTermsAccepted();
-            }
-        } else if (result instanceof UResult.Err<?>) {
-            UResult.Err<?> err = (UResult.Err<?>) result;
-            buttonConfirm.setEnabled(true);
-            String message = err.message();
-            if (message == null || message.trim().isEmpty()) {
-                message = dialog.getContext().getString(R.string.error_terms_acceptance_failed);
-            }
-            Toast.makeText(dialog.getContext(), message, Toast.LENGTH_SHORT).show();
-        }
     }
 }

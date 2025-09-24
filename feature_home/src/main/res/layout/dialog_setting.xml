@@ -52,53 +52,93 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonSettingSound"
-                style="@style/Widget.Material3.Button"
+                android:id="@+id/buttonSettingGoogle"
+                style="@style/Widget.TeamnovaOmok.SettingsButton.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/dialog_setting_sound" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonSettingNotifications"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/dialog_setting_notifications" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonSettingGraphics"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/dialog_setting_graphics" />
+                android:layout_marginTop="24dp"
+                android:text="@string/dialog_setting_google_link"
+                app:icon="@drawable/ic_setting_google" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:gravity="center"
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonSettingProfile"
-                    style="@style/Widget.Material3.Button"
+                    style="@style/Widget.TeamnovaOmok.SettingsButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:text="@string/dialog_setting_profile" />
+                    android:text="@string/dialog_setting_profile_button"
+                    app:icon="@drawable/ic_setting_profile" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonSettingSupport"
-                    style="@style/Widget.Material3.Button"
+                    android:id="@+id/buttonSettingLanguage"
+                    style="@style/Widget.TeamnovaOmok.SettingsButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:text="@string/dialog_setting_support" />
+                    android:text="@string/dialog_setting_language"
+                    app:icon="@drawable/ic_setting_language" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonSettingPrivacy"
+                    style="@style/Widget.TeamnovaOmok.SettingsButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/dialog_setting_privacy"
+                    app:icon="@drawable/ic_setting_privacy" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonSettingTerms"
+                    style="@style/Widget.TeamnovaOmok.SettingsButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/dialog_setting_terms"
+                    app:icon="@drawable/ic_setting_terms" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonSettingLogout"
+                    style="@style/Widget.TeamnovaOmok.SettingsButton.Destructive"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/dialog_setting_logout"
+                    app:icon="@drawable/ic_setting_logout" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonSettingWithdraw"
+                    style="@style/Widget.TeamnovaOmok.SettingsButton.Destructive"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/dialog_setting_withdraw"
+                    app:icon="@drawable/ic_setting_withdraw" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

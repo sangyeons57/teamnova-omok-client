@@ -6,7 +6,13 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.usecase.CreateAccountUseCase;
-import com.example.core.token.TokenManager;
+import com.example.application.usecase.LoginUseCase;
+import com.example.core.navigation.AppNavigationKey;
+import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core.token.TokenStore;
+import com.example.core_di.TokenContainer;
+import com.example.core_di.UseCaseContainer;
 import com.example.feature_auth.login.presentation.viewmodel.LoginViewModel;
 
 import java.util.Objects;
@@ -16,21 +22,20 @@ import java.util.concurrent.Executors;
 public final class LoginViewModelFactory implements ViewModelProvider.Factory {
 
     private final UseCaseRegistry useCaseRegistry;
-    private final TokenManager tokenManager;
+    private final TokenStore tokenManager;
     private final ExecutorService executorService;
+    private final FragmentNavigationHost<AppNavigationKey> host;
 
-    private LoginViewModelFactory(@NonNull UseCaseRegistry useCaseRegistry,
-                                  @NonNull TokenManager tokenManager,
-                                  @NonNull ExecutorService executorService) {
-        this.useCaseRegistry = Objects.requireNonNull(useCaseRegistry, "useCaseRegistry");
-        this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
+    private LoginViewModelFactory(@NonNull ExecutorService executorService, FragmentNavigationHost<AppNavigationKey> host) {
+        this.useCaseRegistry = UseCaseContainer.getInstance().registry;
+        this.tokenManager = TokenContainer.getInstance();
         this.executorService = Objects.requireNonNull(executorService, "executorService");
+        this.host = host;
     }
 
     @NonNull
-    public static LoginViewModelFactory create(@NonNull UseCaseRegistry registry,
-                                               @NonNull TokenManager tokenManager) {
-        return new LoginViewModelFactory(registry, tokenManager, Executors.newSingleThreadExecutor());
+    public static LoginViewModelFactory create(FragmentNavigationHostOwner<AppNavigationKey> owner) {
+        return new LoginViewModelFactory(Executors.newSingleThreadExecutor(), owner.getFragmentNavigatorHost());
     }
 
     @NonNull
@@ -38,8 +43,9 @@ public final class LoginViewModelFactory implements ViewModelProvider.Factory {
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(LoginViewModel.class)) {
-            CreateAccountUseCase useCase = useCaseRegistry.get(CreateAccountUseCase.class);
-            return (T) new LoginViewModel(useCase, tokenManager, executorService);
+            CreateAccountUseCase createAccountUseCase = useCaseRegistry.get(CreateAccountUseCase.class);
+            LoginUseCase loginUseCase = useCaseRegistry.get(LoginUseCase.class);
+            return (T) new LoginViewModel(createAccountUseCase, loginUseCase, tokenManager, executorService, host);
         }
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());
     }

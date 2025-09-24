@@ -28,13 +28,12 @@ android {
 }
 
 dependencies {
+    implementation(project(":core-api"))
     implementation(project(":domain"))
     implementation(project(":application"))
-    implementation(project(":core"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation(libs.gson)
 }
 

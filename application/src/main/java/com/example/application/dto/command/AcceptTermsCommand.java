@@ -1,6 +1,6 @@
 package com.example.application.dto.command;
 
-import com.example.domain.terms.value.Terms;
+import com.example.domain.user.value.Terms;
 
 import java.util.Arrays;
 import java.util.List;

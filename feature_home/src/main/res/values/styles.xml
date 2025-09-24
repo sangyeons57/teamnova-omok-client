@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.TeamnovaOmok.SettingsButton" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textAppearance">@style/TextAppearance.Material3.LabelLarge</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="iconTint">?attr/colorPrimary</item>
+        <item name="backgroundTint">?attr/colorSurfaceVariant</item>
+        <item name="rippleColor">?attr/colorPrimary</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">12dp</item>
+    </style>
+
+    <style name="Widget.TeamnovaOmok.SettingsButton.Primary" parent="Widget.TeamnovaOmok.SettingsButton">
+        <item name="backgroundTint">?attr/colorPrimaryContainer</item>
+        <item name="android:textColor">?attr/colorOnPrimaryContainer</item>
+        <item name="iconTint">?attr/colorOnPrimaryContainer</item>
+        <item name="rippleColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Widget.TeamnovaOmok.SettingsButton.Destructive" parent="Widget.TeamnovaOmok.SettingsButton">
+        <item name="backgroundTint">?attr/colorErrorContainer</item>
+        <item name="android:textColor">?attr/colorOnErrorContainer</item>
+        <item name="iconTint">?attr/colorOnErrorContainer</item>
+        <item name="rippleColor">?attr/colorError</item>
+    </style>
+</resources>

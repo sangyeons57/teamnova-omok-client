@@ -7,13 +7,20 @@ import java.util.Objects;
  */
 public final class RefreshToken {
 
+    public static final RefreshToken EMPTY = new RefreshToken("===EMPTY===");
+
     private final String value;
 
-    public RefreshToken(String value) {
+    private RefreshToken(String value) {
         this.value = Objects.requireNonNull(value, "value");
     }
 
-    public String value() {
+    public static RefreshToken of(String value) {
+        Objects.requireNonNull(value, "value");
+        return new RefreshToken(value);
+    }
+
+    public String getValue() {
         return value;
     }
 }

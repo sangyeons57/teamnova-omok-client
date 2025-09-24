@@ -29,10 +29,11 @@ android {
 }
 
 dependencies {
+    implementation(project(":core-di"))
 
     implementation(libs.appcompat)
     implementation(libs.material)
-    implementation(project(":core"))
+    implementation(project(":core-api"))
     implementation(project(":designsystem"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

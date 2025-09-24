@@ -14,7 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigator;
-import com.example.core.navigation.FragmentNavigatorHost;
+import com.example.core.navigation.FragmentNavigationHost;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.MatchingViewModelFactory;
 import com.example.feature_home.home.presentation.state.MatchingViewEvent;
@@ -27,14 +27,14 @@ import com.google.android.material.button.MaterialButton;
 public class MatchingFragment extends Fragment {
 
     private MatchingViewModel viewModel;
-    private FragmentNavigatorHost<AppNavigationKey> fragmentNavigatorHost;
+    private FragmentNavigationHost<AppNavigationKey> fragmentNavigationHost;
 
     @Override
     @SuppressWarnings("unchecked")
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof FragmentNavigationHostOwner<?> owner) {
-            fragmentNavigatorHost = ((FragmentNavigationHostOwner<AppNavigationKey>) owner).getFragmentNavigatorHost();
+            fragmentNavigationHost = ((FragmentNavigationHostOwner<AppNavigationKey>) owner).getFragmentNavigatorHost();
         } else {
             throw new IllegalStateException("Host must provide FragmentNavigatorHost");
         }
@@ -48,7 +48,7 @@ public class MatchingFragment extends Fragment {
 
     @Override
     public void onDetach() {
-        fragmentNavigatorHost = null;
+        fragmentNavigationHost = null;
         super.onDetach();
     }
 
@@ -82,15 +82,12 @@ public class MatchingFragment extends Fragment {
     }
 
     private void returnToHome() {
-        if (fragmentNavigatorHost == null) {
+        if (fragmentNavigationHost == null) {
             return;
         }
-        boolean popped = fragmentNavigatorHost.popBackStack();
+        boolean popped = fragmentNavigationHost.popBackStack();
         if (!popped) {
-            fragmentNavigatorHost.navigateTo(AppNavigationKey.HOME, FragmentNavigator.Options.builder()
-                    .addToBackStack(false)
-                    .tag(AppNavigationKey.HOME.name())
-                    .build());
+            fragmentNavigationHost.navigateTo(AppNavigationKey.HOME, false);
         }
     }
 }

@@ -6,8 +6,14 @@ public enum Path {
     HELLO_WORLD,
     INFO,
     LOGIN,
+    LOGOUT,
     TERMS_ACCEPTANCES
     ;
+    public static final String BASE_PATH = "https://bamsol.net/public/";
+
+    public String toBasePath() {
+        return BASE_PATH + this.toString();
+    }
 
     @Override
     public String toString() {
@@ -18,6 +24,7 @@ public enum Path {
             case CREATE_ACCOUNT -> "create-account.php";
             case TERMS_ACCEPTANCES -> "terms-acceptances.php";
             case LOGIN -> "login.php";
+            case LOGOUT -> "logout.php";
 
         };
     }

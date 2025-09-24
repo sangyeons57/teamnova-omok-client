@@ -17,7 +17,7 @@ import com.example.core.dialog.MainDialogType;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigator;
-import com.example.core.navigation.FragmentNavigatorHost;
+import com.example.core.navigation.FragmentNavigationHost;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.HomeViewModelFactory;
 import com.example.feature_home.home.presentation.viewmodel.HomeViewModel;
@@ -30,7 +30,7 @@ public class HomeFragment extends Fragment {
 
     private HomeViewModel viewModel;
     private DialogHost<MainDialogType> dialogHost;
-    private FragmentNavigatorHost<AppNavigationKey> fragmentNavigatorHost;
+    private FragmentNavigationHost<AppNavigationKey> fragmentNavigationHost;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -43,7 +43,7 @@ public class HomeFragment extends Fragment {
         }
 
         if (context instanceof FragmentNavigationHostOwner<?> owner) {
-            fragmentNavigatorHost = ((FragmentNavigationHostOwner<AppNavigationKey>) owner).getFragmentNavigatorHost();
+            fragmentNavigationHost = ((FragmentNavigationHostOwner<AppNavigationKey>) owner).getFragmentNavigatorHost();
         } else {
             throw new IllegalStateException("Host must provide FragmentNavigatorHost");
         }
@@ -58,7 +58,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDetach() {
         dialogHost = null;
-        fragmentNavigatorHost = null;
+        fragmentNavigationHost = null;
         super.onDetach();
     }
 
@@ -107,13 +107,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void navigateToMatching() {
-        if (fragmentNavigatorHost == null) {
+        if (fragmentNavigationHost == null) {
             return;
         }
-        fragmentNavigatorHost.navigateTo(AppNavigationKey.MATCHING, FragmentNavigator.Options.builder()
-                .addToBackStack(true)
-                .tag(AppNavigationKey.MATCHING.name())
-                .build());
+        fragmentNavigationHost.navigateTo(AppNavigationKey.MATCHING, true);
     }
 
     private void enqueueDialog(@NonNull MainDialogType type) {

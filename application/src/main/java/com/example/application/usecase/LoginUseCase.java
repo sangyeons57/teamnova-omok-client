@@ -1,13 +1,13 @@
 package com.example.application.usecase;
 
-import com.example.application.dto.command.LoginCommand;
+import android.util.Log;
+
 import com.example.application.dto.response.LoginResponse;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
+import com.example.application.port.out.user.IdentifyRepository;
 import com.example.core.exception.UseCaseException;
-import com.example.core.token.TokenManager;
-
-import kotlin.coroutines.ContinuationInterceptor;
+import com.example.domain.user.entity.User;
 
 /**
  *  엑세스 토큰을 제공해서 자동으로 로그인하고
@@ -17,12 +17,17 @@ import kotlin.coroutines.ContinuationInterceptor;
  * 엑세스 토큰 실패는 다른단계에서 리프래시 토큰 제공해야함
  */
 public class LoginUseCase extends UseCase<UseCase.None, LoginResponse> {
-    public LoginUseCase(UseCaseConfig config) {
+    private final IdentifyRepository identifyRepository;
+
+    public LoginUseCase(UseCaseConfig config, IdentifyRepository identifyRepository) {
         super(config);
+        this.identifyRepository = identifyRepository;
     }
 
     @Override
     protected LoginResponse run(None input) throws UseCaseException {
-        return null;
+        User identity = identifyRepository.login();
+        Log.d("LoginUseCase", "identity: " + identity.toString());
+        return new LoginResponse(identity);
     }
 }

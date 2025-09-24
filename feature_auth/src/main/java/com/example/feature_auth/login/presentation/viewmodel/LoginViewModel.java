@@ -8,14 +8,22 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application.dto.command.CreateAccountCommand;
+import com.example.application.dto.response.LoginResponse;
 import com.example.application.port.in.UResult;
+import com.example.application.port.in.UseCase;
 import com.example.application.usecase.CreateAccountUseCase;
-import com.example.core.token.TokenManager;
+import com.example.application.usecase.LoginUseCase;
+import com.example.core.navigation.AppNavigationKey;
+import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core.token.TokenStore;
 import com.example.domain.common.value.LoginAction;
-import com.example.domain.identity.entity.Identity;
+import com.example.domain.user.entity.Identity;
+import com.example.domain.user.entity.User;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * ViewModel orchestrating login related interactions while preserving the MVVM boundaries.
@@ -29,14 +37,26 @@ public class LoginViewModel extends ViewModel {
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final ExecutorService executorService;
     private final CreateAccountUseCase createAccountUseCase;
-    private final TokenManager tokenManager;
+    private final TokenStore tokenManager;
+    private final FragmentNavigationHost<AppNavigationKey> host;
 
     public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
-                          @NonNull TokenManager tokenManager,
-                          @NonNull ExecutorService executorService) {
+                          @NonNull LoginUseCase loginUseCase,
+                          @NonNull TokenStore tokenManager,
+                          @NonNull ExecutorService executorservice,
+                          @NonNull FragmentNavigationHost<AppNavigationKey> host) {
         this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
         this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
-        this.executorService = Objects.requireNonNull(executorService, "executorService");
+        this.executorService = Objects.requireNonNull(executorservice, "executorService");
+        this.host = Objects.requireNonNull(host, "host");
+
+        loginUseCase.executeAsync(UseCase.None.INSTANCE, executorService).whenComplete((result, throwable) -> {
+            if(result instanceof UResult.Ok<LoginResponse> data) {
+                host.clearBackStack();
+                host.navigateTo(AppNavigationKey.HOME, false);
+            }
+        });
+
     }
 
     public LiveData<LoginAction> getLoginAction() {
@@ -72,16 +92,16 @@ public class LoginViewModel extends ViewModel {
     private void executeCreateAccount(CreateAccountCommand command, LoginAction action) {
         createAccountUseCase.executeAsync(command, executorService).thenAccept(result -> {
             Log.d(TAG, "executeCreateAccount: " + result);
-            if (result instanceof UResult.Ok<Identity> ok) {
-                handleSuccess(ok.value(), action);
-            } else if (result instanceof UResult.Err<Identity> err) {
+            if (result instanceof UResult.Ok<User> ok) {
+                handleSuccess(ok.value().getIdentity(), action);
+            } else if (result instanceof UResult.Err<User> err) {
                 handleFailure(err.message());
             }
         });
     }
 
     private void handleSuccess(Identity response, LoginAction action) {
-        tokenManager.saveTokens(response.getAccessToken().value(), response.getRefreshToken().value());
+        tokenManager.saveTokens(response.getAccessToken().getValue(), response.getRefreshToken().getValue());
         loginAction.postValue(action);
     }
 

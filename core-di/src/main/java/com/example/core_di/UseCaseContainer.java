@@ -13,6 +13,9 @@ import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.DeactivateAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
+import com.example.application.usecase.RankingDataUseCase;
+import com.example.application.usecase.SelfDataUseCase;
+import com.example.application.usecase.UserDataUseCase;
 import com.example.core.event.AppEventBus;
 import com.example.core.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
@@ -56,5 +59,11 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new ChangeNameUseCase(defaultConfig, userRepository)));
         registry.register(ChangeProfileIconUseCase.class,
                 UseCaseProviders.singleton(() -> new ChangeProfileIconUseCase(defaultConfig, userRepository)));
+        registry.register(RankingDataUseCase.class,
+                UseCaseProviders.singleton(() -> new RankingDataUseCase(defaultConfig, userRepository)));
+        registry.register(SelfDataUseCase.class,
+                UseCaseProviders.singleton(() -> new SelfDataUseCase(defaultConfig, userRepository)));
+        registry.register(UserDataUseCase.class,
+                UseCaseProviders.singleton(() -> new UserDataUseCase(defaultConfig, userRepository)));
     }
 }

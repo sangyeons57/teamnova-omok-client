@@ -53,9 +53,9 @@
 
     <!-- Settings profile dialog -->
     <string name="dialog_setting_profile_title">프로필 설정</string>
-    <string name="dialog_setting_profile_label">닉네임</string>
-    <string name="dialog_setting_profile_hint">닉네임을 입력하세요</string>
-    <string name="dialog_setting_profile_display_label">현재 닉네임</string>
+    <string name="dialog_setting_profile_label">이름</string>
+    <string name="dialog_setting_profile_hint">이름을 입력하세요</string>
+    <string name="dialog_setting_profile_display_label">현재 이름</string>
     <string name="dialog_setting_profile_apply">적용</string>
 
     <!-- Ranking dialog -->

@@ -53,10 +53,8 @@ public final class SettingProfileDialogController implements DialogController<Ma
                            @NonNull SettingProfileDialogViewModel viewModel) {
         MaterialButton close = contentView.findViewById(R.id.buttonProfileClose);
         MaterialButton apply = contentView.findViewById(R.id.buttonProfileApply);
-        MaterialTextView currentNickname = contentView.findViewById(R.id.textCurrentNickname);
         TextInputEditText input = contentView.findViewById(R.id.inputNickname);
 
-        viewModel.getNickname().observe(activity, currentNickname::setText);
 
         close.setOnClickListener(v -> {
             viewModel.onCloseClicked();

@@ -1,11 +1,20 @@
 package com.example.application.port.out.user;
 
-import com.example.application.dto.command.ChangeNameCommand;
-import com.example.application.dto.command.ChangeProfileIconCommand;
+import com.example.domain.user.entity.RankingEntry;
+import com.example.domain.user.entity.User;
 import com.example.domain.user.value.UserDisplayName;
+import com.example.domain.user.value.UserId;
 import com.example.domain.user.value.UserProfileIcon;
 
+import java.util.List;
+
 public interface UserRepository {
-    boolean changeName(UserDisplayName newName);
+    /**
+     * @return null when the request succeeded, otherwise the error message produced by the backend.
+     */
+    String changeName(UserDisplayName newName);
     boolean changeProfileIcon(UserProfileIcon newIcon);
+    List<RankingEntry> fetchRankingData();
+    User fetchSelfData();
+    User fetchUserData(UserId userId);
 }

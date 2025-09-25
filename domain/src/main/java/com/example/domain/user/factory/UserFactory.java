@@ -29,7 +29,7 @@ public class UserFactory {
         );
 
     }
-    public static User createUser(String userId, String displayName, String profileIcon, String role, String status, int score, String accessToken, String refreshToken) {
+    public static User createUser(String userId, String displayName, int profileIcon, String role, String status, int score, String accessToken, String refreshToken) {
         return User.of(
                 UserId.of(userId),
                 UserDisplayName.of(displayName),
@@ -38,6 +38,22 @@ public class UserFactory {
                 UserStatus.of(status),
                 UserScore.of(score),
                 Identity.of(accessToken, refreshToken));
+    }
+
+    public static User createProfile(String userId,
+                                     String displayName,
+                                     Integer profileIconCode,
+                                     String role,
+                                     String status,
+                                     Integer score) {
+        return defaultCreate(
+                userId != null ? UserId.of(userId) : null,
+                displayName != null ? UserDisplayName.of(displayName) : null,
+                profileIconCode != null ? UserProfileIcon.of(profileIconCode) : null,
+                role != null ? UserRole.of(role) : null,
+                status != null ? UserStatus.of(status) : null,
+                score != null ? UserScore.of(score) : null,
+                Identity.EMPTY);
     }
 
     public static User createIdentity(String userId, String accessToken, String refreshToken) {

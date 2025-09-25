@@ -59,42 +59,60 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/dialog_setting_profile_label" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutNickname"
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/rowNickname"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputNickname"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutNickname"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="@string/dialog_setting_profile_hint" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    app:counterEnabled="true"
+                    app:counterMaxLength="20"
+                    app:hintEnabled="true"
+                    app:hintAnimationEnabled="true"
+                    app:boxStrokeErrorColor="?attr/colorError"
+                    app:errorEnabled="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/buttonProfileApply"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonProfileApply"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/dialog_setting_profile_apply" />
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputNickname"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/dialog_setting_profile_hint"
+                        android:imeOptions="actionDone"
+                        android:inputType="textPersonName"
+                        android:maxLines="1" />
+                </com.google.android.material.textfield.TextInputLayout>
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonProfileApply"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/dialog_setting_profile_apply"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/layoutNickname"
+                    app:layout_constraintBottom_toBottomOf="@id/layoutNickname" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 메시지: 성공/에러 텍스트 표시용으로 전환 -->
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/textCurrentNicknameLabel"
+                android:id="@+id/textNicknameStatus"
                 style="@style/TextAppearance.Material3.LabelMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/dialog_setting_profile_display_label" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/textCurrentNickname"
-                style="@style/TextAppearance.Material3.BodyLarge"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Guest" />
+                android:visibility="gone" />
+
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

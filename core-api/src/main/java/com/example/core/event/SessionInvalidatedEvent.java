@@ -3,6 +3,7 @@ package com.example.core.event;
 public final class SessionInvalidatedEvent implements AppEvent {
     public enum Reason {
         TOKEN_REFRESH_FAILURE,
+        DEACTIVATE_ACCOUNT,
         LOGOUT
     }
 

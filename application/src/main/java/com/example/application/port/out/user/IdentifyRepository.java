@@ -7,4 +7,5 @@ public interface IdentifyRepository {
     User createAccount(LoginAction provider, String providerUserId);
     User login();
     void logout();
+    void deactivateAccount();
 }

@@ -6,7 +6,9 @@ import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogRegistry;
 import com.example.core.dialog.MainDialogType;
 import com.example.feature_auth.login.di.TermsAgreementDialogProvider;
+import com.example.feature_home.home.di.DeleteAccountDialogProvider;
 import com.example.feature_home.home.di.GameModeDialogProvider;
+import com.example.feature_home.home.di.LogoutDialogProvider;
 import com.example.feature_home.home.di.RankingDialogProvider;
 import com.example.feature_home.home.di.ScoreDialogProvider;
 import com.example.feature_home.home.di.SettingDialogProvider;
@@ -27,6 +29,8 @@ public final class DialogContainer {
         registry.registerProvider(new RankingDialogProvider());
         registry.registerProvider(new SettingDialogProvider());
         registry.registerProvider(new SettingProfileDialogProvider());
+        registry.registerProvider(new LogoutDialogProvider());
+        registry.registerProvider(new DeleteAccountDialogProvider());
 
         mainDialogHost = new DialogHost<>(registry);
     }

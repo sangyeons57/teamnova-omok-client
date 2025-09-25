@@ -30,11 +30,20 @@ android {
 
 dependencies {
     implementation(project(":core-di"))
+    implementation(project(":core-api"))
+    implementation(project(":designsystem"))
+    implementation(project(":domain"))
+    implementation(project(":application"))
 
     implementation(libs.appcompat)
     implementation(libs.material)
-    implementation(project(":core-api"))
-    implementation(project(":designsystem"))
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.livedata)
+    implementation(libs.play.services.base)
+
+    implementation(libs.appcompat)
+    implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

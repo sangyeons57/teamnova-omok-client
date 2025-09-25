@@ -7,6 +7,7 @@ public enum Path {
     INFO,
     LOGIN,
     LOGOUT,
+    DEACTIVATE_ACCOUNT,
     TERMS_ACCEPTANCES
     ;
     public static final String BASE_PATH = "https://bamsol.net/public/";
@@ -22,6 +23,7 @@ public enum Path {
             case INFO -> "info.php";
 
             case CREATE_ACCOUNT -> "create-account.php";
+            case DEACTIVATE_ACCOUNT -> "deactivate-account.php";
             case TERMS_ACCEPTANCES -> "terms-acceptances.php";
             case LOGIN -> "login.php";
             case LOGOUT -> "logout.php";

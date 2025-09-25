@@ -20,6 +20,14 @@ public class SettingDialogViewModel extends ViewModel {
         Log.d(TAG, "Profile settings requested");
     }
 
+    public void onLogoutRequested() {
+        Log.d(TAG, "Logout requested");
+    }
+
+    public void onWithdrawRequested() {
+        Log.d(TAG, "Account deletion requested");
+    }
+
     public void onCloseClicked() {
         Log.d(TAG, "Settings dialog closed");
     }

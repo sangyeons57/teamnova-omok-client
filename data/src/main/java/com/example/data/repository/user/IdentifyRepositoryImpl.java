@@ -11,7 +11,6 @@ import com.example.data.mapper.IdentityMapper;
 import com.example.data.model.http.request.Path;
 import com.example.data.model.http.request.Request;
 import com.example.data.model.http.response.Response;
-import com.example.domain.user.entity.Identity;
 import com.example.domain.common.value.LoginAction;
 import com.example.domain.user.entity.User;
 
@@ -80,6 +79,18 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
     public void logout() {
         try {
             Response response = phpServerDataSource.post( Request.defaultRequest(Path.LOGOUT) );
+
+            if(!response.isSuccess()) {
+                throw new LogoutRemoteException("Failed to logout Status: " + response.statusCode() + " | " + response.statusMessage());
+            }
+        } catch (IOException exception) {
+            throw new LogoutRemoteException("Failed to logout", exception);
+        }
+    }
+
+    public void deactivateAccount() {
+        try {
+            Response response = phpServerDataSource.post( Request.defaultRequest(Path.DEACTIVATE_ACCOUNT) );
 
             if(!response.isSuccess()) {
                 throw new LogoutRemoteException("Failed to logout Status: " + response.statusCode() + " | " + response.statusMessage());

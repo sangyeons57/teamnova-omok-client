@@ -39,7 +39,6 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.livedata)
-    implementation(libs.okhttp)
     implementation(libs.play.services.base)
 
 

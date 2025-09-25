@@ -151,11 +151,7 @@ public final class DialogHost<T extends Enum<T>> {
     public void dismissAll() {
         ensureMainThread();
         while (!dialogStack.isEmpty()) {
-            DialogSession<T> session = dialogStack.peekLast();
-            if (session == null) {
-                break;
-            }
-            dismissSession(session, true);
+            dismissTop();
         }
     }
 

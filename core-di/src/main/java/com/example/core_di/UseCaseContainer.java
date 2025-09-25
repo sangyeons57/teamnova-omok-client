@@ -5,8 +5,9 @@ import com.example.application.port.in.UseCaseProviders;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.application.port.out.user.TermsRepository;
-import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.AllTermsAcceptancesUseCase;
+import com.example.application.usecase.CreateAccountUseCase;
+import com.example.application.usecase.DeactivateAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
 import com.example.core.event.AppEventBus;
@@ -43,5 +44,7 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new LoginUseCase(defaultConfig, identifyRepository)));
         registry.register(LogoutUseCase.class,
                 UseCaseProviders.singleton(() -> new LogoutUseCase(defaultConfig, identifyRepository, token, eventBus)));
+        registry.register(DeactivateAccountUseCase.class,
+                UseCaseProviders.singleton(() -> new DeactivateAccountUseCase(defaultConfig, token, identifyRepository, eventBus)));
     }
 }

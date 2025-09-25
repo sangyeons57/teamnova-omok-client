@@ -2,11 +2,13 @@ package com.example.feature_home.home.presentation.dialog;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -69,17 +71,38 @@ public final class SettingDialogController implements DialogController<MainDialo
         language.setOnClickListener(v -> viewModel.onGeneralSettingClicked("language"));
         privacy.setOnClickListener(v -> viewModel.onGeneralSettingClicked("privacy_policy"));
         terms.setOnClickListener(v -> viewModel.onGeneralSettingClicked("terms_of_service"));
-        logout.setOnClickListener(v -> viewModel.onGeneralSettingClicked("logout"));
-        withdraw.setOnClickListener(v -> viewModel.onGeneralSettingClicked("withdraw"));
+        logout.setOnClickListener(v -> {
+            viewModel.onGeneralSettingClicked("logout");
+            viewModel.onLogoutRequested();
+            enqueueDialog(activity, MainDialogType.LOGOUT_CONFIRMATION, null);
+        });
+        withdraw.setOnClickListener(v -> {
+            viewModel.onGeneralSettingClicked("withdraw");
+            viewModel.onWithdrawRequested();
+            enqueueDialog(activity, MainDialogType.ACCOUNT_DELETION_CONFIRMATION, null);
+        });
         profile.setOnClickListener(v -> {
             viewModel.onGeneralSettingClicked("profile");
             viewModel.onOpenProfileClicked();
-            if (activity instanceof DialogHostOwner<?>) {
-                DialogHost<MainDialogType> host = ((DialogHostOwner<MainDialogType>) activity).getDialogHost();
-                if (host.isAttached()) {
-                    host.enqueue(MainDialogType.SETTING_PROFILE);
-                }
-            }
+            enqueueDialog(activity, MainDialogType.SETTING_PROFILE, null);
         });
+    }
+
+    /** @noinspection unchecked*/
+    private void enqueueDialog(@NonNull FragmentActivity activity,
+                               @NonNull MainDialogType type,
+                               @Nullable Bundle arguments) {
+        if (!(activity instanceof DialogHostOwner<?> owner)) {
+            return;
+        }
+        DialogHost<MainDialogType> host = ((DialogHostOwner<MainDialogType>) owner).getDialogHost();
+        if (!host.isAttached()) {
+            return;
+        }
+        if (arguments == null) {
+            host.enqueue(type);
+        } else {
+            host.enqueue(type, arguments);
+        }
     }
 }

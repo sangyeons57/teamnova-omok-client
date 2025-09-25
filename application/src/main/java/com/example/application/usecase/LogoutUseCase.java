@@ -28,6 +28,6 @@ public class LogoutUseCase extends UseCase<UseCase.None, UseCase.None> {
         identifyRepository.logout();
         eventBus.post(new SessionInvalidatedEvent(SessionInvalidatedEvent.Reason.LOGOUT));
         tokenStore.clearAllTokens();  // 토큰 먼저 제거시 메시지 전송할떄 인증불가함
-        return null;
+        return None.INSTANCE;
     }
 }

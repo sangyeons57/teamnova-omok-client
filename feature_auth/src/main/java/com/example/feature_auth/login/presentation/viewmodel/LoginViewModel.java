@@ -31,8 +31,6 @@ import java.util.concurrent.Executors;
 public class LoginViewModel extends ViewModel {
 
     private static final String TAG = "LoginViewModel";
-    private static final String DEFAULT_GOOGLE_PROVIDER_USER_ID = "\uAD6C\uAE00 \uC2DD\uBCC4\uC790";
-
     private final MutableLiveData<LoginAction> loginAction = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final ExecutorService executorService;
@@ -71,16 +69,20 @@ public class LoginViewModel extends ViewModel {
         executeCreateAccount(CreateAccountCommand.forGuest(), LoginAction.GUEST);
     }
 
-    public void onGoogleLoginClicked() {
-        executeCreateAccount(CreateAccountCommand.forGoogle(DEFAULT_GOOGLE_PROVIDER_USER_ID), LoginAction.GOOGLE);
-    }
-
     public void onActionHandled() {
         loginAction.setValue(null);
     }
 
     public void onErrorShown() {
         errorMessage.setValue(null);
+    }
+
+    public void onGoogleCredentialReceived(@NonNull String providerUserId) {
+        executeCreateAccount(CreateAccountCommand.forGoogle(providerUserId), LoginAction.GOOGLE);
+    }
+
+    public void onGoogleSignInFailed(String message) {
+        handleFailure(message);
     }
 
     @Override

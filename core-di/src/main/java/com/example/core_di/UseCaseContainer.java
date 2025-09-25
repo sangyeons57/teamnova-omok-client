@@ -5,7 +5,10 @@ import com.example.application.port.in.UseCaseProviders;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.application.port.out.user.TermsRepository;
+import com.example.application.port.out.user.UserRepository;
 import com.example.application.usecase.AllTermsAcceptancesUseCase;
+import com.example.application.usecase.ChangeNameUseCase;
+import com.example.application.usecase.ChangeProfileIconUseCase;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.DeactivateAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
@@ -16,6 +19,7 @@ import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.mapper.IdentityMapper;
 import com.example.data.repository.user.IdentifyRepositoryImpl;
 import com.example.data.repository.user.TermsRepositoryImpl;
+import com.example.data.repository.user.UserRepositoryImpl;
 
 public final class UseCaseContainer {
 
@@ -31,6 +35,7 @@ public final class UseCaseContainer {
     public final UseCaseConfig defaultConfig = UseCaseConfig.defaultConfig();
     public final UseCaseRegistry registry = new UseCaseRegistry();
     public final IdentifyRepository identifyRepository = new IdentifyRepositoryImpl(phpServerDataSource, new IdentityMapper());
+    public final UserRepository userRepository = new UserRepositoryImpl(phpServerDataSource);
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);
     public final TokenStore token = TokenContainer.getInstance();
     public final AppEventBus eventBus = EventBusContainer.getInstance();
@@ -46,5 +51,10 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new LogoutUseCase(defaultConfig, identifyRepository, token, eventBus)));
         registry.register(DeactivateAccountUseCase.class,
                 UseCaseProviders.singleton(() -> new DeactivateAccountUseCase(defaultConfig, token, identifyRepository, eventBus)));
+
+        registry.register(ChangeNameUseCase.class,
+                UseCaseProviders.singleton(() -> new ChangeNameUseCase(defaultConfig, userRepository)));
+        registry.register(ChangeProfileIconUseCase.class,
+                UseCaseProviders.singleton(() -> new ChangeProfileIconUseCase(defaultConfig, userRepository)));
     }
 }

@@ -101,10 +101,6 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
         }
     }
 
-    public void signInWithGoogle() {
-
-    }
-
     private String resolveProvider(LoginAction provider) {
         return provider != null ? provider.name() : DEFAULT_PROVIDER;
     }

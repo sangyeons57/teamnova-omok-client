@@ -8,7 +8,15 @@ public enum Path {
     LOGIN,
     LOGOUT,
     DEACTIVATE_ACCOUNT,
-    TERMS_ACCEPTANCES
+    TERMS_ACCEPTANCES,
+
+    CHANGE_NAME,
+    CHANGE_PROFILE_ICON,
+
+    SELF_DATA,
+    USER_DATA,
+    RANKING_DATA,
+
     ;
     public static final String BASE_PATH = "https://bamsol.net/public/";
 
@@ -27,6 +35,13 @@ public enum Path {
             case TERMS_ACCEPTANCES -> "terms-acceptances.php";
             case LOGIN -> "login.php";
             case LOGOUT -> "logout.php";
+
+            case CHANGE_NAME -> "change-name.php";
+            case CHANGE_PROFILE_ICON -> "change-profile-icon.php";
+
+            case SELF_DATA -> "self-data.php";
+            case USER_DATA -> "user-data.php";
+            case RANKING_DATA -> "ranking-data.php";
 
         };
     }

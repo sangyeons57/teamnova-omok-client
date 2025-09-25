@@ -1,4 +1,4 @@
-package com.example.teamnovaomok.ui.di;
+package com.example.teamnovaomok.di;
 
 import androidx.annotation.NonNull;
 

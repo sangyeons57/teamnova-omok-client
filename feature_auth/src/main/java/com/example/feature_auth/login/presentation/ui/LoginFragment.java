@@ -33,7 +33,6 @@ import com.example.domain.common.value.LoginAction;
 import com.example.feature_auth.R;
 import com.example.feature_auth.login.di.LoginViewModelFactory;
 import com.example.feature_auth.login.presentation.viewmodel.LoginViewModel;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.button.MaterialButton;
@@ -85,7 +84,7 @@ public class LoginFragment extends Fragment {
         MaterialButton googleButton = view.findViewById(R.id.buttonGoogleLogin);
 
         guestButton.setOnClickListener(v -> viewModel.onGuestLoginClicked());
-        googleButton.setOnClickListener(v -> viewModel.onGoogleLoginClicked());
+        googleButton.setOnClickListener(v -> signInWithGoogle());
 
         viewModel.getLoginAction().observe(getViewLifecycleOwner(), action -> {
             Log.d("LoginFragment", "LoginAction:" + action);
@@ -98,7 +97,6 @@ public class LoginFragment extends Fragment {
             }
             viewModel.onActionHandled();
         });
-        signInWithGoogle();
     }
 
     private void showTermsAgreementDialog() {
@@ -133,24 +131,38 @@ public class LoginFragment extends Fragment {
                     @Override
                     public void onError(@NonNull GetCredentialException e) {
                         Log.e("LoginFragment", "Exception", e);
+                        viewModel.onGoogleSignInFailed(e.getMessage());
                     }
 
                     @Override
                     public void onResult(GetCredentialResponse getCredentialResponse) {
                         try {
                             Credential credential = getCredentialResponse.getCredential();
-                            if(credential instanceof CustomCredential
-                            && WEB_CLIENT_ID.equals(credential.getType())) {
+                            if (credential instanceof CustomCredential
+                                    && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
                                 Bundle data = ((CustomCredential) credential).getData();
                                 GoogleIdTokenCredential gid = GoogleIdTokenCredential.createFrom(data);
 
-                                String idToken = gid.getIdToken();
-                                Log.d("LoginFragment", "idToken:" + idToken);
+                                String providerUserId = gid.getIdToken();
+                                if (providerUserId == null || providerUserId.trim().isEmpty()) {
+                                    providerUserId = gid.getId();
+                                }
+
+                                if (providerUserId == null || providerUserId.trim().isEmpty()) {
+                                    Log.e("LoginFragment", "Google credential missing id token and subject");
+                                    viewModel.onGoogleSignInFailed("Google 계정을 확인할 수 없습니다.");
+                                    return;
+                                }
+
+                                Log.d("LoginFragment", "providerUserId:" + providerUserId);
+                                viewModel.onGoogleCredentialReceived(providerUserId);
                             } else {
                                 Log.e("LoginFragment", "credential is not a CustomCredential");
+                                viewModel.onGoogleSignInFailed("Google 로그인에 실패했습니다.");
                             }
                         } catch (Exception e) {
                             Log.e("LoginFragment", "Exception", e);
+                            viewModel.onGoogleSignInFailed(e.getMessage());
                         }
                     }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.teamnovaomok">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -7,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
+        android:name=".MyApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TeamnovaOmok">
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".MainActivity"
             android:theme="@style/Theme.TeamnovaOmok.Splash"
             android:exported="true">
             <intent-filter>

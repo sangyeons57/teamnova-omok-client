@@ -4,6 +4,9 @@ import com.example.application.dto.response.SelfDataResponse;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.user.UserRepository;
+import com.example.application.session.UserSessionStore;
+import com.example.domain.user.entity.User;
+import com.example.domain.user.factory.UserFactory;
 import com.example.core.exception.UseCaseException;
 
 public class SelfDataUseCase extends UseCase<UseCase.None, SelfDataResponse> {
@@ -11,16 +14,24 @@ public class SelfDataUseCase extends UseCase<UseCase.None, SelfDataResponse> {
     private static final String ERROR_CODE = "SELF_DATA_FAILED";
 
     private final UserRepository userRepository;
+    private final UserSessionStore userSessionStore;
 
-    public SelfDataUseCase(UseCaseConfig useCaseConfig, UserRepository userRepository) {
+    public SelfDataUseCase(UseCaseConfig useCaseConfig, UserRepository userRepository, UserSessionStore userSessionStore) {
         super(useCaseConfig);
         this.userRepository = userRepository;
+        this.userSessionStore = userSessionStore;
     }
 
     @Override
     protected SelfDataResponse run(None input) throws UseCaseException {
         try {
-            return new SelfDataResponse(userRepository.fetchSelfData());
+            User fetched = userRepository.fetchSelfData();
+            User existing = userSessionStore.getCurrentUser();
+            User merged = existing != null
+                    ? UserFactory.mergeProfile(existing, fetched)
+                    : fetched;
+            userSessionStore.update(merged);
+            return new SelfDataResponse(merged);
         } catch (UseCaseException exception) {
             throw exception;
         } catch (RuntimeException exception) {

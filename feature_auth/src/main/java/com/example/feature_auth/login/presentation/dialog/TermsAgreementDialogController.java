@@ -146,10 +146,12 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                     }
                 }).whenComplete((result, throwable) -> {
                     if(result instanceof UResult.Ok<?> data) {
+                        android.util.Log.d(LOG_TAG, "LoginUseCase.executeAsync: " + data.value().toString());
                         dialog.dismiss();
                         host.clearBackStack();
                         host.navigateTo(AppNavigationKey.HOME, false);
                     } else if (result instanceof UResult.Err<?> err) {
+                        android.util.Log.d(LOG_TAG, "LoginUseCase.executeAsync: " + err.message());
                         buttonConfirm.setEnabled(true);
                         String message = err.message();
                         if (message == null || message.trim().isEmpty()) {

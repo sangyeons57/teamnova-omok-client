@@ -4,17 +4,12 @@ import android.util.Log;
 
 import com.example.domain.user.entity.Identity;
 import com.example.domain.user.entity.User;
-import com.example.domain.user.value.AccessToken;
-import com.example.domain.user.value.RefreshToken;
 import com.example.domain.user.value.UserDisplayName;
 import com.example.domain.user.value.UserId;
 import com.example.domain.user.value.UserProfileIcon;
 import com.example.domain.user.value.UserRole;
 import com.example.domain.user.value.UserScore;
 import com.example.domain.user.value.UserStatus;
-
-import java.sql.Ref;
-import java.util.Objects;
 
 public class UserFactory {
     private static User defaultCreate (UserId userId, UserDisplayName displayName, UserProfileIcon profileIcon, UserRole role, UserStatus status, UserScore score, Identity identity) {
@@ -56,10 +51,43 @@ public class UserFactory {
                 Identity.EMPTY);
     }
 
+    public static User mergeProfile(User existing, User profile) {
+        if (existing == null) {
+            return profile;
+        }
+        if (profile == null) {
+            return existing;
+        }
+        return User.of(
+                profile.getUserId() != null ? profile.getUserId() : existing.getUserId(),
+                profile.getDisplayName() != null ? profile.getDisplayName() : existing.getDisplayName(),
+                profile.getProfileIcon() != null ? profile.getProfileIcon() : existing.getProfileIcon(),
+                profile.getRole() != null ? profile.getRole() : existing.getRole(),
+                profile.getStatus() != null ? profile.getStatus() : existing.getStatus(),
+                profile.getScore() != null ? profile.getScore() : existing.getScore(),
+                existing.getIdentity() != null ? existing.getIdentity() : Identity.EMPTY
+        );
+    }
+
+    public static User updateDisplayName(User existing, String newDisplayName) {
+        if (existing == null) {
+            throw new IllegalArgumentException("existing == null");
+        }
+        return User.of(
+                existing.getUserId(),
+                newDisplayName != null ? UserDisplayName.of(newDisplayName) : existing.getDisplayName(),
+                existing.getProfileIcon(),
+                existing.getRole(),
+                existing.getStatus(),
+                existing.getScore(),
+                existing.getIdentity()
+        );
+    }
+
     public static User createIdentity(String userId, String accessToken, String refreshToken) {
         Log.d("test", "identity:" );
         Identity identity = Identity.of(accessToken, refreshToken);
-        User user = defaultCreate(
+        return defaultCreate(
                 UserId.of(userId),
                 UserDisplayName.EMPTY,
                 UserProfileIcon.EMPTY,
@@ -68,7 +96,6 @@ public class UserFactory {
                 UserScore.EMPTY,
                 identity
         );
-        return  user;
     }
 
     public static User create(String userId) {

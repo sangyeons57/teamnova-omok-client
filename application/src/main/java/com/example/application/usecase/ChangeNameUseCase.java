@@ -4,7 +4,10 @@ import com.example.application.dto.command.ChangeNameCommand;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.user.UserRepository;
+import com.example.application.session.UserSessionStore;
 import com.example.core.exception.UseCaseException;
+import com.example.domain.user.entity.User;
+import com.example.domain.user.factory.UserFactory;
 import com.example.domain.user.value.UserDisplayName;
 
 public class ChangeNameUseCase extends UseCase<ChangeNameCommand, UseCase.None> {
@@ -13,10 +16,12 @@ public class ChangeNameUseCase extends UseCase<ChangeNameCommand, UseCase.None> 
     private static final String FALLBACK_MESSAGE = "Failed to change display name";
 
     private final UserRepository userRepository;
+    private final UserSessionStore userSessionStore;
 
-    public ChangeNameUseCase(UseCaseConfig useCaseConfig, UserRepository userRepository) {
+    public ChangeNameUseCase(UseCaseConfig useCaseConfig, UserRepository userRepository, UserSessionStore userSessionStore) {
         super(useCaseConfig);
         this.userRepository = userRepository;
+        this.userSessionStore = userSessionStore;
     }
 
     @Override
@@ -24,6 +29,12 @@ public class ChangeNameUseCase extends UseCase<ChangeNameCommand, UseCase.None> 
         String errorMessage = userRepository.changeName(UserDisplayName.of(input.newName()));
         if (errorMessage != null) {
             throw UseCaseException.of(ERROR_CODE, normalize(errorMessage));
+        }
+
+        User current = userSessionStore.getCurrentUser();
+        if (current != null) {
+            User updated = UserFactory.updateDisplayName(current, input.newName());
+            userSessionStore.update(updated);
         }
         return None.INSTANCE;
     }

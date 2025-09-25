@@ -11,15 +11,28 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.application.dto.command.ChangeNameCommand;
+import com.example.application.port.in.UResult;
+import com.example.application.port.in.UseCaseRegistry;
+import com.example.application.usecase.ChangeNameUseCase;
+import com.example.application.session.UserSessionStore;
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
+import com.example.core_di.UseCaseContainer;
+import com.example.domain.user.entity.User;
+import com.example.domain.user.value.UserDisplayName;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.viewmodel.SettingProfileDialogViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textview.MaterialTextView;
+
+import androidx.core.content.ContextCompat;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Controller presenting the profile nickname editor dialog.
@@ -29,6 +42,10 @@ public final class SettingProfileDialogController implements DialogController<Ma
     @NonNull
     @Override
     public AlertDialog create(@NonNull FragmentActivity activity, @NonNull DialogRequest<MainDialogType> request) {
+        UseCaseRegistry registry = UseCaseContainer.getInstance().registry;
+        ChangeNameUseCase changeNameUseCase = registry.get(ChangeNameUseCase.class);
+        UserSessionStore sessionStore = UseCaseContainer.getInstance().userSessionStore;
+
         View contentView = LayoutInflater.from(activity).inflate(R.layout.dialog_setting_profile, null, false);
         AlertDialog dialog = new MaterialAlertDialogBuilder(activity)
                 .setView(contentView)
@@ -36,7 +53,15 @@ public final class SettingProfileDialogController implements DialogController<Ma
         dialog.setCanceledOnTouchOutside(false);
 
         SettingProfileDialogViewModel viewModel = new ViewModelProvider(activity).get(SettingProfileDialogViewModel.class);
-        bindViews(activity, contentView, dialog, viewModel);
+        User currentUser = sessionStore.getCurrentUser();
+        if (currentUser != null) {
+            String displayName = currentUser.getDisplayName().getValue();
+            if (UserDisplayName.EMPTY.getValue().equals(displayName)) {
+                displayName = "";
+            }
+            viewModel.onNicknameChanged(displayName);
+        }
+        bindViews(activity, contentView, dialog, viewModel, changeNameUseCase);
 
         dialog.setOnShowListener(ignored -> {
             if (dialog.getWindow() != null) {
@@ -50,11 +75,38 @@ public final class SettingProfileDialogController implements DialogController<Ma
     private void bindViews(@NonNull FragmentActivity activity,
                            @NonNull View contentView,
                            @NonNull AlertDialog dialog,
-                           @NonNull SettingProfileDialogViewModel viewModel) {
+                           @NonNull SettingProfileDialogViewModel viewModel,
+                           @NonNull ChangeNameUseCase changeNameUseCase) {
         MaterialButton close = contentView.findViewById(R.id.buttonProfileClose);
         MaterialButton apply = contentView.findViewById(R.id.buttonProfileApply);
         TextInputEditText input = contentView.findViewById(R.id.inputNickname);
+        MaterialTextView statusText = contentView.findViewById(R.id.textNicknameStatus);
 
+        viewModel.getNickname().observe(activity, nickname -> {
+            if (nickname != null && (input.getText() == null || !nickname.contentEquals(input.getText()))) {
+                input.setText(nickname);
+                input.setSelection(input.getText() != null ? input.getText().length() : 0);
+            }
+        });
+
+        viewModel.isInProgress().observe(activity, inProgress -> {
+            boolean disabled = Boolean.TRUE.equals(inProgress);
+            apply.setEnabled(!disabled);
+            apply.setAlpha(disabled ? 0.6f : 1f);
+        });
+
+        viewModel.getStatus().observe(activity, status -> {
+            if (status == null || status.message == null || status.message.trim().isEmpty()) {
+                statusText.setVisibility(View.GONE);
+                return;
+            }
+            statusText.setVisibility(View.VISIBLE);
+            statusText.setText(status.message);
+            int colorRes = status.isSuccess
+                    ? com.example.designsystem.R.color.md_theme_light_primary
+                    : com.example.designsystem.R.color.md_theme_light_error;
+            statusText.setTextColor(ContextCompat.getColor(statusText.getContext(), colorRes));
+        });
 
         close.setOnClickListener(v -> {
             viewModel.onCloseClicked();
@@ -62,7 +114,55 @@ public final class SettingProfileDialogController implements DialogController<Ma
         });
         apply.setOnClickListener(v -> {
             CharSequence value = input.getText();
-            viewModel.onNicknameChanged(value == null ? "" : value.toString());
+            String nickname = value == null ? "" : value.toString().trim();
+            handleApply(activity, viewModel, changeNameUseCase, nickname, input);
         });
+    }
+
+    private void handleApply(@NonNull FragmentActivity activity,
+                             @NonNull SettingProfileDialogViewModel viewModel,
+                             @NonNull ChangeNameUseCase changeNameUseCase,
+                             @NonNull String nickname,
+                             @NonNull TextInputEditText input) {
+        if (Boolean.TRUE.equals(viewModel.isInProgress().getValue())) {
+            return;
+        }
+
+        if (nickname.isEmpty()) {
+            viewModel.showError(activity.getString(R.string.dialog_setting_profile_error_empty));
+            return;
+        }
+
+        viewModel.clearStatus();
+        viewModel.setInProgress(true);
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        changeNameUseCase.executeAsync(new ChangeNameCommand(nickname), executor)
+                .whenComplete((result, throwable) -> {
+                    executor.shutdown();
+                    activity.runOnUiThread(() -> {
+                        viewModel.setInProgress(false);
+
+                        if (throwable != null) {
+                            viewModel.showError(activity.getString(R.string.dialog_setting_profile_error_generic));
+                            return;
+                        }
+
+                        if (result instanceof UResult.Ok<?>) {
+                            viewModel.onNicknameChanged(nickname);
+                            viewModel.showSuccess(activity.getString(R.string.dialog_setting_profile_change_success));
+                            input.setText(nickname);
+                            input.setSelection(nickname.length());
+                        } else if (result instanceof UResult.Err<?> err) {
+                            String message = err.message();
+                            if (message == null || message.trim().isEmpty()) {
+                                message = activity.getString(R.string.dialog_setting_profile_error_generic);
+                            }
+                            viewModel.showError(message);
+                        } else {
+                            viewModel.showError(activity.getString(R.string.dialog_setting_profile_error_generic));
+                        }
+                    });
+                });
     }
 }

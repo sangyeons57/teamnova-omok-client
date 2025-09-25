@@ -17,9 +17,12 @@ import com.example.application.usecase.RankingDataUseCase;
 import com.example.application.usecase.SelfDataUseCase;
 import com.example.application.usecase.UserDataUseCase;
 import com.example.core.event.AppEventBus;
+import com.example.application.session.InMemoryUserSessionStore;
+import com.example.application.session.UserSessionStore;
 import com.example.core.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.mapper.IdentityMapper;
+import com.example.data.mapper.UserResponseMapper;
 import com.example.data.repository.user.IdentifyRepositoryImpl;
 import com.example.data.repository.user.TermsRepositoryImpl;
 import com.example.data.repository.user.UserRepositoryImpl;
@@ -35,12 +38,14 @@ public final class UseCaseContainer {
     }
 
     public final DefaultPhpServerDataSource phpServerDataSource = new DefaultPhpServerDataSource(HttpClientContainer.getInstance().get());
+    public final UserResponseMapper userResponseMapper = new UserResponseMapper();
     public final UseCaseConfig defaultConfig = UseCaseConfig.defaultConfig();
     public final UseCaseRegistry registry = new UseCaseRegistry();
-    public final IdentifyRepository identifyRepository = new IdentifyRepositoryImpl(phpServerDataSource, new IdentityMapper());
-    public final UserRepository userRepository = new UserRepositoryImpl(phpServerDataSource);
+    public final IdentifyRepository identifyRepository = new IdentifyRepositoryImpl(phpServerDataSource, new IdentityMapper(), userResponseMapper);
+    public final UserRepository userRepository = new UserRepositoryImpl(phpServerDataSource, userResponseMapper);
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);
     public final TokenStore token = TokenContainer.getInstance();
+    public final UserSessionStore userSessionStore = new InMemoryUserSessionStore();
     public final AppEventBus eventBus = EventBusContainer.getInstance();
 
     public UseCaseContainer() {
@@ -49,20 +54,20 @@ public final class UseCaseContainer {
         registry.register(AllTermsAcceptancesUseCase.class,
                 UseCaseProviders.singleton(() -> new AllTermsAcceptancesUseCase(defaultConfig, termsRepository)));
         registry.register(LoginUseCase.class,
-                UseCaseProviders.singleton(() -> new LoginUseCase(defaultConfig, identifyRepository)));
+                UseCaseProviders.singleton(() -> new LoginUseCase(defaultConfig, identifyRepository, userSessionStore)));
         registry.register(LogoutUseCase.class,
-                UseCaseProviders.singleton(() -> new LogoutUseCase(defaultConfig, identifyRepository, token, eventBus)));
+                UseCaseProviders.singleton(() -> new LogoutUseCase(defaultConfig, identifyRepository, token, eventBus, userSessionStore)));
         registry.register(DeactivateAccountUseCase.class,
-                UseCaseProviders.singleton(() -> new DeactivateAccountUseCase(defaultConfig, token, identifyRepository, eventBus)));
+                UseCaseProviders.singleton(() -> new DeactivateAccountUseCase(defaultConfig, token, identifyRepository, eventBus, userSessionStore)));
 
         registry.register(ChangeNameUseCase.class,
-                UseCaseProviders.singleton(() -> new ChangeNameUseCase(defaultConfig, userRepository)));
+                UseCaseProviders.singleton(() -> new ChangeNameUseCase(defaultConfig, userRepository, userSessionStore)));
         registry.register(ChangeProfileIconUseCase.class,
                 UseCaseProviders.singleton(() -> new ChangeProfileIconUseCase(defaultConfig, userRepository)));
         registry.register(RankingDataUseCase.class,
                 UseCaseProviders.singleton(() -> new RankingDataUseCase(defaultConfig, userRepository)));
         registry.register(SelfDataUseCase.class,
-                UseCaseProviders.singleton(() -> new SelfDataUseCase(defaultConfig, userRepository)));
+                UseCaseProviders.singleton(() -> new SelfDataUseCase(defaultConfig, userRepository, userSessionStore)));
         registry.register(UserDataUseCase.class,
                 UseCaseProviders.singleton(() -> new UserDataUseCase(defaultConfig, userRepository)));
     }

@@ -32,11 +32,10 @@ public final class RankingDataResponse {
 
         private Entry(RankingEntry entry) {
             Objects.requireNonNull(entry, "entry");
-            this.rank = entry.rank();
-            this.userId = entry.user().getUserId().getValue();
-            this.displayName = entry.user().getDisplayName().getValue();
-            this.score = entry.user().getScore().getValue();
+            this.rank = entry.getRank().getValue();
+            this.userId = entry.getUserId().getValue();
+            this.displayName = entry.getDisplayName().getValue();
+            this.score = entry.getScore().getValue();
         }
     }
 }
-

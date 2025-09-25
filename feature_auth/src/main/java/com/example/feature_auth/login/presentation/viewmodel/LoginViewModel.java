@@ -15,7 +15,6 @@ import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
-import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.token.TokenStore;
 import com.example.domain.common.value.LoginAction;
 import com.example.domain.user.entity.Identity;
@@ -23,7 +22,6 @@ import com.example.domain.user.entity.User;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * ViewModel orchestrating login related interactions while preserving the MVVM boundaries.
@@ -36,7 +34,6 @@ public class LoginViewModel extends ViewModel {
     private final ExecutorService executorService;
     private final CreateAccountUseCase createAccountUseCase;
     private final TokenStore tokenManager;
-    private final FragmentNavigationHost<AppNavigationKey> host;
 
     public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
                           @NonNull LoginUseCase loginUseCase,
@@ -46,12 +43,16 @@ public class LoginViewModel extends ViewModel {
         this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
         this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
         this.executorService = Objects.requireNonNull(executorservice, "executorService");
-        this.host = Objects.requireNonNull(host, "host");
 
         loginUseCase.executeAsync(UseCase.None.INSTANCE, executorService).whenComplete((result, throwable) -> {
+            Log.d("LoginViewModel", "loginUseCase.executeAsync: " + result);
             if(result instanceof UResult.Ok<LoginResponse> data) {
+                Log.d("LoginViewModel", "loginUseCase.executeAsync: " + data.value().toString());
                 host.clearBackStack();
                 host.navigateTo(AppNavigationKey.HOME, false);
+            } else if (result instanceof UResult.Err<LoginResponse> err) {
+                Log.d("LoginViewModel", "loginUseCase.executeAsync: " + err.message());
+                handleFailure(err.message());
             }
         });
 

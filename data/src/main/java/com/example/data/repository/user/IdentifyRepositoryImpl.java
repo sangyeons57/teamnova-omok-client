@@ -8,6 +8,7 @@ import com.example.data.exception.GuestSignupRemoteException;
 import com.example.data.exception.LoginRemoteException;
 import com.example.data.exception.LogoutRemoteException;
 import com.example.data.mapper.IdentityMapper;
+import com.example.data.mapper.UserResponseMapper;
 import com.example.data.model.http.request.Path;
 import com.example.data.model.http.request.Request;
 import com.example.data.model.http.response.Response;
@@ -30,11 +31,14 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
 
     private final DefaultPhpServerDataSource phpServerDataSource;
     private final IdentityMapper identityMapper;
+    private final UserResponseMapper userResponseMapper;
 
     public IdentifyRepositoryImpl(DefaultPhpServerDataSource phpServerDataSource,
-                                  IdentityMapper identityMapper) {
+                                  IdentityMapper identityMapper,
+                                  UserResponseMapper userResponseMapper) {
         this.phpServerDataSource = Objects.requireNonNull(phpServerDataSource, "phpServerDataSource");
         this.identityMapper = Objects.requireNonNull(identityMapper, "guestSignupMapper");
+        this.userResponseMapper = Objects.requireNonNull(userResponseMapper, "userResponseMapper");
     }
 
     @Override
@@ -68,7 +72,7 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
             if (!response.isSuccess()) {
                 throw new LoginRemoteException("Failed to login Status: " + response.statusCode() + " | " + response.statusMessage() + " |" + response.body() );
             }
-            return identityMapper.onlyUserId(response);
+            return mapLoginResponse(response);
         } catch (IOException exception) {
             Log.e("IdentifyRepositoryImpl", "error:" + Arrays.toString(exception.getStackTrace()));
             throw new LoginRemoteException("Failed to login", exception);
@@ -103,6 +107,11 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
 
     private String resolveProvider(LoginAction provider) {
         return provider != null ? provider.name() : DEFAULT_PROVIDER;
+    }
+
+    private User mapLoginResponse(Response response) {
+        Map<String, Object> body = response.body();
+        return userResponseMapper.mapUserProfile(body);
     }
 
     private String extractErrorMessage(Error error, String defaultMessage) {

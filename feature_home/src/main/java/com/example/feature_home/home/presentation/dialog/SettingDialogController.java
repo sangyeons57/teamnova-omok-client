@@ -13,10 +13,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.core.dialog.DialogArgumentKeys;
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.DialogRequest;
+import com.example.core.dialog.GeneralInfoContentType;
 import com.example.core.dialog.MainDialogType;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.viewmodel.SettingDialogViewModel;
@@ -69,8 +71,14 @@ public final class SettingDialogController implements DialogController<MainDialo
         });
         google.setOnClickListener(v -> viewModel.onGeneralSettingClicked("google_link"));
         language.setOnClickListener(v -> viewModel.onGeneralSettingClicked("language"));
-        privacy.setOnClickListener(v -> viewModel.onGeneralSettingClicked("privacy_policy"));
-        terms.setOnClickListener(v -> viewModel.onGeneralSettingClicked("terms_of_service"));
+        privacy.setOnClickListener(v -> {
+            viewModel.onGeneralSettingClicked("privacy_policy");
+            enqueueDialog(activity, MainDialogType.GENERAL_INFO, createGeneralInfoArguments(GeneralInfoContentType.PRIVACY_POLICY));
+        });
+        terms.setOnClickListener(v -> {
+            viewModel.onGeneralSettingClicked("terms_of_service");
+            enqueueDialog(activity, MainDialogType.GENERAL_INFO, createGeneralInfoArguments(GeneralInfoContentType.TERMS_OF_SERVICE));
+        });
         logout.setOnClickListener(v -> {
             viewModel.onGeneralSettingClicked("logout");
             viewModel.onLogoutRequested();
@@ -86,6 +94,13 @@ public final class SettingDialogController implements DialogController<MainDialo
             viewModel.onOpenProfileClicked();
             enqueueDialog(activity, MainDialogType.SETTING_PROFILE, null);
         });
+    }
+
+    @NonNull
+    private Bundle createGeneralInfoArguments(@NonNull GeneralInfoContentType type) {
+        Bundle bundle = new Bundle();
+        bundle.putString(DialogArgumentKeys.GENERAL_INFO_TYPE, type.name());
+        return bundle;
     }
 
     /** @noinspection unchecked*/

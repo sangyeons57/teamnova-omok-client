@@ -2,6 +2,7 @@ package com.example.core.dialog;
 
 public enum MainDialogType {
     TERMS_AGREEMENT,
+    GENERAL_INFO,
     GAME_MODE,
     SCORE,
     RANKING,

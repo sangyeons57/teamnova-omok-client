@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogRegistry;
 import com.example.core.dialog.MainDialogType;
+import com.example.feature_auth.login.di.GeneralInfoDialogProvider;
 import com.example.feature_auth.login.di.TermsAgreementDialogProvider;
 import com.example.feature_home.home.di.DeleteAccountDialogProvider;
 import com.example.feature_home.home.di.GameModeDialogProvider;
@@ -24,6 +25,7 @@ public final class DialogContainer {
     public DialogContainer() {
         DialogRegistry<MainDialogType> registry = new DialogRegistry<>(MainDialogType.class);
         registry.registerProvider(new TermsAgreementDialogProvider());
+        registry.registerProvider(new GeneralInfoDialogProvider());
         registry.registerProvider(new GameModeDialogProvider());
         registry.registerProvider(new ScoreDialogProvider());
         registry.registerProvider(new RankingDialogProvider());

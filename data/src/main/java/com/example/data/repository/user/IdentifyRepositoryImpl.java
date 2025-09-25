@@ -88,6 +88,7 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
         }
     }
 
+    @Override
     public void deactivateAccount() {
         try {
             Response response = phpServerDataSource.post( Request.defaultRequest(Path.DEACTIVATE_ACCOUNT) );
@@ -98,6 +99,10 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
         } catch (IOException exception) {
             throw new LogoutRemoteException("Failed to logout", exception);
         }
+    }
+
+    public void signInWithGoogle() {
+
     }
 
     private String resolveProvider(LoginAction provider) {

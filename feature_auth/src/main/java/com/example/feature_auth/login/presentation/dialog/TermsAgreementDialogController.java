@@ -2,6 +2,7 @@ package com.example.feature_auth.login.presentation.dialog;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +20,12 @@ import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.usecase.AllTermsAcceptancesUseCase;
 import com.example.application.usecase.LoginUseCase;
+import com.example.core.dialog.DialogArgumentKeys;
 import com.example.core.dialog.DialogController;
+import com.example.core.dialog.DialogHost;
+import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.DialogRequest;
+import com.example.core.dialog.GeneralInfoContentType;
 import com.example.core.dialog.MainDialogType;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
@@ -74,10 +79,14 @@ public final class TermsAgreementDialogController implements DialogController<Ma
             android.util.Log.d(LOG_TAG, "Back button clicked");
             dialog.dismiss();
         });
-        privacyPolicyLink.setOnClickListener(v ->
-                android.util.Log.d(LOG_TAG, "Privacy policy link clicked"));
-        termsOfServiceLink.setOnClickListener(v ->
-                android.util.Log.d(LOG_TAG, "Terms of service link clicked"));
+        privacyPolicyLink.setOnClickListener(v -> {
+            android.util.Log.d(LOG_TAG, "Privacy policy link clicked");
+            showGeneralInfoDialog(activity, GeneralInfoContentType.PRIVACY_POLICY);
+        });
+        termsOfServiceLink.setOnClickListener(v -> {
+            android.util.Log.d(LOG_TAG, "Terms of service link clicked");
+            showGeneralInfoDialog(activity, GeneralInfoContentType.TERMS_OF_SERVICE);
+        });
 
         CompoundButton.OnCheckedChangeListener checkboxListener = (buttonView, isChecked) ->
                 updateConfirmState(buttonConfirm, checkPrivacyPolicy, checkTermsOfService, checkAgeConfirmation);
@@ -149,5 +158,20 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                         Toast.makeText(dialog.getContext(), message, Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void showGeneralInfoDialog(@NonNull FragmentActivity activity,
+                                       @NonNull GeneralInfoContentType type) {
+        if (!(activity instanceof DialogHostOwner<?> owner)) {
+            return;
+        }
+        //noinspection unchecked
+        DialogHost<MainDialogType> host = ((DialogHostOwner<MainDialogType>) owner).getDialogHost();
+        if (!host.isAttached()) {
+            return;
+        }
+        Bundle arguments = new Bundle();
+        arguments.putString(DialogArgumentKeys.GENERAL_INFO_TYPE, type.name());
+        host.enqueue(MainDialogType.GENERAL_INFO, arguments);
     }
 }

@@ -1,6 +1,8 @@
 package com.example.application.session;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
 
 import com.example.domain.user.entity.User;
 
@@ -21,7 +23,12 @@ public interface UserSessionStore {
     /** Updates the cached user representation. */
     void update(User user);
 
+    /**
+     * Exposes the current user as a lifecycle-aware stream.
+     */
+    @NonNull
+    LiveData<User> getUserStream();
+
     /** Clears any stored session information. */
     void clear();
 }
-

@@ -1,5 +1,7 @@
 package com.example.data.mapper;
 
+import android.util.Log;
+
 import com.example.domain.user.entity.RankingEntry;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.factory.UserFactory;
@@ -8,8 +10,13 @@ import com.example.domain.user.value.UserId;
 import com.example.domain.user.value.UserRank;
 import com.example.domain.user.value.UserScore;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -79,15 +86,22 @@ public class UserResponseMapper {
     }
 
     private Map<String, Object> resolveUserMap(Map<String, Object> body) {
-        Object payload = firstNonNull(
-                valueOf(body, "user"),
-                valueOf(body, "profile"),
-                valueOf(body, "data")
-        );
-        if (payload instanceof Map<?, ?> map) {
-            return cast(map);
+        try {
+            JSONObject jsonObject = new JSONObject(valueOf(body, "user").toString());
+            Map<String, Object> result = new HashMap<>();
+            Iterator<String> iter = jsonObject.keys();
+            while (iter.hasNext()) {
+                String key = iter.next();
+                result.put(key, jsonObject.get(key));
+            }
+
+            return result;
+        } catch (ClassCastException exception) {
+            Log.e("UserResponseMapper", "error:" + exception.getMessage());
+            return Collections.emptyMap();
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
         }
-        return body != null ? body : Collections.emptyMap();
     }
 
     private Object firstNonNull(Object... values) {

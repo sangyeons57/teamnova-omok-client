@@ -17,6 +17,7 @@ public class SettingProfileDialogViewModel extends ViewModel {
     private final MutableLiveData<String> nickname = new MutableLiveData<>("");
     private final MutableLiveData<Boolean> inProgress = new MutableLiveData<>(false);
     private final MutableLiveData<StatusMessage> status = new MutableLiveData<>(null);
+    private final MutableLiveData<Integer> selectedIcon = new MutableLiveData<>(null);
 
     public LiveData<String> getNickname() {
         return nickname;
@@ -43,8 +44,21 @@ public class SettingProfileDialogViewModel extends ViewModel {
         return status;
     }
 
+    public LiveData<Integer> getSelectedIcon() {
+        return selectedIcon;
+    }
+
     public void clearStatus() {
         status.setValue(null);
+    }
+
+    public void onIconSelected(int iconCode) {
+        selectedIcon.setValue(iconCode);
+        Log.d(TAG, "Profile icon selected: " + iconCode);
+    }
+
+    public void clearIconSelection() {
+        selectedIcon.setValue(null);
     }
 
     public void showSuccess(@NonNull String message) {

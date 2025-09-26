@@ -84,6 +84,36 @@ public class UserFactory {
         );
     }
 
+    public static User updateProfileIcon(User existing, int newProfileIcon) {
+        if (existing == null) {
+            throw new IllegalArgumentException("existing == null");
+        }
+        return User.of(
+                existing.getUserId(),
+                existing.getDisplayName(),
+                UserProfileIcon.of(newProfileIcon),
+                existing.getRole(),
+                existing.getStatus(),
+                existing.getScore(),
+                existing.getIdentity()
+        );
+    }
+
+    public static User withoutIdentity(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("user == null");
+        }
+        return User.of(
+                user.getUserId(),
+                user.getDisplayName(),
+                user.getProfileIcon(),
+                user.getRole(),
+                user.getStatus(),
+                user.getScore(),
+                Identity.EMPTY
+        );
+    }
+
     public static User createIdentity(String userId, String accessToken, String refreshToken) {
         Log.d("test", "identity:" );
         Identity identity = Identity.of(accessToken, refreshToken);

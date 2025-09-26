@@ -2,6 +2,7 @@ package com.example.feature_home.home.presentation.dialog;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,25 +11,32 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.application.dto.command.ChangeNameCommand;
+import com.example.application.dto.command.ChangeProfileIconCommand;
 import com.example.application.port.in.UResult;
 import com.example.application.port.in.UseCaseRegistry;
-import com.example.application.usecase.ChangeNameUseCase;
 import com.example.application.session.UserSessionStore;
+import com.example.application.usecase.ChangeNameUseCase;
+import com.example.application.usecase.ChangeProfileIconUseCase;
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
 import com.example.core_di.UseCaseContainer;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.value.UserDisplayName;
+import com.example.domain.user.value.UserProfileIcon;
 import com.example.feature_home.R;
+import com.example.feature_home.home.presentation.adapter.ProfileIconAdapter;
 import com.example.feature_home.home.presentation.viewmodel.SettingProfileDialogViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textview.MaterialTextView;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import java.util.concurrent.ExecutorService;
@@ -44,6 +52,7 @@ public final class SettingProfileDialogController implements DialogController<Ma
     public AlertDialog create(@NonNull FragmentActivity activity, @NonNull DialogRequest<MainDialogType> request) {
         UseCaseRegistry registry = UseCaseContainer.getInstance().registry;
         ChangeNameUseCase changeNameUseCase = registry.get(ChangeNameUseCase.class);
+        ChangeProfileIconUseCase changeProfileIconUseCase = registry.get(ChangeProfileIconUseCase.class);
         UserSessionStore sessionStore = UseCaseContainer.getInstance().userSessionStore;
 
         View contentView = LayoutInflater.from(activity).inflate(R.layout.dialog_setting_profile, null, false);
@@ -53,15 +62,9 @@ public final class SettingProfileDialogController implements DialogController<Ma
         dialog.setCanceledOnTouchOutside(false);
 
         SettingProfileDialogViewModel viewModel = new ViewModelProvider(activity).get(SettingProfileDialogViewModel.class);
-        User currentUser = sessionStore.getCurrentUser();
-        if (currentUser != null) {
-            String displayName = currentUser.getDisplayName().getValue();
-            if (UserDisplayName.EMPTY.getValue().equals(displayName)) {
-                displayName = "";
-            }
-            viewModel.onNicknameChanged(displayName);
-        }
-        bindViews(activity, contentView, dialog, viewModel, changeNameUseCase);
+        applySessionUser(viewModel, sessionStore.getCurrentUser());
+        sessionStore.getUserStream().observe(activity, user -> applySessionUser(viewModel, user));
+        bindViews(activity, contentView, dialog, viewModel, changeNameUseCase, changeProfileIconUseCase);
 
         dialog.setOnShowListener(ignored -> {
             if (dialog.getWindow() != null) {
@@ -76,11 +79,62 @@ public final class SettingProfileDialogController implements DialogController<Ma
                            @NonNull View contentView,
                            @NonNull AlertDialog dialog,
                            @NonNull SettingProfileDialogViewModel viewModel,
-                           @NonNull ChangeNameUseCase changeNameUseCase) {
+                           @NonNull ChangeNameUseCase changeNameUseCase,
+                           @NonNull ChangeProfileIconUseCase changeProfileIconUseCase) {
         MaterialButton close = contentView.findViewById(R.id.buttonProfileClose);
         MaterialButton apply = contentView.findViewById(R.id.buttonProfileApply);
         TextInputEditText input = contentView.findViewById(R.id.inputNickname);
         MaterialTextView statusText = contentView.findViewById(R.id.textNicknameStatus);
+        RecyclerView profileIcons = contentView.findViewById(R.id.recyclerProfileIcons);
+
+        GridLayoutManager layoutManager = new GridLayoutManager(activity, 5);
+        profileIcons.setLayoutManager(layoutManager);
+        profileIcons.setItemAnimator(null);
+        profileIcons.setHasFixedSize(true);
+        profileIcons.setNestedScrollingEnabled(false);
+
+        ProfileIconAdapter iconAdapter = new ProfileIconAdapter(iconCode -> {
+            if (Boolean.TRUE.equals(viewModel.isInProgress().getValue())) {
+                return;
+            }
+
+            Integer previousSelection = viewModel.getSelectedIcon().getValue();
+            viewModel.onIconSelected(iconCode);
+            viewModel.clearStatus();
+            viewModel.setInProgress(true);
+
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            changeProfileIconUseCase.executeAsync(new ChangeProfileIconCommand(iconCode), executor)
+                    .whenComplete((result, throwable) -> {
+                        executor.shutdown();
+                        activity.runOnUiThread(() -> {
+                            viewModel.setInProgress(false);
+
+                            if (throwable != null) {
+                                revertIconSelection(viewModel, previousSelection);
+                                viewModel.showError(activity.getString(R.string.dialog_setting_profile_icon_change_error));
+                                return;
+                            }
+
+                            if (result instanceof UResult.Ok<?>) {
+                                viewModel.showSuccess(activity.getString(R.string.dialog_setting_profile_icon_change_success));
+                            } else if (result instanceof UResult.Err<?> err) {
+                                String message = err.message();
+                                if (message == null || message.trim().isEmpty()) {
+                                    message = activity.getString(R.string.dialog_setting_profile_icon_change_error);
+                                }
+                                revertIconSelection(viewModel, previousSelection);
+                                viewModel.showError(message);
+                            } else {
+                                revertIconSelection(viewModel, previousSelection);
+                                viewModel.showError(activity.getString(R.string.dialog_setting_profile_icon_change_error));
+                            }
+                        });
+                    });
+        });
+        profileIcons.setAdapter(iconAdapter);
+
+        viewModel.getSelectedIcon().observe(activity, iconCode -> iconAdapter.setSelectedIcon(iconCode));
 
         viewModel.getNickname().observe(activity, nickname -> {
             if (nickname != null && (input.getText() == null || !nickname.contentEquals(input.getText()))) {
@@ -117,6 +171,37 @@ public final class SettingProfileDialogController implements DialogController<Ma
             String nickname = value == null ? "" : value.toString().trim();
             handleApply(activity, viewModel, changeNameUseCase, nickname, input);
         });
+    }
+
+    private void applySessionUser(@NonNull SettingProfileDialogViewModel viewModel, @Nullable User user) {
+        if (user == null) {
+            viewModel.onNicknameChanged("");
+            viewModel.clearIconSelection();
+            return;
+        }
+        Log.d("SettingProfileDialog", user.getUserId().getValue() + " " + user.getDisplayName().getValue() + " " + user.getProfileIcon().getValue());
+
+        String displayName = user.getDisplayName() != null ? user.getDisplayName().getValue() : "";
+        if (UserDisplayName.EMPTY.getValue().equals(displayName)) {
+            displayName = "";
+        }
+        viewModel.onNicknameChanged(displayName);
+
+        int iconCode = user.getProfileIcon() != null ? user.getProfileIcon().getValue() : UserProfileIcon.EMPTY.getValue();
+        if (iconCode >= 0) {
+            viewModel.onIconSelected(iconCode);
+        } else {
+            viewModel.clearIconSelection();
+        }
+    }
+
+    private void revertIconSelection(@NonNull SettingProfileDialogViewModel viewModel,
+                                     @Nullable Integer previousSelection) {
+        if (previousSelection == null) {
+            viewModel.clearIconSelection();
+        } else {
+            viewModel.onIconSelected(previousSelection);
+        }
     }
 
     private void handleApply(@NonNull FragmentActivity activity,

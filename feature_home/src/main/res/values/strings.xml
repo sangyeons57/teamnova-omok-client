@@ -60,6 +60,18 @@
     <string name="dialog_setting_profile_change_success">닉네임이 변경되었습니다.</string>
     <string name="dialog_setting_profile_error_empty">닉네임을 입력해주세요.</string>
     <string name="dialog_setting_profile_error_generic">닉네임 변경에 실패했습니다. 잠시 후 다시 시도하세요.</string>
+    <string name="dialog_setting_profile_icon_change_success">프로필 아이콘이 변경되었습니다.</string>
+    <string name="dialog_setting_profile_icon_change_error">프로필 아이콘 변경에 실패했습니다. 잠시 후 다시 시도하세요.</string>
+    <string name="dialog_setting_profile_icon_0">프로필 아이콘 0</string>
+    <string name="dialog_setting_profile_icon_1">프로필 아이콘 1</string>
+    <string name="dialog_setting_profile_icon_2">프로필 아이콘 2</string>
+    <string name="dialog_setting_profile_icon_3">프로필 아이콘 3</string>
+    <string name="dialog_setting_profile_icon_4">프로필 아이콘 4</string>
+    <string name="dialog_setting_profile_icon_5">프로필 아이콘 5</string>
+    <string name="dialog_setting_profile_icon_6">프로필 아이콘 6</string>
+    <string name="dialog_setting_profile_icon_7">프로필 아이콘 7</string>
+    <string name="dialog_setting_profile_icon_8">프로필 아이콘 8</string>
+    <string name="dialog_setting_profile_icon_9">프로필 아이콘 9</string>
 
     <!-- Ranking dialog -->
     <string name="dialog_ranking_title">랭킹</string>

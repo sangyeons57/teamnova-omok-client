@@ -63,7 +63,7 @@ public final class UseCaseContainer {
         registry.register(ChangeNameUseCase.class,
                 UseCaseProviders.singleton(() -> new ChangeNameUseCase(defaultConfig, userRepository, userSessionStore)));
         registry.register(ChangeProfileIconUseCase.class,
-                UseCaseProviders.singleton(() -> new ChangeProfileIconUseCase(defaultConfig, userRepository)));
+                UseCaseProviders.singleton(() -> new ChangeProfileIconUseCase(defaultConfig, userRepository, userSessionStore)));
         registry.register(RankingDataUseCase.class,
                 UseCaseProviders.singleton(() -> new RankingDataUseCase(defaultConfig, userRepository)));
         registry.register(SelfDataUseCase.class,

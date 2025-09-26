@@ -57,4 +57,17 @@ public final class User  {
     public Identity getIdentity() {
         return identity;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId: " + userId.getValue() +
+                ", displayName: " + displayName.getValue() +
+                ", profileIcon: " + profileIcon.getValue() +
+                ", rol: " + role.getValue() +
+                ", status: " + status.getValue() +
+                ", score: " + score.getValue() +
+                ", identity: " + identity +
+                '}';
+    }
 }

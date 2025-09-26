@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="profile_icon_item_size">64dp</dimen>
+    <dimen name="profile_icon_item_corner_radius">16dp</dimen>
+    <dimen name="profile_icon_item_stroke_width">0dp</dimen>
+    <dimen name="profile_icon_item_stroke_width_selected">4dp</dimen>
+    <dimen name="profile_icon_item_spacing">6dp</dimen>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="profile_icon_color_0">#FF8A65</color>
+    <color name="profile_icon_color_1">#4DB6AC</color>
+    <color name="profile_icon_color_2">#9575CD</color>
+    <color name="profile_icon_color_3">#BA68C8</color>
+    <color name="profile_icon_color_4">#4FC3F7</color>
+    <color name="profile_icon_color_5">#AED581</color>
+    <color name="profile_icon_color_6">#F06292</color>
+    <color name="profile_icon_color_7">#64B5F6</color>
+    <color name="profile_icon_color_8">#81C784</color>
+    <color name="profile_icon_color_9">#FFD54F</color>
+    <color name="profile_icon_ripple">#33FFFFFF</color>
+</resources>

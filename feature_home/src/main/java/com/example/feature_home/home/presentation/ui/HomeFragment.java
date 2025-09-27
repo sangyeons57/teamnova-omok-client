@@ -18,6 +18,7 @@ import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigator;
 import com.example.core.navigation.FragmentNavigationHost;
+import com.example.application.session.GameMode;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.HomeViewModelFactory;
 import com.example.feature_home.home.presentation.viewmodel.HomeViewModel;
@@ -84,6 +85,11 @@ public class HomeFragment extends Fragment {
         rankingButton.setOnClickListener(v -> viewModel.onRankingClicked());
         settingsButton.setOnClickListener(v -> viewModel.onSettingsClicked());
         logOnlyButton.setOnClickListener(v -> viewModel.onLogOnlyClicked());
+        viewModel.getGameMode().observe(getViewLifecycleOwner(), mode -> {
+            String label = getString(gameModeToLabel(mode));
+            gameModeButton.setText(label);
+            gameModeButton.setContentDescription(getString(R.string.home_game_mode_content_description, label));
+        });
 
         observeViewEvents();
     }
@@ -104,6 +110,15 @@ public class HomeFragment extends Fragment {
 
             viewModel.onEventHandled();
         });
+    }
+
+    private int gameModeToLabel(@NonNull GameMode mode) {
+        return switch (mode) {
+            case FREE -> R.string.game_mode_free;
+            case TWO_PLAYER -> R.string.game_mode_two_player;
+            case THREE_PLAYER -> R.string.game_mode_three_player;
+            case FOUR_PLAYER -> R.string.game_mode_four_player;
+        };
     }
 
     private void navigateToMatching() {

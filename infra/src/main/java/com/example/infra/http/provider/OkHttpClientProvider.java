@@ -36,7 +36,7 @@ public class OkHttpClientProvider {
                 .connectTimeout(20, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
-                //.addInterceptor( new LoggingInterceptor() )
+                .addInterceptor( new LoggingInterceptor() )
                 .build();
         defaultValue = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(true)
@@ -45,7 +45,7 @@ public class OkHttpClientProvider {
                 .writeTimeout(20, TimeUnit.SECONDS)
                 .addInterceptor(new AuthInterceptor(tokenStore))
                 .authenticator(new TokenAuthenticator(refreshClient, tokenStore, eventBus))
-                //.addInterceptor( new LoggingInterceptor() )
+                .addInterceptor( new LoggingInterceptor() )
                 .build();
 
     }

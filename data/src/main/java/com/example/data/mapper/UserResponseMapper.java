@@ -41,13 +41,11 @@ public class UserResponseMapper {
         if (body == null || body.isEmpty()) {
             return Collections.emptyList();
         }
-        Object payload = firstNonNull(
-                body.get("ranking"),
-                body.get("rankings"),
-                body.get("data"),
-                body.get("items"));
+        Object payload = body.get("ranking");
 
+        Log.d("UserResponseMapper", "payload:" + payload.getClass());
         if (!(payload instanceof List<?> entries)) {
+            Log.d("UserResponseMapper", "payload is not a list");
             return Collections.emptyList();
         }
 
@@ -85,22 +83,14 @@ public class UserResponseMapper {
         return new RankingEntry(rank, userId, displayName, score);
     }
 
+    /** @noinspection unchecked*/
     private Map<String, Object> resolveUserMap(Map<String, Object> body) {
         try {
-            JSONObject jsonObject = new JSONObject(valueOf(body, "user").toString());
-            Map<String, Object> result = new HashMap<>();
-            Iterator<String> iter = jsonObject.keys();
-            while (iter.hasNext()) {
-                String key = iter.next();
-                result.put(key, jsonObject.get(key));
-            }
 
-            return result;
+            return (Map<String, Object>) valueOf(body, "user");
         } catch (ClassCastException exception) {
             Log.e("UserResponseMapper", "error:" + exception.getMessage());
             return Collections.emptyMap();
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
     }
 

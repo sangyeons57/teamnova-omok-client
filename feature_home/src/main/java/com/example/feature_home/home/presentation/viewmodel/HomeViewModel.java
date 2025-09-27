@@ -9,6 +9,8 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application.port.in.UResult;
 import com.example.application.port.in.UseCase;
+import com.example.application.session.GameInfoStore;
+import com.example.application.session.GameMode;
 import com.example.application.session.UserSessionStore;
 import com.example.application.usecase.SelfDataUseCase;
 import com.example.feature_home.home.presentation.state.HomeViewEvent;
@@ -27,12 +29,17 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<HomeViewEvent> viewEvents = new MutableLiveData<>();
     private final LiveData<User> userStream;
     private final SelfDataUseCase selfDataUseCase;
+    private final GameInfoStore gameInfoStore;
+    private final LiveData<GameMode> gameModeStream;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public HomeViewModel(@NonNull SelfDataUseCase selfDataUseCase,
-                         @NonNull UserSessionStore userSessionStore) {
+                         @NonNull UserSessionStore userSessionStore,
+                         @NonNull GameInfoStore gameInfoStore) {
         this.selfDataUseCase = selfDataUseCase;
+        this.gameInfoStore = gameInfoStore;
         this.userStream = userSessionStore.getUserStream();
+        this.gameModeStream = gameInfoStore.getModeStream();
         refreshSelfProfile();
     }
 
@@ -42,6 +49,10 @@ public class HomeViewModel extends ViewModel {
 
     public LiveData<User> getUser() {
         return userStream;
+    }
+
+    public LiveData<GameMode> getGameMode() {
+        return gameModeStream;
     }
 
     public void onBannerClicked() {

@@ -28,13 +28,6 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/textGameModeBadge"
-                    style="@style/TextAppearance.Material3.TitleLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1" />
-
-                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/textGameModeTitle"
                     style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="0dp"
@@ -51,71 +44,53 @@
                     android:text="@string/dialog_close" />
             </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonGameModePrimary"
-                style="@style/Widget.Material3.Button"
+            <LinearLayout
+                android:id="@+id/layoutDialogGameModes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/dialog_game_mode_primary" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonGameModeRanked"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/dialog_game_mode_ranked" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonGameModeCasual"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/dialog_game_mode_casual" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonGameModeTutorial"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/dialog_game_mode_tutorial" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:weightSum="4">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonGameModeFriends"
-                    style="@style/Widget.Material3.Button"
+                    android:id="@+id/buttonGameModeFree"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:text="@string/dialog_game_mode_friends" />
+                    android:text="@string/game_mode_free"
+                    app:strokeWidth="@dimen/game_mode_stroke_width" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonGameModeEvent"
-                    style="@style/Widget.Material3.Button"
+                    android:id="@+id/buttonGameModeTwoPlayer"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:text="@string/dialog_game_mode_event" />
-            </LinearLayout>
+                    android:text="@string/game_mode_two_player"
+                    app:strokeWidth="@dimen/game_mode_stroke_width" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonGameModeCustom"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/dialog_game_mode_custom" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonGameModeThreePlayer"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/game_mode_three_player"
+                    app:strokeWidth="@dimen/game_mode_stroke_width" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonGameModeFourPlayer"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/game_mode_four_player"
+                    app:strokeWidth="@dimen/game_mode_stroke_width" />
+            </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

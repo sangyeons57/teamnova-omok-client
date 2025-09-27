@@ -17,6 +17,8 @@ import com.example.application.usecase.RankingDataUseCase;
 import com.example.application.usecase.SelfDataUseCase;
 import com.example.application.usecase.UserDataUseCase;
 import com.example.core.event.AppEventBus;
+import com.example.application.session.GameInfoStore;
+import com.example.application.session.InMemoryGameInfoStore;
 import com.example.application.session.InMemoryUserSessionStore;
 import com.example.application.session.UserSessionStore;
 import com.example.core.token.TokenStore;
@@ -46,6 +48,7 @@ public final class UseCaseContainer {
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);
     public final TokenStore token = TokenContainer.getInstance();
     public final UserSessionStore userSessionStore = new InMemoryUserSessionStore();
+    public final GameInfoStore gameInfoStore = new InMemoryGameInfoStore();
     public final AppEventBus eventBus = EventBusContainer.getInstance();
 
     public UseCaseContainer() {

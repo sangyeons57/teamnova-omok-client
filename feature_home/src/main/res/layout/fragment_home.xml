@@ -9,23 +9,29 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonRanking"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
-        android:text="@string/home_ranking"
+        android:contentDescription="@string/home_ranking"
+        app:icon="@drawable/ic_home_trophy"
+        app:iconPadding="0dp"
+        app:iconTint="?attr/colorOnSurface"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonSettings"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
-        android:text="@string/home_settings"
+        android:contentDescription="@string/home_settings"
+        app:icon="@drawable/ic_home_settings"
+        app:iconPadding="0dp"
+        app:iconTint="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -36,7 +42,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="24dp"
-        android:text="@string/home_log_only"
+        android:contentDescription="@string/home_log_only"
+        android:minHeight="48dp"
+        android:minWidth="48dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/buttonSettings" />
 
@@ -44,9 +52,9 @@
         android:id="@+id/buttonScore"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="200dp"
         android:layout_marginHorizontal="48dp"
-        android:layout_marginTop="200dp"
+        android:layout_marginTop="250dp"
         android:text="@string/home_score"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -67,10 +75,11 @@
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="2dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="48dp"
         android:text="@string/home_matching"
+        app:layout_constraintHorizontal_weight="3"
         app:layout_constraintBottom_toTopOf="@id/buttonBannerAd"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/buttonGameMode" />
@@ -81,9 +90,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="48dp"
         android:text="@string/home_game_mode"
+        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintBottom_toTopOf="@id/buttonBannerAd"
         app:layout_constraintEnd_toStartOf="@id/buttonMatching"
         app:layout_constraintStart_toStartOf="parent" />

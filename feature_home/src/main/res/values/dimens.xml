@@ -5,4 +5,6 @@
     <dimen name="profile_icon_item_stroke_width">0dp</dimen>
     <dimen name="profile_icon_item_stroke_width_selected">4dp</dimen>
     <dimen name="profile_icon_item_spacing">6dp</dimen>
+    <dimen name="game_mode_stroke_width">1dp</dimen>
+    <dimen name="game_mode_stroke_width_selected">3dp</dimen>
 </resources>

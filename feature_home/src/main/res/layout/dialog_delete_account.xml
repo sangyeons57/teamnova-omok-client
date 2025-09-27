@@ -28,19 +28,13 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/textDeleteAccountBadge"
-                    style="@style/TextAppearance.Material3.TitleLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1" />
-
-                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/textDeleteAccountTitle"
                     style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
+                    android:textColor="?attr/colorOnSurface"
                     android:text="@string/dialog_delete_account_title" />
 
                 <com.google.android.material.button.MaterialButton
@@ -57,6 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
+                android:textColor="?attr/colorOnSurface"
                 android:text="@string/dialog_delete_account_message_default" />
 
             <LinearLayout
@@ -72,6 +67,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:textColor="?attr/colorOnSurface"
                     android:text="@string/dialog_delete_account_acknowledge_label" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
@@ -86,8 +82,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="@string/dialog_delete_account_confirm"
-                android:enabled="false" />
+                android:enabled="false"
+                android:text="@string/dialog_delete_account_confirm" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

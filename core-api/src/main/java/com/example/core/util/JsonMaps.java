@@ -16,7 +16,7 @@ public class JsonMaps {
         for(Iterator<String> it = object.keys(); it.hasNext();){
             String key = it.next();
             Object value = object.get(key);
-            map.put(key, value);
+            map.put(key, fromJson(value));
         }
         return map;
     }

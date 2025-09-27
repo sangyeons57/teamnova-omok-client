@@ -20,9 +20,9 @@
     <color name="md_theme_dark_background">#0F141A</color>
     <color name="md_theme_dark_onBackground">#D5D9DE</color>
     <color name="md_theme_dark_surface">#0F141A</color>
-    <color name="md_theme_dark_onSurface">#D5D9DE</color>
+    <color name="md_theme_dark_onSurface">#E7EAEE</color>
     <color name="md_theme_dark_surfaceVariant">#2E343B</color>
-    <color name="md_theme_dark_onSurfaceVariant">#C2C7CE</color>
+    <color name="md_theme_dark_onSurfaceVariant">#D0D5DC</color>
     <color name="md_theme_dark_outline">#8C9198</color>
     <color name="md_theme_dark_outlineVariant">#444A52</color>
     <color name="md_theme_dark_surfaceTint">#B7C4D1</color>

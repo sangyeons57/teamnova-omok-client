@@ -86,4 +86,11 @@
     <!-- Score dialog -->
     <string name="dialog_score_title">점수 요약</string>
     <string name="dialog_score_share">공유하기</string>
+
+    <!-- Score screen -->
+    <string name="score_screen_title">0점</string>
+    <string name="score_screen_back">홈으로 돌아가기</string>
+    <string name="score_screen_banner_placeholder">배너 광고 영역</string>
+    <string name="score_screen_score_format">- %1$d점</string>
+    <string name="score_screen_current_score_format">%1$d점</string>
 </resources>

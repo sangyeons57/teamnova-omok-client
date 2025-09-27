@@ -68,7 +68,7 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void onScoreClicked() {
-        viewEvents.setValue(HomeViewEvent.SHOW_SCORE_DIALOG);
+        viewEvents.setValue(HomeViewEvent.NAVIGATE_TO_SCORE);
     }
 
     public void onRankingClicked() {

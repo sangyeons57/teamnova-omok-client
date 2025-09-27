@@ -103,7 +103,7 @@ public class HomeFragment extends Fragment {
             switch (event) {
                 case NAVIGATE_TO_MATCHING -> navigateToMatching();
                 case SHOW_GAME_MODE_DIALOG -> enqueueDialog(MainDialogType.GAME_MODE);
-                case SHOW_SCORE_DIALOG -> enqueueDialog(MainDialogType.SCORE);
+                case NAVIGATE_TO_SCORE -> navigateToScore();
                 case SHOW_RANKING_DIALOG -> enqueueDialog(MainDialogType.RANKING);
                 case SHOW_SETTING_DIALOG -> enqueueDialog(MainDialogType.SETTING);
             }
@@ -126,6 +126,13 @@ public class HomeFragment extends Fragment {
             return;
         }
         fragmentNavigationHost.navigateTo(AppNavigationKey.MATCHING, true);
+    }
+
+    private void navigateToScore() {
+        if (fragmentNavigationHost == null) {
+            return;
+        }
+        fragmentNavigationHost.navigateTo(AppNavigationKey.SCORE, true);
     }
 
     private void enqueueDialog(@NonNull MainDialogType type) {

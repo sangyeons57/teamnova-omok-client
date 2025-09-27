@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ScoreGaugeView">
+        <attr name="gaugeMinScore" format="integer" />
+        <attr name="gaugeMaxScore" format="integer" />
+        <attr name="gaugeStep" format="integer" />
+        <attr name="gaugeReversed" format="boolean" />
+    </declare-styleable>
+</resources>

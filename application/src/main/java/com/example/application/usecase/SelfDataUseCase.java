@@ -30,7 +30,7 @@ public class SelfDataUseCase extends UseCase<UseCase.None, SelfDataResponse> {
             User merged = existing != null
                     ? UserFactory.mergeProfile(existing, fetched)
                     : fetched;
-            userSessionStore.update(merged);
+            userSessionStore.updateUser(merged);
             return new SelfDataResponse(merged);
         } catch (UseCaseException exception) {
             throw exception;

@@ -34,7 +34,7 @@ public class ChangeNameUseCase extends UseCase<ChangeNameCommand, UseCase.None> 
         User current = userSessionStore.getCurrentUser();
         if (current != null) {
             User updated = UserFactory.updateDisplayName(current, input.newName());
-            userSessionStore.update(updated);
+            userSessionStore.updateUser(updated);
         }
         return None.INSTANCE;
     }

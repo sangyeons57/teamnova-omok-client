@@ -48,4 +48,16 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+
+    // Credential Manager
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+
+    // Sign in with Google (Google ID SDK)
+    implementation(libs.googleid)
+
+    // AuthorizationClient (권한부여/토큰)
+    implementation(libs.play.services.auth)
+
 }

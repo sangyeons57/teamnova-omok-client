@@ -29,6 +29,11 @@
     <!-- Settings dialog -->
     <string name="dialog_setting_title">설정</string>
     <string name="dialog_setting_google_link">구글 연동</string>
+    <string name="dialog_setting_google_linking">구글 계정을 연동 중…</string>
+    <string name="dialog_setting_google_linked">구글 연동됨</string>
+    <string name="dialog_setting_google_not_supported">해당 기기에서 구글 연동을 지원하지 않습니다.</string>
+    <string name="dialog_setting_google_success">구글 계정과 연동되었습니다.</string>
+    <string name="dialog_setting_google_error_generic">구글 계정 연동에 실패했습니다.</string>
     <string name="dialog_setting_profile_button">프로필</string>
     <string name="dialog_setting_language">언어</string>
     <string name="dialog_setting_privacy">개인정보 처리방침</string>

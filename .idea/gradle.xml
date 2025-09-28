@@ -20,6 +20,7 @@
             <option value="$PROJECT_DIR$/feature_auth" />
             <option value="$PROJECT_DIR$/feature_home" />
             <option value="$PROJECT_DIR$/infra" />
+            <option value="$PROJECT_DIR$/ui-widgets" />
           </set>
         </option>
       </GradleProjectSettings>

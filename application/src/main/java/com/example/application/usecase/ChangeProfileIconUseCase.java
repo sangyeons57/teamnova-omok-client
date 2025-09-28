@@ -37,7 +37,7 @@ public class ChangeProfileIconUseCase extends UseCase<ChangeProfileIconCommand, 
         }
 
         User updated = UserFactory.updateProfileIcon(current, input.newIcon());
-        userSessionStore.update(updated);
+        userSessionStore.updateUser(updated);
         return None.INSTANCE;
     }
 }

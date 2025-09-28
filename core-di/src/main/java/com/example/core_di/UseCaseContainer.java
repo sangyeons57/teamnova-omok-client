@@ -11,6 +11,7 @@ import com.example.application.usecase.ChangeNameUseCase;
 import com.example.application.usecase.ChangeProfileIconUseCase;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.DeactivateAccountUseCase;
+import com.example.application.usecase.LinkGoogleAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
 import com.example.application.usecase.RankingDataUseCase;
@@ -58,6 +59,8 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new AllTermsAcceptancesUseCase(defaultConfig, termsRepository)));
         registry.register(LoginUseCase.class,
                 UseCaseProviders.singleton(() -> new LoginUseCase(defaultConfig, identifyRepository, userSessionStore)));
+        registry.register(LinkGoogleAccountUseCase.class,
+                UseCaseProviders.singleton(() -> new LinkGoogleAccountUseCase(defaultConfig, identifyRepository, userSessionStore)));
         registry.register(LogoutUseCase.class,
                 UseCaseProviders.singleton(() -> new LogoutUseCase(defaultConfig, identifyRepository, token, eventBus, userSessionStore)));
         registry.register(DeactivateAccountUseCase.class,

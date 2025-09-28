@@ -2,14 +2,24 @@ package com.example.feature_home.home.presentation.dialog;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.credentials.Credential;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.CustomCredential;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.GetCredentialException;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -21,14 +31,24 @@ import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.GeneralInfoContentType;
 import com.example.core.dialog.MainDialogType;
 import com.example.feature_home.R;
+import com.example.feature_home.home.di.SettingDialogViewModelFactory;
 import com.example.feature_home.home.presentation.viewmodel.SettingDialogViewModel;
+import com.example.feature_home.home.presentation.viewmodel.SettingDialogViewModel.SettingDialogEvent;
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Controller responsible for the general settings dialog.
  */
 public final class SettingDialogController implements DialogController<MainDialogType> {
+
+    private static final String TAG = "SettingDialogController";
+    private static final String WEB_CLIENT_ID = "525482813681-ea5mpfth6hr7bbd7qk2qj10slruclefb.apps.googleusercontent.com";
 
     @NonNull
     @Override
@@ -39,7 +59,8 @@ public final class SettingDialogController implements DialogController<MainDialo
                 .create();
         dialog.setCanceledOnTouchOutside(false);
 
-        SettingDialogViewModel viewModel = new ViewModelProvider(activity).get(SettingDialogViewModel.class);
+        SettingDialogViewModelFactory factory = SettingDialogViewModelFactory.create();
+        SettingDialogViewModel viewModel = new ViewModelProvider(activity, factory).get(SettingDialogViewModel.class);
         bindButtons(activity, contentView, dialog, viewModel);
 
         dialog.setOnShowListener(ignored -> {
@@ -94,6 +115,114 @@ public final class SettingDialogController implements DialogController<MainDialo
             viewModel.onOpenProfileClicked();
             enqueueDialog(activity, MainDialogType.SETTING_PROFILE, null);
         });
+
+        viewModel.isGoogleButtonEnabled().observe(activity, value -> applyGoogleButtonState(activity, google, viewModel));
+        viewModel.isGoogleLinkInProgress().observe(activity, value -> applyGoogleButtonState(activity, google, viewModel));
+        viewModel.isGoogleLinked().observe(activity, value -> applyGoogleButtonState(activity, google, viewModel));
+        viewModel.getEvents().observe(activity, event -> handleEvent(activity, viewModel, event));
+
+        applyGoogleButtonState(activity, google, viewModel);
+    }
+
+    private void handleEvent(@NonNull FragmentActivity activity,
+                             @NonNull SettingDialogViewModel viewModel,
+                             @Nullable SettingDialogEvent event) {
+        if (event == null) {
+            return;
+        }
+
+        switch (event.type()) {
+            case REQUEST_GOOGLE_SIGN_IN -> startGoogleSignIn(activity, viewModel);
+            case SHOW_SUCCESS, SHOW_ERROR -> showToast(activity, event);
+        }
+        viewModel.onEventHandled();
+    }
+
+    private void startGoogleSignIn(@NonNull FragmentActivity activity,
+                                   @NonNull SettingDialogViewModel viewModel) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            viewModel.onGoogleSignInFailed(activity.getString(R.string.dialog_setting_google_not_supported));
+            return;
+        }
+
+        GetGoogleIdOption googleOption = new GetGoogleIdOption.Builder()
+                .setServerClientId(WEB_CLIENT_ID)
+                .setFilterByAuthorizedAccounts(false)
+                .build();
+
+        GetCredentialRequest request = new GetCredentialRequest.Builder()
+                .addCredentialOption(googleOption)
+                .build();
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        CredentialManager credentialManager = CredentialManager.create(activity);
+        credentialManager.getCredentialAsync(activity, request, null, executor,
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onError(@NonNull GetCredentialException e) {
+                        executor.shutdown();
+                        Log.e(TAG, "Google sign-in error", e);
+                        viewModel.onGoogleSignInFailed(e.getMessage());
+                    }
+
+                    @Override
+                    public void onResult(GetCredentialResponse response) {
+                        try {
+                            Credential credential = response.getCredential();
+                            if (credential instanceof CustomCredential
+                                    && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
+                                GoogleIdTokenCredential gid = GoogleIdTokenCredential.createFrom(((CustomCredential) credential).getData());
+                                String googleIdToken = gid.getIdToken();
+                                if (googleIdToken == null || googleIdToken.trim().isEmpty()) {
+                                    googleIdToken = gid.getId();
+                                }
+                                if (googleIdToken == null || googleIdToken.trim().isEmpty()) {
+                                    viewModel.onGoogleSignInFailed(null);
+                                    return;
+                                }
+                                viewModel.onGoogleCredentialReceived(googleIdToken);
+                            } else {
+                                viewModel.onGoogleSignInFailed(null);
+                            }
+                        } catch (Exception exception) {
+                            Log.e(TAG, "Google sign-in result error", exception);
+                            viewModel.onGoogleSignInFailed(exception.getMessage());
+                        } finally {
+                            executor.shutdown();
+                        }
+                    }
+                });
+    }
+
+    private void applyGoogleButtonState(@NonNull FragmentActivity activity,
+                                        @NonNull MaterialButton button,
+                                        @NonNull SettingDialogViewModel viewModel) {
+        boolean enabled = Boolean.TRUE.equals(viewModel.isGoogleButtonEnabled().getValue());
+        boolean linked = Boolean.TRUE.equals(viewModel.isGoogleLinked().getValue());
+        boolean inProgress = Boolean.TRUE.equals(viewModel.isGoogleLinkInProgress().getValue());
+
+        button.setEnabled(enabled);
+        button.setAlpha(enabled ? 1f : 0.6f);
+
+        int textRes;
+        if (inProgress) {
+            textRes = R.string.dialog_setting_google_linking;
+        } else if (linked) {
+            textRes = R.string.dialog_setting_google_linked;
+        } else {
+            textRes = R.string.dialog_setting_google_link;
+        }
+        button.setText(activity.getString(textRes));
+    }
+
+    private void showToast(@NonNull FragmentActivity activity, @NonNull SettingDialogEvent event) {
+        String message = event.message();
+        if (message == null || message.trim().isEmpty()) {
+            message = event.type() == SettingDialogEvent.Type.SHOW_SUCCESS
+                    ? activity.getString(R.string.dialog_setting_google_success)
+                    : activity.getString(R.string.dialog_setting_google_error_generic);
+        }
+        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
 
     @NonNull

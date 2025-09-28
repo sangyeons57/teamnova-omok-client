@@ -17,7 +17,7 @@ import com.example.application.usecase.LoginUseCase;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core.token.TokenStore;
-import com.example.domain.common.value.SignupAction;
+import com.example.domain.common.value.AuthProvider;
 import com.example.domain.user.entity.Identity;
 
 import java.util.Objects;
@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 public class LoginViewModel extends ViewModel {
 
     private static final String TAG = "LoginViewModel";
-    private final MutableLiveData<SignupAction> loginAction = new MutableLiveData<>();
+    private final MutableLiveData<AuthProvider> loginAction = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final ExecutorService executorService;
     private final CreateAccountUseCase createAccountUseCase;
@@ -62,7 +62,7 @@ public class LoginViewModel extends ViewModel {
 
     }
 
-    public LiveData<SignupAction> getLoginAction() {
+    public LiveData<AuthProvider> getLoginAction() {
         return loginAction;
     }
 
@@ -71,7 +71,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     public void onGuestLoginClicked() {
-        executeCreateAccount(CreateAccountCommand.forGuest(), SignupAction.GUEST);
+        executeCreateAccount(CreateAccountCommand.forGuest(), AuthProvider.GUEST);
     }
 
     public void onActionHandled() {
@@ -83,7 +83,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     public void onGoogleCredentialReceived(@NonNull String providerUserId) {
-        executeCreateAccount(CreateAccountCommand.forGoogle(providerUserId), SignupAction.GOOGLE);
+        executeCreateAccount(CreateAccountCommand.forGoogle(providerUserId), AuthProvider.GOOGLE);
     }
 
     public void onGoogleSignInFailed(String message) {
@@ -96,7 +96,7 @@ public class LoginViewModel extends ViewModel {
         super.onCleared();
     }
 
-    private void executeCreateAccount(CreateAccountCommand command, SignupAction action) {
+    private void executeCreateAccount(CreateAccountCommand command, AuthProvider action) {
         createAccountUseCase.executeAsync(command, executorService).thenAccept(result -> {
             Log.d(TAG, "executeCreateAccount: " + result);
             if (result instanceof UResult.Ok<CreateAccountResponse> ok) {
@@ -107,7 +107,7 @@ public class LoginViewModel extends ViewModel {
         });
     }
 
-    private void handleSuccess(Identity response, SignupAction action, boolean isNew) {
+    private void handleSuccess(Identity response, AuthProvider action, boolean isNew) {
         tokenManager.saveTokens(response.getAccessToken().getValue(), response.getRefreshToken().getValue());
         if (isNew) {
             loginAction.postValue(action);

@@ -74,6 +74,9 @@ public final class SpriteLayoutBuilder {
                     if (adj.absH != null) h = adj.absH;
                     x += adj.dx; y += adj.dy; w += adj.dWidth; h += adj.dHeight;
                 }
+                if (w <= 0 || h <= 0) {
+                    throw new IllegalArgumentException("Invalid cell size after adjustment at row " + r + ", col " + c);
+                }
                 out.add(new SpriteRect(index, r, c, x, y, w, h));
                 index++;
             }

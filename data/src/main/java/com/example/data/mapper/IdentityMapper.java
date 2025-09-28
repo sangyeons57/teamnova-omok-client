@@ -1,7 +1,7 @@
 package com.example.data.mapper;
 
-import com.example.application.port.result.GetOrCreateResult;
-import com.example.application.port.result.GetOrCreateResults;
+import com.example.application.wrapper.GetOrCreateResult;
+import com.example.application.wrapper.GetOrCreateResults;
 import com.example.data.model.http.response.Response;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.factory.UserFactory;

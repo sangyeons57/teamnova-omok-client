@@ -3,7 +3,7 @@ package com.example.data.repository.user;
 import android.util.Log;
 
 import com.example.application.port.out.user.IdentifyRepository;
-import com.example.application.port.result.GetOrCreateResult;
+import com.example.application.wrapper.GetOrCreateResult;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.exception.GuestSignupRemoteException;
 import com.example.data.exception.LoginRemoteException;

@@ -1,4 +1,4 @@
-package com.example.application.port.result;
+package com.example.application.wrapper;
 
 public class GetOrCreateResults {
     public static <T> GetOrCreateResult<T> ok(T value, boolean isNew) {

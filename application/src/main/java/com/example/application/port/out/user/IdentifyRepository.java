@@ -1,6 +1,6 @@
 package com.example.application.port.out.user;
 
-import com.example.application.port.result.GetOrCreateResult;
+import com.example.application.wrapper.GetOrCreateResult;
 import com.example.domain.common.value.SignupAction;
 import com.example.domain.user.entity.User;
 

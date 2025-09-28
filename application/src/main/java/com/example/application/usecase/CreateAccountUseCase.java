@@ -1,11 +1,9 @@
 package com.example.application.usecase;
 
-import android.util.Log;
-
 import com.example.application.dto.response.CreateAccountResponse;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
-import com.example.application.port.result.GetOrCreateResult;
+import com.example.application.wrapper.GetOrCreateResult;
 import com.example.core.exception.UseCaseException;
 import com.example.application.dto.command.CreateAccountCommand;
 import com.example.application.port.out.user.IdentifyRepository;

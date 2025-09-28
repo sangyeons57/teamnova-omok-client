@@ -7,7 +7,6 @@ import com.example.application.port.in.UseCaseConfig;
 import com.example.core.exception.UseCaseException;
 import com.example.application.dto.command.CreateAccountCommand;
 import com.example.application.port.out.user.IdentifyRepository;
-import com.example.domain.user.entity.Identity;
 import com.example.domain.user.entity.User;
 
 import java.util.Objects;
@@ -30,7 +29,7 @@ public class CreateAccountUseCase extends UseCase<CreateAccountCommand, User> {
     protected User run(CreateAccountCommand command) throws UseCaseException {
         Objects.requireNonNull(command, "command");
         Log.d ("CreateAccountUseCase", "run:" + command.toString());
-        User identity = repository.createAccount(command.getProvider(), command.getProviderUserId());
+        User identity = repository.createAccount(command.getProvider(), command.getGoogleIdToken());
         if (identity == null) {
             throw UseCaseException.of(ERROR_CODE, "No identity session was produced");
         }

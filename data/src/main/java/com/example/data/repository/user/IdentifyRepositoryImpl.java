@@ -42,13 +42,13 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
     }
 
     @Override
-    public User createAccount(LoginAction provider, String providerUserId) {
+    public User createAccount(LoginAction provider, String providerIdToken) {
         try {
             Request request = Request.defaultRequest(Path.CREATE_ACCOUNT);
             Map<String, Object> body = new HashMap<>();
             body.put("provider", resolveProvider(provider));
-            if (providerUserId != null && !providerUserId.trim().isEmpty()) {
-                body.put("provider_user_id", providerUserId);
+            if (providerIdToken != null && !providerIdToken.trim().isEmpty()) {
+                body.put("provider_id_token", providerIdToken);
             }
             request.setBody(body);
 

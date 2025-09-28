@@ -104,15 +104,13 @@ public class LoginFragment extends Fragment {
             dialogHost.enqueue(MainDialogType.TERMS_AGREEMENT);
         }
     }
-    final String WEB_CLIENT_ID = "1043521041767-naub8m6pi6vb0kspnqm4to9ns2js7696.apps.googleusercontent.com";
+    final String WEB_CLIENT_ID = "525482813681-ea5mpfth6hr7bbd7qk2qj10slruclefb.apps.googleusercontent.com";
 
 
-    @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     public void signInWithGoogle() {
         GetGoogleIdOption google = new GetGoogleIdOption.Builder()
                 .setServerClientId(WEB_CLIENT_ID)
                 .setFilterByAuthorizedAccounts(false)
-                .setAutoSelectEnabled(true)
                 .build();
 
         GetCredentialRequest request = new GetCredentialRequest.Builder()
@@ -121,52 +119,48 @@ public class LoginFragment extends Fragment {
         Executor executor = Executors.newSingleThreadExecutor();
         CancellationSignal cancellationSignal = new CancellationSignal();
         CredentialManager cm = CredentialManager.create(requireContext());
-        cm.getCredentialAsync(
-                requireActivity(),
-                request,
-                cancellationSignal,
-                executor,
-                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+        cm.getCredentialAsync(requireActivity(), request, null, executor, getCredentialCallback());
+    }
 
-                    @Override
-                    public void onError(@NonNull GetCredentialException e) {
-                        Log.e("LoginFragment", "Exception", e);
-                        viewModel.onGoogleSignInFailed(e.getMessage());
-                    }
+    public CredentialManagerCallback<GetCredentialResponse, GetCredentialException> getCredentialCallback() {
+        return new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+            @Override
+            public void onError(@NonNull GetCredentialException e) {
+                Log.e("LoginFragment", "[onError] Exception", e );
+                viewModel.onGoogleSignInFailed(e.getMessage());
+            }
 
-                    @Override
-                    public void onResult(GetCredentialResponse getCredentialResponse) {
-                        try {
-                            Credential credential = getCredentialResponse.getCredential();
-                            if (credential instanceof CustomCredential
-                                    && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
-                                Bundle data = ((CustomCredential) credential).getData();
-                                GoogleIdTokenCredential gid = GoogleIdTokenCredential.createFrom(data);
+            @Override
+            public void onResult(GetCredentialResponse getCredentialResponse) {
+                try {
+                    Credential credential = getCredentialResponse.getCredential();
+                    if (credential instanceof CustomCredential
+                            && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
+                        Bundle data = ((CustomCredential) credential).getData();
+                        GoogleIdTokenCredential gid = GoogleIdTokenCredential.createFrom(data);
 
-                                String providerUserId = gid.getIdToken();
-                                if (providerUserId == null || providerUserId.trim().isEmpty()) {
-                                    providerUserId = gid.getId();
-                                }
-
-                                if (providerUserId == null || providerUserId.trim().isEmpty()) {
-                                    Log.e("LoginFragment", "Google credential missing id token and subject");
-                                    viewModel.onGoogleSignInFailed("Google 계정을 확인할 수 없습니다.");
-                                    return;
-                                }
-
-                                Log.d("LoginFragment", "providerUserId:" + providerUserId);
-                                viewModel.onGoogleCredentialReceived(providerUserId);
-                            } else {
-                                Log.e("LoginFragment", "credential is not a CustomCredential");
-                                viewModel.onGoogleSignInFailed("Google 로그인에 실패했습니다.");
-                            }
-                        } catch (Exception e) {
-                            Log.e("LoginFragment", "Exception", e);
-                            viewModel.onGoogleSignInFailed(e.getMessage());
+                        String googleIdToken = gid.getIdToken();
+                        if (googleIdToken == null || googleIdToken.trim().isEmpty()) {
+                            googleIdToken = gid.getId();
                         }
-                    }
 
+                        if (googleIdToken == null || googleIdToken.trim().isEmpty()) {
+                            Log.e("LoginFragment", "Google credential missing id token and subject");
+                            viewModel.onGoogleSignInFailed("Google 계정을 확인할 수 없습니다.");
+                            return;
+                        }
+
+                        Log.d("LoginFragment", "googleIdToken:" + googleIdToken);
+                        viewModel.onGoogleCredentialReceived(googleIdToken);
+                    } else {
+                        Log.e("LoginFragment", "credential is not a CustomCredential");
+                        viewModel.onGoogleSignInFailed("Google 로그인에 실패했습니다.");
+                    }
+                } catch (Exception e) {
+                    Log.e("LoginFragment", "[onResult] Exception", e);
+                    viewModel.onGoogleSignInFailed(e.getMessage());
                 }
-        );
+            }
+        };
     }
 }

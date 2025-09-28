@@ -10,11 +10,11 @@ import java.util.Objects;
 public final class CreateAccountCommand {
 
     private final LoginAction provider;
-    private final String providerUserId;
+    private final String googleIdToken;
 
-    private CreateAccountCommand(LoginAction provider, String providerUserId) {
+    private CreateAccountCommand(LoginAction provider, String googleIdToken) {
         this.provider = Objects.requireNonNull(provider, "provider");
-        this.providerUserId = providerUserId;
+        this.googleIdToken = googleIdToken;
     }
 
     public static CreateAccountCommand forGuest() {
@@ -29,7 +29,7 @@ public final class CreateAccountCommand {
         return provider;
     }
 
-    public String getProviderUserId() {
-        return providerUserId;
+    public String getGoogleIdToken() {
+        return googleIdToken;
     }
 }

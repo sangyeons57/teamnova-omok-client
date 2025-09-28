@@ -12,6 +12,13 @@ public class SettingDialogViewModel extends ViewModel {
 
     private static final String TAG = "SettingDialogVM";
 
+    /**
+     * 우선 기존 client를
+     */
+    public void onGoogleSettingClicked() {
+
+    }
+
     public void onGeneralSettingClicked(@NonNull String settingId) {
         Log.d(TAG, "Setting option clicked: " + settingId);
     }

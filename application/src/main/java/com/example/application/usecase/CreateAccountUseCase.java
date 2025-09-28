@@ -2,8 +2,10 @@ package com.example.application.usecase;
 
 import android.util.Log;
 
+import com.example.application.dto.response.CreateAccountResponse;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
+import com.example.application.port.result.GetOrCreateResult;
 import com.example.core.exception.UseCaseException;
 import com.example.application.dto.command.CreateAccountCommand;
 import com.example.application.port.out.user.IdentifyRepository;
@@ -14,7 +16,7 @@ import java.util.Objects;
 /**
  * Coordinates account creation requests by delegating to the login repository and mapping the result.
  */
-public class CreateAccountUseCase extends UseCase<CreateAccountCommand, User> {
+public class CreateAccountUseCase extends UseCase<CreateAccountCommand, CreateAccountResponse> {
 
     private static final String ERROR_CODE = "AUTH_CREATE_ACCOUNT_FAILED";
 
@@ -26,15 +28,13 @@ public class CreateAccountUseCase extends UseCase<CreateAccountCommand, User> {
     }
 
     @Override
-    protected User run(CreateAccountCommand command) throws UseCaseException {
+    protected CreateAccountResponse run(CreateAccountCommand command) throws UseCaseException {
         Objects.requireNonNull(command, "command");
-        Log.d ("CreateAccountUseCase", "run:" + command.toString());
-        User identity = repository.createAccount(command.getProvider(), command.getGoogleIdToken());
+        GetOrCreateResult<User> identity = repository.createAccount(command.getProvider(), command.getGoogleIdToken());
         if (identity == null) {
             throw UseCaseException.of(ERROR_CODE, "No identity session was produced");
         }
-        Log.d ("CreateAccountUseCase", "result:" + identity.toString());
-        return identity;
+        return new CreateAccountResponse( ((GetOrCreateResult.Ok<User>) identity).value(), ((GetOrCreateResult.Ok<User>) identity).isNew() );
     }
 
     private String resolveMessage(Exception exception) {

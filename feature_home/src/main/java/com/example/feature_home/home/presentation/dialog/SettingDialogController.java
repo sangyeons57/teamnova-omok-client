@@ -69,7 +69,7 @@ public final class SettingDialogController implements DialogController<MainDialo
             viewModel.onCloseClicked();
             dialog.dismiss();
         });
-        google.setOnClickListener(v -> viewModel.onGeneralSettingClicked("google_link"));
+        google.setOnClickListener(v -> viewModel.onGoogleSettingClicked());
         language.setOnClickListener(v -> viewModel.onGeneralSettingClicked("language"));
         privacy.setOnClickListener(v -> {
             viewModel.onGeneralSettingClicked("privacy_policy");

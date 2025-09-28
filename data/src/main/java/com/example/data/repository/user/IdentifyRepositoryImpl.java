@@ -3,6 +3,7 @@ package com.example.data.repository.user;
 import android.util.Log;
 
 import com.example.application.port.out.user.IdentifyRepository;
+import com.example.application.port.result.GetOrCreateResult;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.exception.GuestSignupRemoteException;
 import com.example.data.exception.LoginRemoteException;
@@ -12,7 +13,7 @@ import com.example.data.mapper.UserResponseMapper;
 import com.example.data.model.http.request.Path;
 import com.example.data.model.http.request.Request;
 import com.example.data.model.http.response.Response;
-import com.example.domain.common.value.LoginAction;
+import com.example.domain.common.value.SignupAction;
 import com.example.domain.user.entity.User;
 
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
     }
 
     @Override
-    public User createAccount(LoginAction provider, String providerIdToken) {
+    public GetOrCreateResult<User> createAccount(SignupAction provider, String providerIdToken) {
         try {
             Request request = Request.defaultRequest(Path.CREATE_ACCOUNT);
             Map<String, Object> body = new HashMap<>();
@@ -57,7 +58,7 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
                 throw new GuestSignupRemoteException(
                         extractErrorMessage(null, "Failed to create account Status: " + response.statusCode() + " | " + response.statusMessage()));
             }
-            return identityMapper.toIdentity(response);
+            return identityMapper.toGetOrCreateIdentity(response);
         } catch (IOException exception) {
             Log.e("IdentifyRepositoryImpl", "error:" + Arrays.toString(exception.getStackTrace()));
             throw new GuestSignupRemoteException("Failed to create account", exception);
@@ -105,7 +106,7 @@ public class IdentifyRepositoryImpl implements IdentifyRepository {
         }
     }
 
-    private String resolveProvider(LoginAction provider) {
+    private String resolveProvider(SignupAction provider) {
         return provider != null ? provider.name() : DEFAULT_PROVIDER;
     }
 

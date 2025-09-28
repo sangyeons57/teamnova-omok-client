@@ -22,14 +22,13 @@ import androidx.credentials.exceptions.GetCredentialException;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.application.port.in.UseCase;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
 import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core.navigation.FragmentNavigationHostOwner;
-import com.example.core_di.TokenContainer;
-import com.example.domain.common.value.LoginAction;
+import com.example.domain.common.value.SignupAction;
 import com.example.feature_auth.R;
 import com.example.feature_auth.login.di.LoginViewModelFactory;
 import com.example.feature_auth.login.presentation.viewmodel.LoginViewModel;
@@ -92,7 +91,7 @@ public class LoginFragment extends Fragment {
                 return;
             }
 
-            if (action == LoginAction.GUEST || action == LoginAction.GOOGLE) {
+            if (action == SignupAction.GUEST || action == SignupAction.GOOGLE) {
                 showTermsAgreementDialog();
             }
             viewModel.onActionHandled();

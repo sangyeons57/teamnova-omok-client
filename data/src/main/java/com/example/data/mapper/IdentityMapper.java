@@ -1,9 +1,8 @@
 package com.example.data.mapper;
 
-import android.util.Log;
-
+import com.example.application.port.result.GetOrCreateResult;
+import com.example.application.port.result.GetOrCreateResults;
 import com.example.data.model.http.response.Response;
-import com.example.domain.user.entity.Identity;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.factory.UserFactory;
 
@@ -20,6 +19,16 @@ public class IdentityMapper {
         String refreshToken = Objects.requireNonNull(response.body().get("refresh_token")).toString();
 
         return UserFactory.createIdentity(userId, accessToken, refreshToken);
+    }
+
+    public GetOrCreateResult<User> toGetOrCreateIdentity(Response response) {
+        String userId = Objects.requireNonNull(response.body().get("user_id")).toString();;
+        String accessToken = Objects.requireNonNull(response.body().get("access_token")).toString();
+        String refreshToken = Objects.requireNonNull(response.body().get("refresh_token")).toString();
+        //noinspection DataFlowIssue
+        boolean isNew = (boolean) response.body().getOrDefault("created", false);
+
+        return GetOrCreateResults.ok(UserFactory.createIdentity(userId, accessToken, refreshToken), isNew);
     }
 
     public User onlyUserId(Response response) {

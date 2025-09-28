@@ -10,6 +10,8 @@ public enum Path {
     DEACTIVATE_ACCOUNT,
     TERMS_ACCEPTANCES,
 
+    LINK_GOOGLE,
+
     CHANGE_NAME,
     CHANGE_PROFILE_ICON,
 
@@ -35,6 +37,8 @@ public enum Path {
             case TERMS_ACCEPTANCES -> "terms-acceptances.php";
             case LOGIN -> "login.php";
             case LOGOUT -> "logout.php";
+
+            case LINK_GOOGLE -> "link-google.php";
 
             case CHANGE_NAME -> "change-name.php";
             case CHANGE_PROFILE_ICON -> "change-profile-icon.php";

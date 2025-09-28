@@ -1,10 +1,11 @@
 package com.example.application.port.out.user;
 
-import com.example.domain.common.value.LoginAction;
+import com.example.application.port.result.GetOrCreateResult;
+import com.example.domain.common.value.SignupAction;
 import com.example.domain.user.entity.User;
 
 public interface IdentifyRepository {
-    User createAccount(LoginAction provider, String googleIdToken);
+    GetOrCreateResult<User> createAccount(SignupAction provider, String googleIdToken);
     User login();
     void logout();
     void deactivateAccount();

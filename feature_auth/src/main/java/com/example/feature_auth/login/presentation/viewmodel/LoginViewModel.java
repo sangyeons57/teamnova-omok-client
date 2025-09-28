@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application.dto.command.CreateAccountCommand;
+import com.example.application.dto.response.CreateAccountResponse;
 import com.example.application.dto.response.LoginResponse;
 import com.example.application.port.in.UResult;
 import com.example.application.port.in.UseCase;
@@ -16,9 +17,8 @@ import com.example.application.usecase.LoginUseCase;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core.token.TokenStore;
-import com.example.domain.common.value.LoginAction;
+import com.example.domain.common.value.SignupAction;
 import com.example.domain.user.entity.Identity;
-import com.example.domain.user.entity.User;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -29,11 +29,13 @@ import java.util.concurrent.ExecutorService;
 public class LoginViewModel extends ViewModel {
 
     private static final String TAG = "LoginViewModel";
-    private final MutableLiveData<LoginAction> loginAction = new MutableLiveData<>();
+    private final MutableLiveData<SignupAction> loginAction = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final ExecutorService executorService;
     private final CreateAccountUseCase createAccountUseCase;
+    private final LoginUseCase loginUseCase;
     private final TokenStore tokenManager;
+    private final FragmentNavigationHost<AppNavigationKey> host;
 
     public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
                           @NonNull LoginUseCase loginUseCase,
@@ -41,8 +43,10 @@ public class LoginViewModel extends ViewModel {
                           @NonNull ExecutorService executorservice,
                           @NonNull FragmentNavigationHost<AppNavigationKey> host) {
         this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
+        this.loginUseCase = Objects.requireNonNull(loginUseCase, "loginUseCase");
         this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
         this.executorService = Objects.requireNonNull(executorservice, "executorService");
+        this.host = host;
 
         loginUseCase.executeAsync(UseCase.None.INSTANCE, executorService).whenComplete((result, throwable) -> {
             Log.d("LoginViewModel", "loginUseCase.executeAsync: " + result);
@@ -58,7 +62,7 @@ public class LoginViewModel extends ViewModel {
 
     }
 
-    public LiveData<LoginAction> getLoginAction() {
+    public LiveData<SignupAction> getLoginAction() {
         return loginAction;
     }
 
@@ -67,7 +71,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     public void onGuestLoginClicked() {
-        executeCreateAccount(CreateAccountCommand.forGuest(), LoginAction.GUEST);
+        executeCreateAccount(CreateAccountCommand.forGuest(), SignupAction.GUEST);
     }
 
     public void onActionHandled() {
@@ -79,7 +83,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     public void onGoogleCredentialReceived(@NonNull String providerUserId) {
-        executeCreateAccount(CreateAccountCommand.forGoogle(providerUserId), LoginAction.GOOGLE);
+        executeCreateAccount(CreateAccountCommand.forGoogle(providerUserId), SignupAction.GOOGLE);
     }
 
     public void onGoogleSignInFailed(String message) {
@@ -92,20 +96,26 @@ public class LoginViewModel extends ViewModel {
         super.onCleared();
     }
 
-    private void executeCreateAccount(CreateAccountCommand command, LoginAction action) {
+    private void executeCreateAccount(CreateAccountCommand command, SignupAction action) {
         createAccountUseCase.executeAsync(command, executorService).thenAccept(result -> {
             Log.d(TAG, "executeCreateAccount: " + result);
-            if (result instanceof UResult.Ok<User> ok) {
-                handleSuccess(ok.value().getIdentity(), action);
-            } else if (result instanceof UResult.Err<User> err) {
+            if (result instanceof UResult.Ok<CreateAccountResponse> ok) {
+                handleSuccess(ok.value().user.getIdentity(), action, ok.value().isNew);
+            } else if (result instanceof UResult.Err<CreateAccountResponse> err) {
                 handleFailure(err.message());
             }
         });
     }
 
-    private void handleSuccess(Identity response, LoginAction action) {
+    private void handleSuccess(Identity response, SignupAction action, boolean isNew) {
         tokenManager.saveTokens(response.getAccessToken().getValue(), response.getRefreshToken().getValue());
-        loginAction.postValue(action);
+        if (isNew) {
+            loginAction.postValue(action);
+        } else {
+            loginUseCase.executeAsync(UseCase.None.INSTANCE, executorService).thenAccept(result->{
+                host.navigateTo(AppNavigationKey.HOME, false);
+            });
+        }
     }
 
     private void handleFailure(String message) {

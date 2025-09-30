@@ -1,21 +1,28 @@
 package com.example.infra.network.tcp;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.example.core.network.tcp.TcpClient;
 import com.example.core.network.tcp.dispatcher.ClientDispatcher;
-import com.example.core.network.tcp.handler.ClientHandlerRegistry;
 import com.example.core.network.tcp.protocol.Frame;
 import com.example.core.network.tcp.protocol.FrameDecodingException;
 import com.example.core.network.tcp.protocol.FrameDecoder;
@@ -39,11 +46,22 @@ public final class FramedTcpClient implements TcpClient {
     private SocketChannel channel;
     private Thread readerThread;
 
-    public FramedTcpClient(String host, int port, ClientHandlerRegistry registry) {
+    private final ScheduledExecutorService scheduler =
+            Executors.newSingleThreadScheduledExecutor( r -> {
+                Thread t = new Thread(r, "framed-client-scheduler");
+                t.setDaemon(true);
+                return t;
+            });
+
+    public FramedTcpClient(String host, int port) {
         this.host = Objects.requireNonNull(host, "host");
         this.port = port;
         this.dispatcher = ClientDispatcher.newAsyncDispatcher(1);
-        Objects.requireNonNull(registry, "registry").configure(this.dispatcher);
+    }
+
+    @Override
+    public ClientDispatcher dispatcher() {
+        return dispatcher;
     }
 
     @Override
@@ -52,8 +70,10 @@ public final class FramedTcpClient implements TcpClient {
             return;
         }
         SocketChannel ch = SocketChannel.open();
+        Log.d("FramedTcpClient", "Socket Channel Open");
         try {
             ch.configureBlocking(true);
+            Log.d("FramedTcpClient", "Connecting to " + host + ":" + port);
             ch.connect(new InetSocketAddress(host, port));
             channel = ch;
             running.set(true);
@@ -73,30 +93,19 @@ public final class FramedTcpClient implements TcpClient {
     }
 
     @Override
-    public CompletableFuture<Frame> send(byte type, byte[] payload) throws IOException {
+    public CompletableFuture<Frame> send(byte type, byte[] payload, Duration timeout) throws IOException {
         SocketChannel ch = ensureConnected();
+
         long requestId = requestSequence.getAndIncrement() & 0xFFFF_FFFFL;
-        Frame frame = new Frame(type, requestId, payload != null ? payload : new byte[0]);
+
         CompletableFuture<Frame> future = new CompletableFuture<>();
         pending.put(requestId, future);
-        try {
-            writeFrame(ch, frame);
-        } catch (IOException e) {
-            CompletableFuture<Frame> removed = pending.remove(requestId);
-            if (removed != null) {
-                removed.completeExceptionally(e);
-            }
-            throw e;
-        }
+
+        writeFrame(ch, new Frame(type, requestId, payload));
+        scheduledFuture(requestId, future, timeout);
         return future;
     }
 
-    @Override
-    public void sendAndForget(byte type, byte[] payload) throws IOException {
-        SocketChannel ch = ensureConnected();
-        Frame frame = new Frame(type, 0, payload != null ? payload : new byte[0]);
-        writeFrame(ch, frame);
-    }
 
     @Override
     public void close() {
@@ -122,6 +131,18 @@ public final class FramedTcpClient implements TcpClient {
         pending.forEach((id, future) -> future.completeExceptionally(closed));
         pending.clear();
         dispatcher.close();
+    }
+
+    private void scheduledFuture(long requestId, CompletableFuture<Frame> future, Duration timeout) {
+        ScheduledFuture<?> task = scheduler.schedule(()-> {
+            CompletableFuture<Frame> f = pending.remove(requestId);
+            if (f != null) {
+                f.completeExceptionally(new TimeoutException("requestId=" + requestId));
+            }
+
+        }, timeout.toMillis(), TimeUnit.MILLISECONDS);
+
+        future.whenComplete((ok, ex) -> task.cancel(false));
     }
 
     private SocketChannel ensureConnected() throws IOException {

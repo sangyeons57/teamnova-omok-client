@@ -1,13 +1,16 @@
 package com.example.teamnovaomok;
 
 import android.app.Application;
-import android.os.Build;
-import androidx.annotation.RequiresApi;
+
+import com.example.core.network.tcp.TcpClientConfig;
+import com.example.core_di.TcpClientContainer;
+import com.example.core_di.TokenContainer;
 
 public class MyApp extends Application {
-    @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Override
     public void onCreate() {
         super.onCreate();
+        TokenContainer.init(this);
+        TcpClientContainer.init(new TcpClientConfig(BuildConfig.TCP_HOST, BuildConfig.TCP_PORT));
     }
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.usecase.CreateAccountUseCase;
+import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
@@ -45,7 +46,8 @@ public final class LoginViewModelFactory implements ViewModelProvider.Factory {
         if (modelClass.isAssignableFrom(LoginViewModel.class)) {
             CreateAccountUseCase createAccountUseCase = useCaseRegistry.get(CreateAccountUseCase.class);
             LoginUseCase loginUseCase = useCaseRegistry.get(LoginUseCase.class);
-            return (T) new LoginViewModel(createAccountUseCase, loginUseCase, tokenManager, executorService, host);
+            HelloHandshakeUseCase helloHandshakeUseCase = useCaseRegistry.get(HelloHandshakeUseCase.class);
+            return (T) new LoginViewModel(createAccountUseCase, loginUseCase, helloHandshakeUseCase, tokenManager, executorService, host);
         }
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());
     }

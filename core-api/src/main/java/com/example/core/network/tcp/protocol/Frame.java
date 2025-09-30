@@ -15,7 +15,7 @@ public final class Frame {
 
     public Frame(byte type, long requestId, byte[] payload) {
         this.type = type;
-        this.frameType = FrameType.lookup(type).orElse(null);
+        this.frameType = FrameType.lookup(type);
         this.requestId = requestId & 0xFFFF_FFFFL;
         this.payload = Objects.requireNonNull(payload, "payload");
     }

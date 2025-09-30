@@ -14,6 +14,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "TCP_HOST", "\"bamsol.net\"")
+        buildConfigField("int", "TCP_PORT", "15015")
     }
 
     buildTypes {
@@ -28,6 +31,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

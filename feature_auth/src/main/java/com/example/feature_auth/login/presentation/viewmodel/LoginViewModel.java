@@ -13,6 +13,7 @@ import com.example.application.dto.response.LoginResponse;
 import com.example.application.port.in.UResult;
 import com.example.application.port.in.UseCase;
 import com.example.application.usecase.CreateAccountUseCase;
+import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
@@ -34,16 +35,19 @@ public class LoginViewModel extends ViewModel {
     private final ExecutorService executorService;
     private final CreateAccountUseCase createAccountUseCase;
     private final LoginUseCase loginUseCase;
+    private final HelloHandshakeUseCase helloHandshakeUseCase;
     private final TokenStore tokenManager;
     private final FragmentNavigationHost<AppNavigationKey> host;
 
     public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
                           @NonNull LoginUseCase loginUseCase,
+                          @NonNull HelloHandshakeUseCase helloHandshakeUseCase,
                           @NonNull TokenStore tokenManager,
                           @NonNull ExecutorService executorservice,
                           @NonNull FragmentNavigationHost<AppNavigationKey> host) {
         this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
         this.loginUseCase = Objects.requireNonNull(loginUseCase, "loginUseCase");
+        this.helloHandshakeUseCase =  Objects.requireNonNull(helloHandshakeUseCase, "helloHandshakeUseCase");
         this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
         this.executorService = Objects.requireNonNull(executorservice, "executorService");
         this.host = host;

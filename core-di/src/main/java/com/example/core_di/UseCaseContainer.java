@@ -3,6 +3,7 @@ package com.example.core_di;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.in.UseCaseProviders;
 import com.example.application.port.in.UseCaseRegistry;
+import com.example.application.port.out.realtime.RealtimeRepository;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.application.port.out.user.TermsRepository;
 import com.example.application.port.out.user.UserRepository;
@@ -11,6 +12,7 @@ import com.example.application.usecase.ChangeNameUseCase;
 import com.example.application.usecase.ChangeProfileIconUseCase;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.DeactivateAccountUseCase;
+import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.LinkGoogleAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
@@ -24,8 +26,10 @@ import com.example.application.session.InMemoryUserSessionStore;
 import com.example.application.session.UserSessionStore;
 import com.example.core.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
+import com.example.data.datasource.DefaultTcpServerDataSource;
 import com.example.data.mapper.IdentityMapper;
 import com.example.data.mapper.UserResponseMapper;
+import com.example.data.repository.realtime.RealtimeRepositoryImpl;
 import com.example.data.repository.user.IdentifyRepositoryImpl;
 import com.example.data.repository.user.TermsRepositoryImpl;
 import com.example.data.repository.user.UserRepositoryImpl;
@@ -43,12 +47,15 @@ public final class UseCaseContainer {
     public final UseCaseRegistry registry = new UseCaseRegistry();
 
     public final DefaultPhpServerDataSource phpServerDataSource = new DefaultPhpServerDataSource(HttpClientContainer.getInstance().get());
+    public final DefaultTcpServerDataSource tcpServerDataSource = new DefaultTcpServerDataSource(TcpClientContainer.getInstance().getClient());
 
     public final UserResponseMapper userResponseMapper = new UserResponseMapper();
     public final UseCaseConfig defaultConfig = UseCaseConfig.defaultConfig();
     public final IdentifyRepository identifyRepository = new IdentifyRepositoryImpl(phpServerDataSource, new IdentityMapper(), userResponseMapper);
     public final UserRepository userRepository = new UserRepositoryImpl(phpServerDataSource, userResponseMapper);
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);
+    public final RealtimeRepository realtimeRepository = new RealtimeRepositoryImpl(tcpServerDataSource);
+
     public final TokenStore token = TokenContainer.getInstance();
     public final UserSessionStore userSessionStore = new InMemoryUserSessionStore();
     public final GameInfoStore gameInfoStore = new InMemoryGameInfoStore();
@@ -78,5 +85,8 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new SelfDataUseCase(defaultConfig, userRepository, userSessionStore)));
         registry.register(UserDataUseCase.class,
                 UseCaseProviders.singleton(() -> new UserDataUseCase(defaultConfig, userRepository)));
+
+        registry.register(HelloHandshakeUseCase.class,
+                UseCaseProviders.singleton(() -> new HelloHandshakeUseCase(defaultConfig, realtimeRepository)));
     }
 }

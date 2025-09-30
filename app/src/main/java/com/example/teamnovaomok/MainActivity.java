@@ -27,7 +27,6 @@ import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigator;
 import com.example.core.navigation.FragmentNavigationHost;
-import com.example.core_di.TokenContainer;
 import com.example.core_di.EventBusContainer;
 import com.example.teamnovaomok.di.DialogContainer;
 import com.example.teamnovaomok.di.FragmentNavigationContainer;
@@ -54,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements
 
         dialogContainer = new DialogContainer();
         dialogContainer.getMainDialogHost().attach(this);
-        TokenContainer.init(getApplication());
         sessionInvalidatedListenerId = EventBusContainer.getInstance().register(this::onAppEvent);
 
         fragmentNavigationContainer = new FragmentNavigationContainer(

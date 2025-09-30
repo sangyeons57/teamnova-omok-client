@@ -5,6 +5,7 @@ import android.util.Log;
 import com.example.application.dto.response.LoginResponse;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
+import com.example.application.port.in.UResult;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.application.session.UserSessionStore;
 import com.example.application.wrapper.UserSession;
@@ -20,7 +21,9 @@ public class LoginUseCase extends UseCase<UseCase.None, LoginResponse> {
     private final IdentifyRepository identifyRepository;
     private final UserSessionStore userSessionStore;
 
-    public LoginUseCase(UseCaseConfig config, IdentifyRepository identifyRepository, UserSessionStore userSessionStore) {
+    public LoginUseCase(UseCaseConfig config,
+                        IdentifyRepository identifyRepository,
+                        UserSessionStore userSessionStore) {
         super(config);
         this.identifyRepository = identifyRepository;
         this.userSessionStore = userSessionStore;
@@ -31,6 +34,7 @@ public class LoginUseCase extends UseCase<UseCase.None, LoginResponse> {
         UserSession identity = identifyRepository.login();
         userSessionStore.update(identity);
         Log.d("LoginUseCase", "identity: " + identity.getUser().toString());
+
         return new LoginResponse(identity.getUser());
     }
 }

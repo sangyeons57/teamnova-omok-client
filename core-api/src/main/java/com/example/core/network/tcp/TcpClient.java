@@ -2,8 +2,10 @@ package com.example.core.network.tcp;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
+import com.example.core.network.tcp.dispatcher.ClientDispatcher;
 import com.example.core.network.tcp.protocol.Frame;
 import com.example.core.network.tcp.protocol.FrameType;
 
@@ -16,23 +18,20 @@ public interface TcpClient extends Closeable {
 
     boolean isConnected();
 
-    CompletableFuture<Frame> send(byte type, byte[] payload) throws IOException;
+    CompletableFuture<Frame> send(byte type, byte[] payload, Duration timeout) throws IOException;
 
-    default CompletableFuture<Frame> send(FrameType type, byte[] payload) throws IOException {
+    default CompletableFuture<Frame> send(FrameType type, byte[] payload, Duration timeout) throws IOException {
         if (type == null) {
             throw new NullPointerException("type");
+        } else if (payload == null) {
+            throw new NullPointerException("payload");
+        } else if (timeout == null) {
+            timeout = Duration.ofMillis(0);
         }
-        return send(type.code(), payload);
+        return send(type.code(), payload, timeout);
     }
 
-    void sendAndForget(byte type, byte[] payload) throws IOException;
-
-    default void sendAndForget(FrameType type, byte[] payload) throws IOException {
-        if (type == null) {
-            throw new NullPointerException("type");
-        }
-        sendAndForget(type.code(), payload);
-    }
+    ClientDispatcher dispatcher();
 
     @Override
     void close();

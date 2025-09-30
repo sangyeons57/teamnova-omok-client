@@ -2,6 +2,7 @@ package com.example.core_di;
 
 import com.example.core.network.tcp.TcpClient;
 import com.example.core.network.tcp.TcpClientConfig;
+import com.example.core.network.tcp.dispatcher.ClientDispatcher;
 import com.example.infra.network.tcp.provider.FramedTcpClientProvider;
 
 /**
@@ -34,12 +35,15 @@ public final class TcpClientContainer {
     private TcpClientContainer(TcpClientConfig config) {
         this.tcpClient = FramedTcpClientProvider.init(
                 config.host(),
-                config.port(),
-                config.handlerRegistry()
+                config.port()
         );
     }
 
     public TcpClient getClient() {
         return tcpClient;
+    }
+
+    public ClientDispatcher getDispatcher() {
+        return tcpClient.dispatcher();
     }
 }

@@ -16,20 +16,12 @@
         app:strokeColor="@android:color/transparent"
         app:strokeWidth="@dimen/profile_icon_item_stroke_width">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonProfileIcon"
-            style="@style/Widget.Material3.Button.Icon"
+        <com.example.core.sprite.SpriteView
+            android:id="@+id/imageProfileIcon"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:padding="0dp"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            app:iconPadding="0dp"
-            app:iconSize="32dp" />
+            android:contentDescription="@null"
+            android:padding="@dimen/profile_icon_item_image_padding" />
 
     </com.google.android.material.card.MaterialCardView>
 

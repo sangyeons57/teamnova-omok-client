@@ -1,20 +1,20 @@
 package com.example.feature_home.home.presentation.adapter;
 
-import android.content.Context;
-import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.core.sprite.SpriteSheet;
+import com.example.core.sprite.SpriteView;
+import com.example.core.sprite.provider.CircleClip;
 import com.example.feature_home.R;
-import com.google.android.material.button.MaterialButton;
+import com.example.feature_home.home.presentation.sprite.ProfileSpriteSheetProvider;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.Arrays;
@@ -33,16 +33,16 @@ public final class ProfileIconAdapter extends RecyclerView.Adapter<ProfileIconAd
     }
 
     private static final List<IconItem> ICONS = Arrays.asList(
-            new IconItem(0, R.color.profile_icon_color_0, R.string.dialog_setting_profile_icon_0),
-            new IconItem(1, R.color.profile_icon_color_1, R.string.dialog_setting_profile_icon_1),
-            new IconItem(2, R.color.profile_icon_color_2, R.string.dialog_setting_profile_icon_2),
-            new IconItem(3, R.color.profile_icon_color_3, R.string.dialog_setting_profile_icon_3),
-            new IconItem(4, R.color.profile_icon_color_4, R.string.dialog_setting_profile_icon_4),
-            new IconItem(5, R.color.profile_icon_color_5, R.string.dialog_setting_profile_icon_5),
-            new IconItem(6, R.color.profile_icon_color_6, R.string.dialog_setting_profile_icon_6),
-            new IconItem(7, R.color.profile_icon_color_7, R.string.dialog_setting_profile_icon_7),
-            new IconItem(8, R.color.profile_icon_color_8, R.string.dialog_setting_profile_icon_8),
-            new IconItem(9, R.color.profile_icon_color_9, R.string.dialog_setting_profile_icon_9)
+            new IconItem(0, R.string.dialog_setting_profile_icon_0),
+            new IconItem(1, R.string.dialog_setting_profile_icon_1),
+            new IconItem(2, R.string.dialog_setting_profile_icon_2),
+            new IconItem(3, R.string.dialog_setting_profile_icon_3),
+            new IconItem(4, R.string.dialog_setting_profile_icon_4),
+            new IconItem(5, R.string.dialog_setting_profile_icon_5),
+            new IconItem(6, R.string.dialog_setting_profile_icon_6),
+            new IconItem(7, R.string.dialog_setting_profile_icon_7),
+            new IconItem(8, R.string.dialog_setting_profile_icon_8),
+            new IconItem(9, R.string.dialog_setting_profile_icon_9)
     );
 
     private final OnIconClickListener listener;
@@ -113,38 +113,42 @@ public final class ProfileIconAdapter extends RecyclerView.Adapter<ProfileIconAd
     static final class IconViewHolder extends RecyclerView.ViewHolder {
 
         private final MaterialCardView cardView;
-        private final MaterialButton button;
+        private final SpriteView spriteView;
         private final OnIconClickListener listener;
+        private final CircleClip circleClip = new CircleClip();
 
         IconViewHolder(@NonNull View itemView, @NonNull OnIconClickListener listener) {
             super(itemView);
             this.listener = listener;
             this.cardView = itemView.findViewById(R.id.cardProfileIcon);
-            this.button = itemView.findViewById(R.id.buttonProfileIcon);
+            this.spriteView = itemView.findViewById(R.id.imageProfileIcon);
+            this.spriteView.setClipPathProvider(circleClip);
+            this.spriteView.setScaleMode(SpriteView.ScaleMode.FIT_CENTER);
         }
 
         void bind(@NonNull IconItem item, boolean isSelected) {
-            Context context = itemView.getContext();
-            button.setText(String.valueOf(item.iconCode));
-            button.setContentDescription(context.getString(item.descriptionRes));
+            SpriteSheet sheet = ProfileSpriteSheetProvider.get(itemView.getContext());
+            spriteView.setSpriteSheet(sheet);
+            spriteView.setIndex(item.iconCode);
 
-            ColorStateList tint = ContextCompat.getColorStateList(context, item.colorRes);
-            button.setBackgroundTintList(tint);
+            cardView.setContentDescription(cardView.getContext().getString(item.descriptionRes));
 
             int strokeColor = isSelected
-                    ? ContextCompat.getColor(context, com.example.designsystem.R.color.md_theme_light_primary)
-                    : ContextCompat.getColor(context, android.R.color.transparent);
-            int strokeWidth = context.getResources().getDimensionPixelSize(
+                    ? ContextCompat.getColor(cardView.getContext(), com.example.designsystem.R.color.md_theme_light_primary)
+                    : ContextCompat.getColor(cardView.getContext(), android.R.color.transparent);
+            int strokeWidth = cardView.getResources().getDimensionPixelSize(
                     isSelected
                             ? R.dimen.profile_icon_item_stroke_width_selected
                             : R.dimen.profile_icon_item_stroke_width);
             cardView.setStrokeColor(strokeColor);
             cardView.setStrokeWidth(strokeWidth);
 
-            button.setOnClickListener(v -> listener.onIconClick(item.iconCode));
+            cardView.setOnClickListener(v -> listener.onIconClick(item.iconCode));
+            cardView.setFocusable(true);
+            cardView.setClickable(true);
         }
     }
 
-    private record IconItem(int iconCode, @ColorRes int colorRes, @StringRes int descriptionRes) {
+    private record IconItem(int iconCode, @StringRes int descriptionRes) {
     }
 }

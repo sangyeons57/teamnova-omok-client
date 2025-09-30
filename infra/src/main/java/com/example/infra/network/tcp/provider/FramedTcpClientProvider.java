@@ -1,11 +1,8 @@
 package com.example.infra.network.tcp.provider;
 
-import android.util.Log;
-
 import com.example.core.network.tcp.TcpClient;
 import com.example.infra.network.tcp.FramedTcpClient;
 
-import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -24,16 +21,12 @@ public final class FramedTcpClientProvider {
         if (instance != null) {
             return instance;
         }
-
-        if (instance == null) {
-            instance = new FramedTcpClient(host, port);
-            try {
-                instance.connect();
-            } catch (IOException e) {
-                Log.e("FramedTcpClientProvider", "Failed to connect to " + host + ":" + port, e);
+        synchronized (FramedTcpClientProvider.class) {
+            if (instance == null) {
+                instance = new FramedTcpClient(host, port);
             }
+            return instance;
         }
-        return instance;
     }
 
     public static TcpClient getInstance() {

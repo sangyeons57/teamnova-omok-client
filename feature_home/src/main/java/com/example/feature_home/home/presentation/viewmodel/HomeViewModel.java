@@ -107,7 +107,7 @@ public class HomeViewModel extends ViewModel {
             if (result instanceof UResult.Err<?> err) {
                 Log.w(TAG, "Failed to handshake: " + err.message());
             } else if (result instanceof UResult.Ok<?> ok) {
-                Log.d(TAG, "Handshake success" + ok.value());
+                Log.d(TAG, "Handshake success: " + ok.value());
             }
         });
     }

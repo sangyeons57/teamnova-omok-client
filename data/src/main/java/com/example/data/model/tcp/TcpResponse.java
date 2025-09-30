@@ -35,6 +35,10 @@ public class TcpResponse {
         return requestId;
     }
 
+    public Throwable error() {
+        return error;
+    }
+
 
 
     public static TcpResponse from(Frame frame) {

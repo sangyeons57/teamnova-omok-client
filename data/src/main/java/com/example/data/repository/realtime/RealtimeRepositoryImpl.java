@@ -31,12 +31,15 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
         TcpRequest request = TcpRequest.of(FrameType.HELLO, requestPayload, Duration.ofSeconds(HELLO_TIMEOUT_SECONDS));
         CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
 
-        return responseFuture.handle((response, ex) -> {
-            if(response.isSuccess()) {
-                return new String(response.payload(), StandardCharsets.UTF_8);
-            } else {
-                return ex.getMessage();
+        return responseFuture.thenApply(response -> {
+            if (!response.isSuccess()) {
+                Throwable error = response.error();
+                if (error instanceof RuntimeException runtime) {
+                    throw runtime;
+                }
+                throw new TcpRemoteException("HELLO request failed", error);
             }
+            return new String(response.payload(), StandardCharsets.UTF_8);
         });
     }
 }

@@ -1,8 +1,8 @@
-package com.example.core.client.handler;
+package com.example.core.network.tcp.handler;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import com.example.core.client.dispatcher.ClientDispatcher;
+import com.example.core.network.tcp.dispatcher.ClientDispatcher;
 
 public interface ClientHandlerRegistry {
     void configure(ClientDispatcher dispatcher);

@@ -1,4 +1,4 @@
-package com.example.core.client.protocol;
+package com.example.core.network.tcp.protocol;
 
 import java.util.Arrays;
 import java.util.Map;

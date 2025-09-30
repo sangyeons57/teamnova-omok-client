@@ -1,13 +1,13 @@
-package com.example.core.client.protocol;
+package com.example.core.network.tcp.protocol;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.example.core.client.protocol.ProtocolConstants.HEADER_LENGTH;
-import static com.example.core.client.protocol.ProtocolConstants.LENGTH_FIELD_SIZE;
-import static com.example.core.client.protocol.ProtocolConstants.MAX_FRAME_SIZE;
-import static com.example.core.client.protocol.ProtocolConstants.TYPE_FIELD_SIZE;
+import static com.example.core.network.tcp.protocol.ProtocolConstants.HEADER_LENGTH;
+import static com.example.core.network.tcp.protocol.ProtocolConstants.LENGTH_FIELD_SIZE;
+import static com.example.core.network.tcp.protocol.ProtocolConstants.MAX_FRAME_SIZE;
+import static com.example.core.network.tcp.protocol.ProtocolConstants.TYPE_FIELD_SIZE;
 
 /**
  * Stateful decoder that turns bytes from the socket into {@link Frame} instances.

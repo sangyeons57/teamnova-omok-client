@@ -1,26 +1,29 @@
-package com.example.core.client.dispatcher;
+package com.example.core.network.tcp.dispatcher;
 
 import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import teamnova.omok.client.handler.ClientFrameHandler;
-import teamnova.omok.client.handler.ClientHandlerProvider;
-import teamnova.omok.client.protocol.Frame;
-import teamnova.omok.client.protocol.FrameType;
-import teamnova.omok.client.transport.FramedTcpClient;
+import com.example.core.network.tcp.TcpClient;
+import com.example.core.network.tcp.handler.ClientFrameHandler;
+import com.example.core.network.tcp.handler.ClientHandlerProvider;
+import com.example.core.network.tcp.protocol.Frame;
+import com.example.core.network.tcp.protocol.FrameType;
 
 /**
  * Dispatches inbound frames to handlers registered by type.
  */
 public final class ClientDispatcher implements Closeable {
-    private final Map<Integer, ClientHandlerProvider> handlers = new ConcurrentHashMap<>();
+    private final Map<Integer, List<ClientHandlerProvider>> handlers = new ConcurrentHashMap<>();
     private final Executor executor;
     private final boolean ownsExecutor;
 
@@ -57,10 +60,7 @@ public final class ClientDispatcher implements Closeable {
             throw new IllegalArgumentException("type must be within 0-255 range");
         }
         Objects.requireNonNull(provider, "provider");
-        ClientHandlerProvider previous = handlers.putIfAbsent(type, provider);
-        if (previous != null) {
-            throw new IllegalStateException("Handler already registered for type " + type);
-        }
+        handlers.computeIfAbsent(type, key -> new CopyOnWriteArrayList<>()).add(provider);
     }
 
     public void unregister(FrameType type) {
@@ -80,22 +80,15 @@ public final class ClientDispatcher implements Closeable {
         handlers.remove(type);
     }
 
-    public void dispatch(FramedTcpClient client, Frame frame) {
+    public void dispatch(TcpClient client, Frame frame) {
         Objects.requireNonNull(client, "client");
         Objects.requireNonNull(frame, "frame");
         int type = Byte.toUnsignedInt(frame.type());
-        ClientHandlerProvider provider = handlers.get(type);
-        if (provider == null) {
+        List<ClientHandlerProvider> providers = handlers.get(type);
+        if (providers == null || providers.isEmpty()) {
             return;
         }
-        executor.execute(() -> {
-            ClientFrameHandler handler = provider.acquire();
-            try {
-                handler.handle(client, frame);
-            } catch (Exception e) {
-                System.err.println("Client handler failure for type " + type + ": " + e.getMessage());
-            }
-        });
+        executor.execute(() -> runHandlers(type, providers, client, frame));
     }
 
     @Override
@@ -104,6 +97,60 @@ public final class ClientDispatcher implements Closeable {
             service.shutdownNow();
         }
         handlers.clear();
+    }
+
+    private void removeProvider(int type, ClientHandlerProvider provider) {
+        handlers.compute(type, (key, list) -> {
+            if (list == null) {
+                return null;
+            }
+            list.remove(provider);
+            return list.isEmpty() ? null : list;
+        });
+    }
+
+    private void runHandlers(int type,
+                             List<ClientHandlerProvider> providers,
+                             TcpClient client,
+                             Frame frame) {
+        List<ClientHandlerProvider> snapshot = new ArrayList<>(providers);
+        for (ClientHandlerProvider provider : snapshot) {
+            ClientFrameHandler handler = provider.acquire();
+            try {
+                ClientDispatchResult result = handler.handle(client, frame);
+                if (applyResult(type, provider, result, client, frame)) {
+                    break;
+                }
+            } catch (Exception e) {
+                System.err.println("Client handler failure for type " + type + ": " + e.getMessage());
+            }
+        }
+    }
+
+    private boolean applyResult(int type,
+                                ClientHandlerProvider provider,
+                                ClientDispatchResult result,
+                                TcpClient client,
+                                Frame frame) {
+        if (result == null || result == ClientDispatchResult.continueDispatch()) {
+            return false;
+        }
+        ClientDispatchContext context = new ClientDispatchContext(client, frame, this, type, provider);
+        for (ClientDispatchEffect effect : result.effects()) {
+            try {
+                effect.apply(context);
+            } catch (Exception e) {
+                System.err.println("Client dispatch effect failure for type " + type + ": " + e.getMessage());
+            }
+        }
+        if (result.removeHandler()) {
+            removeProvider(type, provider);
+        }
+        if (result.unregisterType()) {
+            handlers.remove(type);
+            return true;
+        }
+        return result.stopPropagation();
     }
 
     private static final class ClientDispatcherThreadFactory implements ThreadFactory {

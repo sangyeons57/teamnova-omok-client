@@ -40,10 +40,12 @@ public final class UseCaseContainer {
         return instance;
     }
 
+    public final UseCaseRegistry registry = new UseCaseRegistry();
+
     public final DefaultPhpServerDataSource phpServerDataSource = new DefaultPhpServerDataSource(HttpClientContainer.getInstance().get());
+
     public final UserResponseMapper userResponseMapper = new UserResponseMapper();
     public final UseCaseConfig defaultConfig = UseCaseConfig.defaultConfig();
-    public final UseCaseRegistry registry = new UseCaseRegistry();
     public final IdentifyRepository identifyRepository = new IdentifyRepositoryImpl(phpServerDataSource, new IdentityMapper(), userResponseMapper);
     public final UserRepository userRepository = new UserRepositoryImpl(phpServerDataSource, userResponseMapper);
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);

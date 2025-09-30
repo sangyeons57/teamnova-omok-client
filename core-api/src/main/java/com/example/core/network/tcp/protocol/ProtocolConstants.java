@@ -1,4 +1,4 @@
-package com.example.core.client.protocol;
+package com.example.core.network.tcp.protocol;
 
 /**
  * Shared constants for the length-prefixed Omok TCP protocol.

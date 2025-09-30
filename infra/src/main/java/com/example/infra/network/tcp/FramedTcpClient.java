@@ -1,6 +1,5 @@
-package com.example.core.client.transport;
+package com.example.infra.network.tcp;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -14,19 +13,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.example.core.client.dispatcher.ClientDispatcher;
-import teamnova.omok.client.handler.ClientHandlerRegistry;
-import teamnova.omok.client.protocol.Frame;
-import teamnova.omok.client.protocol.FrameDecodingException;
-import teamnova.omok.client.protocol.FrameDecoder;
-import teamnova.omok.client.protocol.FrameEncoder;
-import teamnova.omok.client.protocol.FrameType;
-import teamnova.omok.dispatcher.Dispatcher;
+import com.example.core.network.tcp.TcpClient;
+import com.example.core.network.tcp.dispatcher.ClientDispatcher;
+import com.example.core.network.tcp.handler.ClientHandlerRegistry;
+import com.example.core.network.tcp.protocol.Frame;
+import com.example.core.network.tcp.protocol.FrameDecodingException;
+import com.example.core.network.tcp.protocol.FrameDecoder;
+import com.example.core.network.tcp.protocol.FrameEncoder;
 
 /**
  * TCP client capable of speaking the Omok framed binary protocol.
  */
-public final class FramedTcpClient implements Closeable {
+public final class FramedTcpClient implements TcpClient {
     private static final int READ_BUFFER_SIZE = 4096;
 
     private final String host;
@@ -48,6 +46,7 @@ public final class FramedTcpClient implements Closeable {
         Objects.requireNonNull(registry, "registry").configure(this.dispatcher);
     }
 
+    @Override
     public synchronized void connect() throws IOException {
         if (isConnected()) {
             return;
@@ -67,11 +66,13 @@ public final class FramedTcpClient implements Closeable {
         }
     }
 
+    @Override
     public boolean isConnected() {
         SocketChannel ch = channel;
         return ch != null && ch.isOpen() && running.get();
     }
 
+    @Override
     public CompletableFuture<Frame> send(byte type, byte[] payload) throws IOException {
         SocketChannel ch = ensureConnected();
         long requestId = requestSequence.getAndIncrement() & 0xFFFF_FFFFL;
@@ -90,20 +91,11 @@ public final class FramedTcpClient implements Closeable {
         return future;
     }
 
-    public CompletableFuture<Frame> send(FrameType type, byte[] payload) throws IOException {
-        Objects.requireNonNull(type, "type");
-        return send(type.code(), payload);
-    }
-
+    @Override
     public void sendAndForget(byte type, byte[] payload) throws IOException {
         SocketChannel ch = ensureConnected();
         Frame frame = new Frame(type, 0, payload != null ? payload : new byte[0]);
         writeFrame(ch, frame);
-    }
-
-    public void sendAndForget(FrameType type, byte[] payload) throws IOException {
-        Objects.requireNonNull(type, "type");
-        sendAndForget(type.code(), payload);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.example.core.client.handler;
+package com.example.core.network.tcp.handler;
 
 import java.util.Objects;
 import java.util.function.Supplier;

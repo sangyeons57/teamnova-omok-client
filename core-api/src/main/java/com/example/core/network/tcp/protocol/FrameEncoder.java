@@ -1,10 +1,10 @@
-package com.example.core.client.protocol;
+package com.example.core.network.tcp.protocol;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
-import static com.example.core.client.protocol.ProtocolConstants.HEADER_LENGTH;
-import static com.example.core.client.protocol.ProtocolConstants.MAX_PAYLOAD_SIZE;
+import static com.example.core.network.tcp.protocol.ProtocolConstants.HEADER_LENGTH;
+import static com.example.core.network.tcp.protocol.ProtocolConstants.MAX_PAYLOAD_SIZE;
 
 /**
  * Encodes {@link Frame} instances into network byte order.

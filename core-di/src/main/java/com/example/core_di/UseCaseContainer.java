@@ -19,6 +19,7 @@ import com.example.application.usecase.LogoutUseCase;
 import com.example.application.usecase.RankingDataUseCase;
 import com.example.application.usecase.SelfDataUseCase;
 import com.example.application.usecase.UserDataUseCase;
+import com.example.application.usecase.TcpAuthUseCase;
 import com.example.core.event.AppEventBus;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.InMemoryGameInfoStore;
@@ -88,5 +89,7 @@ public final class UseCaseContainer {
 
         registry.register(HelloHandshakeUseCase.class,
                 UseCaseProviders.singleton(() -> new HelloHandshakeUseCase(defaultConfig, realtimeRepository)));
+        registry.register(TcpAuthUseCase.class,
+                UseCaseProviders.singleton(() -> new TcpAuthUseCase(defaultConfig, realtimeRepository)));
     }
 }

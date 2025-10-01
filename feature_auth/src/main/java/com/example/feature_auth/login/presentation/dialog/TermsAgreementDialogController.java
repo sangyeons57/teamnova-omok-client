@@ -20,6 +20,7 @@ import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.usecase.AllTermsAcceptancesUseCase;
 import com.example.application.usecase.LoginUseCase;
+import com.example.application.usecase.TcpAuthUseCase;
 import com.example.core.dialog.DialogArgumentKeys;
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogHost;
@@ -54,6 +55,7 @@ public final class TermsAgreementDialogController implements DialogController<Ma
 
         AllTermsAcceptancesUseCase allTermsAcceptancesUseCase = registry.get(AllTermsAcceptancesUseCase.class);
         LoginUseCase loginUseCase = registry.get(LoginUseCase.class);
+        TcpAuthUseCase tcpAuthUseCase = registry.get(TcpAuthUseCase.class);
         TokenStore tokenManager = TokenContainer.getInstance();
         //noinspection unchecked
         FragmentNavigationHost<AppNavigationKey> host = ((FragmentNavigationHostOwner<AppNavigationKey>)activity).getFragmentNavigatorHost();
@@ -96,7 +98,7 @@ public final class TermsAgreementDialogController implements DialogController<Ma
 
         buttonConfirm.setOnClickListener(v -> {
             android.util.Log.d(LOG_TAG, "Confirm button clicked");
-            handleConfirmClicked(activity, dialog, buttonConfirm, allTermsAcceptancesUseCase, loginUseCase, tokenManager, host);
+            handleConfirmClicked(activity, dialog, buttonConfirm, allTermsAcceptancesUseCase, loginUseCase, tcpAuthUseCase, tokenManager, host);
         });
 
         dialog.setOnShowListener(ignored -> {
@@ -124,6 +126,7 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                                       @NonNull MaterialButton buttonConfirm,
                                       @NonNull AllTermsAcceptancesUseCase allTermsAcceptancesUseCase,
                                       @NonNull LoginUseCase loginUseCase,
+                                      @NonNull TcpAuthUseCase tcpAuthUseCase,
                                       @NonNull TokenStore tokenManager,
                                       FragmentNavigationHost<AppNavigationKey> host
     ) {
@@ -150,6 +153,7 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                         dialog.dismiss();
                         host.clearBackStack();
                         host.navigateTo(AppNavigationKey.HOME, false);
+                        triggerTcpAuthHandshake(tcpAuthUseCase, tokenManager.getAccessToken());
                     } else if (result instanceof UResult.Err<?> err) {
                         android.util.Log.d(LOG_TAG, "LoginUseCase.executeAsync: " + err.message());
                         buttonConfirm.setEnabled(true);
@@ -160,6 +164,25 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                         Toast.makeText(dialog.getContext(), message, Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void triggerTcpAuthHandshake(@NonNull TcpAuthUseCase tcpAuthUseCase, String accessToken) {
+        UResult<CompletableFuture<Boolean>> result = tcpAuthUseCase.execute(accessToken);
+        if (result instanceof UResult.Ok<CompletableFuture<Boolean>> ok) {
+            ok.value().whenComplete((success, throwable) -> {
+                if (throwable != null) {
+                    android.util.Log.e(LOG_TAG, "AUTH handshake failed", throwable);
+                    return;
+                }
+                if (Boolean.TRUE.equals(success)) {
+                    android.util.Log.d(LOG_TAG, "AUTH handshake succeeded");
+                } else {
+                    android.util.Log.w(LOG_TAG, "AUTH handshake reported failure");
+                }
+            });
+        } else if (result instanceof UResult.Err<CompletableFuture<Boolean>> err) {
+            android.util.Log.e(LOG_TAG, "TcpAuthUseCase execution error: " + err.code() + ", " + err.message());
+        }
     }
 
     private void showGeneralInfoDialog(@NonNull FragmentActivity activity,

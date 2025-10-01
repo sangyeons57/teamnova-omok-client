@@ -8,6 +8,7 @@ import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.LoginUseCase;
+import com.example.application.usecase.TcpAuthUseCase;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core.navigation.FragmentNavigationHostOwner;
@@ -47,7 +48,8 @@ public final class LoginViewModelFactory implements ViewModelProvider.Factory {
             CreateAccountUseCase createAccountUseCase = useCaseRegistry.get(CreateAccountUseCase.class);
             LoginUseCase loginUseCase = useCaseRegistry.get(LoginUseCase.class);
             HelloHandshakeUseCase helloHandshakeUseCase = useCaseRegistry.get(HelloHandshakeUseCase.class);
-            return (T) new LoginViewModel(createAccountUseCase, loginUseCase, helloHandshakeUseCase, tokenManager, executorService, host);
+            TcpAuthUseCase tcpAuthUseCase = useCaseRegistry.get(TcpAuthUseCase.class);
+            return (T) new LoginViewModel(createAccountUseCase, loginUseCase, helloHandshakeUseCase, tcpAuthUseCase, tokenManager, executorService, host);
         }
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());
     }

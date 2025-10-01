@@ -10,7 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public enum FrameType {
     NONE((byte) -1),
-    HELLO((byte) 0);
+    HELLO((byte) 0),
+    AUTH((byte) 1);
 
     private static final Map<Byte, FrameType> LOOKUP = new ConcurrentHashMap<>();
 

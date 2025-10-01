@@ -59,10 +59,7 @@ public class MainActivity extends AppCompatActivity implements
                 new FragmentNavigator(getSupportFragmentManager(), R.id.main_fragment_container)
         );
 
-        // 로그인 정보가 있으면 (AccessToken 로그인 시도) 성공시 홈 화면으로 이동 실패시 LOGIN화면으로 이동
-        if (savedInstanceState == null) {
-            getFragmentNavigatorHost().navigateTo(AppNavigationKey.LOGIN, false);
-        }
+        getFragmentNavigatorHost().navigateTo(AppNavigationKey.LOGIN, false);
     }
 
     @NonNull

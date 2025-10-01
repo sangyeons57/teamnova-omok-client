@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 public final class RealtimeRepositoryImpl implements RealtimeRepository {
 
     private static final long HELLO_TIMEOUT_SECONDS = 5L;
+    private static final long AUTH_TIMEOUT_SECONDS = 5L;
 
     private final DefaultTcpServerDataSource tcpServerDataSource;
 
@@ -40,6 +41,28 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
                 throw new TcpRemoteException("HELLO request failed", error);
             }
             return new String(response.payload(), StandardCharsets.UTF_8);
+        });
+    }
+
+    @Override
+    public CompletableFuture<Boolean> auth(String accessToken) {
+        byte[] requestPayload = accessToken != null
+                ? accessToken.getBytes(StandardCharsets.UTF_8)
+                : new byte[0];
+
+        TcpRequest request = TcpRequest.of(FrameType.AUTH, requestPayload, Duration.ofSeconds(AUTH_TIMEOUT_SECONDS));
+        CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
+
+        return responseFuture.thenApply(response -> {
+            if (!response.isSuccess()) {
+                Throwable error = response.error();
+                if (error instanceof RuntimeException runtime) {
+                    throw runtime;
+                }
+                throw new TcpRemoteException("AUTH request failed", error);
+            }
+            String payload = new String(response.payload(), StandardCharsets.UTF_8).trim();
+            return "1".equals(payload);
         });
     }
 }

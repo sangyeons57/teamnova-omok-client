@@ -8,6 +8,7 @@ import com.example.data.model.tcp.TcpRequest;
 import com.example.data.model.tcp.TcpResponse;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -41,6 +42,7 @@ public final class DefaultTcpServerDataSource {
             tcpClient.connect();
             var timeout = request.timeoutSeconds();
             var future = tcpClient.send(request.frameType(), request.payload(), timeout);
+            Log.d(TAG, "Sending TCP request. FrameType: " + request.frameType() + ", Payload: " + Arrays.toString(request.payload()) + ", Timeout: " + timeout);
             if (timeout == null || timeout.isZero() || timeout.isNegative()) {
                 return TcpResponse.from(future.get());
             }

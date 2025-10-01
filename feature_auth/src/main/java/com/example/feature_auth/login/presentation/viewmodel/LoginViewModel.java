@@ -15,6 +15,7 @@ import com.example.application.port.in.UseCase;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.LoginUseCase;
+import com.example.application.usecase.TcpAuthUseCase;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core.token.TokenStore;
@@ -22,6 +23,7 @@ import com.example.domain.common.value.AuthProvider;
 import com.example.domain.user.entity.Identity;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -37,17 +39,20 @@ public class LoginViewModel extends ViewModel {
     private final LoginUseCase loginUseCase;
     private final HelloHandshakeUseCase helloHandshakeUseCase;
     private final TokenStore tokenManager;
+    private final TcpAuthUseCase tcpAuthUseCase;
     private final FragmentNavigationHost<AppNavigationKey> host;
 
     public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
                           @NonNull LoginUseCase loginUseCase,
                           @NonNull HelloHandshakeUseCase helloHandshakeUseCase,
+                          @NonNull TcpAuthUseCase tcpAuthUseCase,
                           @NonNull TokenStore tokenManager,
                           @NonNull ExecutorService executorservice,
                           @NonNull FragmentNavigationHost<AppNavigationKey> host) {
         this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
         this.loginUseCase = Objects.requireNonNull(loginUseCase, "loginUseCase");
         this.helloHandshakeUseCase =  Objects.requireNonNull(helloHandshakeUseCase, "helloHandshakeUseCase");
+        this.tcpAuthUseCase = Objects.requireNonNull(tcpAuthUseCase, "tcpAuthUseCase");
         this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
         this.executorService = Objects.requireNonNull(executorservice, "executorService");
         this.host = host;
@@ -56,11 +61,12 @@ public class LoginViewModel extends ViewModel {
             Log.d("LoginViewModel", "loginUseCase.executeAsync: " + result);
             if(result instanceof UResult.Ok<LoginResponse> data) {
                 Log.d("LoginViewModel", "loginUseCase.executeAsync: " + data.value().toString());
+                triggerTcpAuthHandshake(this.tokenManager.getAccessToken());
                 host.clearBackStack();
                 host.navigateTo(AppNavigationKey.HOME, false);
             } else if (result instanceof UResult.Err<LoginResponse> err) {
                 Log.d("LoginViewModel", "loginUseCase.executeAsync: " + err.message());
-                handleFailure(err.message());
+                handleFailureCreateAccount(err.message());
             }
         });
 
@@ -91,7 +97,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     public void onGoogleSignInFailed(String message) {
-        handleFailure(message);
+        handleFailureCreateAccount(message);
     }
 
     @Override
@@ -104,15 +110,17 @@ public class LoginViewModel extends ViewModel {
         createAccountUseCase.executeAsync(command, executorService).thenAccept(result -> {
             Log.d(TAG, "executeCreateAccount: " + result);
             if (result instanceof UResult.Ok<CreateAccountResponse> ok) {
-                handleSuccess(ok.value().user.getIdentity(), action, ok.value().isNew);
+                handleSuccessCreateAccount(ok.value().user.getIdentity(), action, ok.value().isNew);
             } else if (result instanceof UResult.Err<CreateAccountResponse> err) {
-                handleFailure(err.message());
+                handleFailureCreateAccount(err.message());
             }
         });
     }
 
-    private void handleSuccess(Identity response, AuthProvider action, boolean isNew) {
-        tokenManager.saveTokens(response.getAccessToken().getValue(), response.getRefreshToken().getValue());
+    private void handleSuccessCreateAccount(Identity response, AuthProvider action, boolean isNew) {
+        String accessToken = response.getAccessToken().getValue();
+        tokenManager.saveTokens(accessToken, response.getRefreshToken().getValue());
+        triggerTcpAuthHandshake(accessToken);
         if (isNew) {
             loginAction.postValue(action);
         } else {
@@ -122,7 +130,26 @@ public class LoginViewModel extends ViewModel {
         }
     }
 
-    private void handleFailure(String message) {
+    private void triggerTcpAuthHandshake(String accessToken) {
+        UResult<CompletableFuture<Boolean>> result = tcpAuthUseCase.execute(accessToken);
+        if (result instanceof UResult.Ok<CompletableFuture<Boolean>> ok) {
+            ok.value().whenComplete((success, throwable) -> {
+                if (throwable != null) {
+                    Log.e(TAG, "AUTH handshake failed", throwable);
+                    return;
+                }
+                if (Boolean.TRUE.equals(success)) {
+                    Log.d(TAG, "AUTH handshake succeeded");
+                } else {
+                    Log.w(TAG, "AUTH handshake reported failure");
+                }
+            });
+        } else if (result instanceof UResult.Err<CompletableFuture<Boolean>> err) {
+            Log.e(TAG, "TcpAuthUseCase execution error: " + err.code() + ", " + err.message());
+        }
+    }
+
+    private void handleFailureCreateAccount(String message) {
         if (message == null || message.trim().isEmpty()) {
             errorMessage.postValue("Failed to complete guest sign-up");
         } else {

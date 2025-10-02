@@ -1,7 +1,7 @@
-package com.example.infra.network.tcp.provider;
+package com.example.infra.tcp.provider;
 
 import com.example.core.network.tcp.TcpClient;
-import com.example.infra.network.tcp.FramedTcpClient;
+import com.example.infra.tcp.FramedTcpClient;
 
 import java.util.Objects;
 

@@ -1,10 +1,11 @@
-package com.example.infra.network.tcp;
+package com.example.infra.tcp;
 
 import android.util.Log;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import java.time.Duration;
@@ -27,12 +28,14 @@ import com.example.core.network.tcp.protocol.Frame;
 import com.example.core.network.tcp.protocol.FrameDecodingException;
 import com.example.core.network.tcp.protocol.FrameDecoder;
 import com.example.core.network.tcp.protocol.FrameEncoder;
+import com.example.core.network.tcp.protocol.FrameType;
 
 /**
  * TCP client capable of speaking the Omok framed binary protocol.
  */
 public final class FramedTcpClient implements TcpClient {
     private static final int READ_BUFFER_SIZE = 4096;
+    private static final Duration PING_INTERVAL = Duration.ofSeconds(45);
 
     private final String host;
     private final int port;
@@ -40,11 +43,13 @@ public final class FramedTcpClient implements TcpClient {
     private final AtomicLong requestSequence = new AtomicLong(1);
     private final Map<Long, CompletableFuture<Frame>> pending = new ConcurrentHashMap<>();
     private final AtomicBoolean running = new AtomicBoolean();
+    private final AtomicBoolean allowReconnect = new AtomicBoolean(true);
     private final Object writeLock = new Object();
     private final ClientDispatcher dispatcher;
 
     private SocketChannel channel;
     private Thread readerThread;
+    private ScheduledFuture<?> pingTask;
 
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor( r -> {
@@ -66,6 +71,7 @@ public final class FramedTcpClient implements TcpClient {
 
     @Override
     public synchronized void connect() throws IOException {
+        allowReconnect.set(true);
         if (isConnected()) {
             return;
         }
@@ -80,6 +86,7 @@ public final class FramedTcpClient implements TcpClient {
             readerThread = new Thread(this::readLoop, "framed-client-reader");
             readerThread.setDaemon(true);
             readerThread.start();
+            startPingLoop();
         } catch (IOException e) {
             try { ch.close(); } catch (IOException ignored) { }
             throw e;
@@ -109,6 +116,8 @@ public final class FramedTcpClient implements TcpClient {
 
     @Override
     public void close() {
+        allowReconnect.set(false);
+        cancelPingLoop();
         running.set(false);
         SocketChannel ch = channel;
         if (ch != null) {
@@ -150,6 +159,54 @@ public final class FramedTcpClient implements TcpClient {
             throw new ClosedChannelException();
         }
         return channel;
+    }
+
+    private synchronized void startPingLoop() {
+        cancelPingLoop();
+        pingTask = scheduler.scheduleWithFixedDelay(this::sendPingSafely,
+                PING_INTERVAL.toMillis(),
+                PING_INTERVAL.toMillis(),
+                TimeUnit.MILLISECONDS);
+    }
+
+    private synchronized void cancelPingLoop() {
+        if (pingTask != null) {
+            pingTask.cancel(false);
+            pingTask = null;
+        }
+    }
+
+    private void sendPingSafely() {
+        if (!running.get()) {
+            tryReconnect();
+            return;
+        }
+        try {
+            Log.d("FramedTcpClient", "Pinging");
+            sendPingFrame();
+        } catch (IOException e) {
+            Log.w("FramedTcpClient", "Ping failed, attempting reconnect", e);
+            running.set(false);
+            closeQuietly();
+            tryReconnect();
+        }
+    }
+
+    private void tryReconnect() {
+        if (!allowReconnect.get() || isConnected()) {
+            return;
+        }
+        try {
+            connect();
+        } catch (IOException e) {
+            Log.w("FramedTcpClient", "Reconnect attempt after ping failure failed", e);
+        }
+    }
+
+    private void sendPingFrame() throws IOException {
+        SocketChannel ch = ensureConnected();
+        Frame pingFrame = new Frame(FrameType.PING, requestSequence.getAndIncrement(), "pingpong".getBytes(StandardCharsets.UTF_8));
+        writeFrame(ch, pingFrame);
     }
 
     private void writeFrame(SocketChannel ch, Frame frame) throws IOException {

@@ -3,11 +3,13 @@ package com.example.data.datasource;
 import android.util.Log;
 
 import com.example.core.network.tcp.TcpClient;
+import com.example.core.network.tcp.protocol.Frame;
 import com.example.data.exception.TcpRemoteException;
 import com.example.data.model.tcp.TcpRequest;
 import com.example.data.model.tcp.TcpResponse;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -40,9 +42,9 @@ public final class DefaultTcpServerDataSource {
     private TcpResponse performRequest(TcpRequest request) {
         try {
             tcpClient.connect();
-            var timeout = request.timeoutSeconds();
-            var future = tcpClient.send(request.frameType(), request.payload(), timeout);
-            Log.d(TAG, "Sending TCP request. FrameType: " + request.frameType() + ", Payload: " + Arrays.toString(request.payload()) + ", Timeout: " + timeout);
+            Duration timeout = request.timeoutSeconds();
+            CompletableFuture<Frame> future = tcpClient.send(request.frameType(), request.payload(), timeout);
+            Log.d(TAG, "Sending TCP request. FrameType: " + request.frameType()+"[" + request.frameType().code() + "]" + ", Payload: " + Arrays.toString(request.payload()) + ", Timeout: " + timeout);
             if (timeout == null || timeout.isZero() || timeout.isNegative()) {
                 return TcpResponse.from(future.get());
             }

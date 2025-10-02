@@ -4,6 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.application.session.GameInfoStore;
+import com.example.application.usecase.JoinMatchUseCase;
+import com.example.core_di.GameInfoContainer;
+import com.example.core_di.UseCaseContainer;
 import com.example.feature_home.home.presentation.viewmodel.MatchingViewModel;
 
 /**
@@ -24,7 +28,10 @@ public final class MatchingViewModelFactory implements ViewModelProvider.Factory
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(MatchingViewModel.class)) {
-            return (T) new MatchingViewModel();
+            UseCaseContainer useCaseContainer = UseCaseContainer.getInstance();
+            GameInfoStore gameInfoStore = GameInfoContainer.getInstance().getStore();
+            JoinMatchUseCase joinMatchUseCase = useCaseContainer.get(JoinMatchUseCase.class);
+            return (T) new MatchingViewModel(joinMatchUseCase, gameInfoStore);
         }
         throw new IllegalArgumentException("Unsupported ViewModel class: " + modelClass.getName());
     }

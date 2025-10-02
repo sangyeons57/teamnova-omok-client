@@ -1,6 +1,8 @@
 package com.example.core_di;
 
+import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
+import com.example.application.port.in.UseCaseProvider;
 import com.example.application.port.in.UseCaseProviders;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.port.out.realtime.RealtimeRepository;
@@ -13,6 +15,7 @@ import com.example.application.usecase.ChangeProfileIconUseCase;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.DeactivateAccountUseCase;
 import com.example.application.usecase.HelloHandshakeUseCase;
+import com.example.application.usecase.JoinMatchUseCase;
 import com.example.application.usecase.LinkGoogleAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
@@ -22,8 +25,6 @@ import com.example.application.usecase.UserDataUseCase;
 import com.example.application.usecase.TcpAuthUseCase;
 import com.example.core.event.AppEventBus;
 import com.example.application.session.GameInfoStore;
-import com.example.application.session.InMemoryGameInfoStore;
-import com.example.application.session.InMemoryUserSessionStore;
 import com.example.application.session.UserSessionStore;
 import com.example.core.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
@@ -58,8 +59,8 @@ public final class UseCaseContainer {
     public final RealtimeRepository realtimeRepository = new RealtimeRepositoryImpl(tcpServerDataSource);
 
     public final TokenStore token = TokenContainer.getInstance();
-    public final UserSessionStore userSessionStore = new InMemoryUserSessionStore();
-    public final GameInfoStore gameInfoStore = new InMemoryGameInfoStore();
+    public final UserSessionStore userSessionStore = UserSessionContainer.getInstance().getStore();
+    public final GameInfoStore gameInfoStore = GameInfoContainer.getInstance().getStore();
     public final AppEventBus eventBus = EventBusContainer.getInstance();
 
     public UseCaseContainer() {
@@ -91,5 +92,11 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new HelloHandshakeUseCase(defaultConfig, realtimeRepository)));
         registry.register(TcpAuthUseCase.class,
                 UseCaseProviders.singleton(() -> new TcpAuthUseCase(defaultConfig, realtimeRepository)));
+        registry.register(JoinMatchUseCase.class,
+                UseCaseProviders.singleton(() -> new JoinMatchUseCase(defaultConfig, realtimeRepository, gameInfoStore)));
+    }
+
+    public <T> T get(Class<T> key) {
+        return registry.get(key);
     }
 }

@@ -17,6 +17,7 @@ import com.example.application.usecase.SelfDataUseCase;
 import com.example.feature_home.home.presentation.state.HomeViewEvent;
 import com.example.domain.user.entity.User;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -105,9 +106,19 @@ public class HomeViewModel extends ViewModel {
 
         helloHandshakeUseCase.executeAsync("test", executorService).thenAccept( result -> {
             if (result instanceof UResult.Err<?> err) {
-                Log.w(TAG, "Failed to handshake: " + err.message());
-            } else if (result instanceof UResult.Ok<?> ok) {
-                Log.d(TAG, "Handshake success: " + ok.value());
+                Log.w(TAG, "Hello handshake failed: " + err.message());
+            } else if (result instanceof UResult.Ok<CompletableFuture<String>> ok) {
+                ok.value().whenComplete((success, throwable) -> {
+                    if (throwable != null) {
+                        Log.e(TAG, "Hello handshake failed", throwable);
+                        return;
+                    }
+                    if (success != null) {
+                        Log.d(TAG, "Hello handshake succeeded: " + success);
+                    } else {
+                        Log.w(TAG, "Hello handshake reported failure");
+                    }
+                });
             }
         });
     }

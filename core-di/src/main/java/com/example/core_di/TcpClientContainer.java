@@ -1,9 +1,14 @@
 package com.example.core_di;
 
+import com.example.application.session.GameInfoStore;
+import com.example.application.session.MatchState;
 import com.example.core.network.tcp.TcpClient;
 import com.example.core.network.tcp.TcpClientConfig;
+import com.example.core.network.tcp.dispatcher.ClientDispatchResult;
 import com.example.core.network.tcp.dispatcher.ClientDispatcher;
-import com.example.infra.network.tcp.provider.FramedTcpClientProvider;
+import com.example.core.network.tcp.handler.ClientFrameHandler;
+import com.example.core.network.tcp.protocol.FrameType;
+import com.example.infra.tcp.provider.FramedTcpClientProvider;
 
 /**
  * Provides access to the singleton TCP client instance.
@@ -11,13 +16,13 @@ import com.example.infra.network.tcp.provider.FramedTcpClientProvider;
 public final class TcpClientContainer {
     private static volatile TcpClientContainer instance;
 
-    public static void init(TcpClientConfig config) {
+    public static void init(TcpClientConfig config, GameInfoStore gameInfoStore) {
         if (instance != null) {
             return;
         }
         synchronized (TcpClientContainer.class) {
             if (instance == null) {
-                instance = new TcpClientContainer(config);
+                instance = new TcpClientContainer(config, gameInfoStore);
             }
         }
     }
@@ -32,11 +37,20 @@ public final class TcpClientContainer {
 
     private final TcpClient tcpClient;
 
-    private TcpClientContainer(TcpClientConfig config) {
+    private TcpClientContainer(TcpClientConfig config, GameInfoStore gameInfoStore) {
         this.tcpClient = FramedTcpClientProvider.init(
                 config.host(),
                 config.port()
         );
+        registerFrameHandlers(gameInfoStore);
+    }
+
+    private void registerFrameHandlers(GameInfoStore gameInfoStore) {
+        ClientDispatcher dispatcher = tcpClient.dispatcher();
+        dispatcher.register(FrameType.JOIN_IN_GAME_SESSION, () -> (client, frame) -> {
+            gameInfoStore.updateMatchState(MatchState.MATCHED);
+            return ClientDispatchResult.continueDispatch();
+        });
     }
 
     public TcpClient getClient() {

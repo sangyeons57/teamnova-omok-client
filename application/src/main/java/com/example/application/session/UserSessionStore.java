@@ -3,62 +3,75 @@ package com.example.application.session;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.example.application.wrapper.UserSession;
 import com.example.domain.common.value.AuthProvider;
 import com.example.domain.user.entity.User;
+import com.example.domain.user.factory.UserFactory;
+
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Stores the authenticated user's session-scoped data for the lifetime of the app process.
  */
-public interface UserSessionStore {
+public class UserSessionStore {
 
-    /** Returns the currently cached session or {@code null} when no session is active. */
+    private final AtomicReference<UserSession> current = new AtomicReference<>();
+    private final MutableLiveData<UserSession> sessionStream = new MutableLiveData<>();
+    private final MutableLiveData<User> userStream = new MutableLiveData<>();
+
     @Nullable
-    UserSession getCurrentSession();
+    public UserSession getCurrentSession() {
+        return current.get();
+    }
 
-    /** Returns the currently cached user or {@code null} when no session is active. */
     @Nullable
-    default User getCurrentUser() {
-        UserSession current = getCurrentSession();
-        return current != null ? current.getUser() : null;
+    public User getCurrentUser() {
+        UserSession session = current.get();
+        return session != null ? session.getUser() : null;
     }
 
-    /** @return {@code true} when a user session is available. */
-    default boolean hasSession() {
-        return getCurrentSession() != null;
+    public void update(@NonNull UserSession session) {
+        UserSession nonNullSession = Objects.requireNonNull(session, "session");
+        User sanitizedUser = UserFactory.withoutIdentity(nonNullSession.getUser());
+        UserSession sanitizedSession = UserSession.of(sanitizedUser, nonNullSession.getProvider());
+        current.set(sanitizedSession);
+        sessionStream.postValue(sanitizedSession);
+        userStream.postValue(sanitizedUser);
     }
 
-    /** Updates the cached session representation. */
-    void update(@NonNull UserSession session);
-
-    /** Updates only the cached user representation while preserving the provider state. */
-    default void updateUser(@NonNull User user) {
-        UserSession current = getCurrentSession();
-        AuthProvider provider = current != null ? current.getProvider() : AuthProvider.GUEST;
-        update(UserSession.of(user, provider));
+    public void updateUser(@NonNull User user) {
+        UserSession session = current.get();
+        UserSession sanitizedSession = UserSession.of(user, session.getProvider());
+        current.set(sanitizedSession);
+        current.set(sanitizedSession);
+        sessionStream.postValue(sanitizedSession);
+        userStream.postValue(user);
     }
 
-    /** Updates only the cached provider state while preserving the current user. */
-    default void updateProvider(@NonNull AuthProvider provider) {
-        UserSession current = getCurrentSession();
-        if (current != null) {
-            update(current.withProvider(provider));
+    @NonNull
+    public LiveData<UserSession> getSessionStream() {
+        UserSession existing = current.get();
+        if (existing != null && sessionStream.getValue() == null) {
+            sessionStream.setValue(existing);
         }
+        return sessionStream;
     }
 
-    /**
-     * Exposes the current session as a lifecycle-aware stream.
-     */
     @NonNull
-    LiveData<UserSession> getSessionStream();
+    public LiveData<User> getUserStream() {
+        User existingUser = getCurrentUser();
+        if (existingUser != null && userStream.getValue() == null) {
+            userStream.setValue(existingUser);
+        }
+        return userStream;
+    }
 
-    /**
-     * Exposes the current user as a lifecycle-aware stream.
-     */
-    @NonNull
-    LiveData<User> getUserStream();
-
-    /** Clears any stored session information. */
-    void clear();
+    public void clear() {
+        current.set(null);
+        sessionStream.postValue(null);
+        userStream.postValue(null);
+    }
 }

@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.application.session.MatchState;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigator;
@@ -65,6 +66,7 @@ public class MatchingFragment extends Fragment {
         returnHomeButton.setOnClickListener(v -> viewModel.onReturnHomeClicked());
 
         observeViewEvents();
+        observeMatchState(returnHomeButton);
     }
 
     private void observeViewEvents() {
@@ -78,6 +80,15 @@ public class MatchingFragment extends Fragment {
             }
 
             viewModel.onEventHandled();
+        });
+    }
+
+    private void observeMatchState(MaterialButton returnHomeButton) {
+        viewModel.getMatchState().observe(getViewLifecycleOwner(), state -> {
+            if (state == MatchState.MATCHED) {
+                returnHomeButton.setText("매칭됨");
+                returnHomeButton.setEnabled(false);
+            }
         });
     }
 

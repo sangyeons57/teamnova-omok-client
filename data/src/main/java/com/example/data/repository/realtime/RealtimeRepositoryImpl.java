@@ -1,5 +1,7 @@
 package com.example.data.repository.realtime;
 
+import android.util.Log;
+
 import com.example.application.port.out.realtime.RealtimeRepository;
 import com.example.core.network.tcp.protocol.FrameType;
 import com.example.data.datasource.DefaultTcpServerDataSource;
@@ -65,4 +67,24 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
             return "1".equals(payload);
         });
     }
+
+    @Override
+    public void joinMatch(String match) {
+        byte[] requestPayload = match != null
+                ? match.getBytes(StandardCharsets.UTF_8)
+                : new byte[0];
+
+        TcpRequest request = TcpRequest.of(FrameType.JOIN_MATCH, requestPayload, Duration.ofSeconds(10));
+        CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
+        responseFuture.thenApply(response -> {
+            if (response.isSuccess()) {
+                String payload = new String(response.payload(), StandardCharsets.UTF_8).trim();
+                Log.d("RealtimeRepositoryImpl", "JoinMatch success:" + payload);
+            } else {
+                Log.e("RealtimeRepositoryImpl", "JoinMatch failed:" + response.error() + " ");
+            }
+            return null;
+        });
+    }
+
 }

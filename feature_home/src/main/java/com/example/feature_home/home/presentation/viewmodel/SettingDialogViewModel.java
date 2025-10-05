@@ -1,5 +1,7 @@
 package com.example.feature_home.home.presentation.viewmodel;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -88,8 +90,10 @@ public class SettingDialogViewModel extends ViewModel {
     }
 
     public void onGoogleSignInFailed(String message) {
-        googleLinkInProgress.setValue(false);
-        events.setValue(SettingDialogEvent.error(resolveMessage(message)));
+        new Handler(Looper.getMainLooper()).post(() -> {
+            googleLinkInProgress.setValue(false);
+            events.setValue(SettingDialogEvent.error(resolveMessage(message)));
+        });
     }
 
     public void onGeneralSettingClicked(@NonNull String settingId) {
@@ -126,6 +130,10 @@ public class SettingDialogViewModel extends ViewModel {
 
     public LiveData<SettingDialogEvent> getEvents() {
         return events;
+    }
+
+    public UserSessionStore getUserSessionStore() {
+        return userSessionStore;
     }
 
     public void onEventHandled() {

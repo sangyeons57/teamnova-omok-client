@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,6 +22,7 @@ import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.core.dialog.DialogArgumentKeys;
@@ -30,6 +32,7 @@ import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.GeneralInfoContentType;
 import com.example.core.dialog.MainDialogType;
+import com.example.domain.common.value.AuthProvider;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.SettingDialogViewModelFactory;
 import com.example.feature_home.home.presentation.viewmodel.SettingDialogViewModel;
@@ -39,6 +42,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -85,6 +89,7 @@ public final class SettingDialogController implements DialogController<MainDialo
         MaterialButton terms = contentView.findViewById(R.id.buttonSettingTerms);
         MaterialButton logout = contentView.findViewById(R.id.buttonSettingLogout);
         MaterialButton withdraw = contentView.findViewById(R.id.buttonSettingWithdraw);
+        LinearLayout authButtonsContainer = contentView.findViewById(R.id.containerAuthButtons);
 
         close.setOnClickListener(v -> {
             viewModel.onCloseClicked();
@@ -121,6 +126,36 @@ public final class SettingDialogController implements DialogController<MainDialo
         viewModel.isGoogleLinked().observe(activity, value -> applyGoogleButtonState(activity, google, viewModel));
         viewModel.getEvents().observe(activity, event -> handleEvent(activity, viewModel, event));
 
+        viewModel.getUserSessionStore().getSessionStream().observe(activity, session -> {
+            boolean isGuest = session == null || session.getProvider() == AuthProvider.GUEST;
+            if (isGuest) {
+                logout.setVisibility(View.GONE);
+                withdraw.setText(R.string.dialog_setting_delete_local_data);
+                withdraw.setIconResource(R.drawable.ic_setting_delete);
+
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) withdraw.getLayoutParams();
+                params.width = LinearLayout.LayoutParams.MATCH_PARENT;
+                params.setMarginStart(0);
+                withdraw.setLayoutParams(params);
+            } else {
+                logout.setVisibility(View.VISIBLE);
+                withdraw.setText(R.string.dialog_setting_withdraw);
+                withdraw.setIconResource(R.drawable.ic_setting_withdraw);
+
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) withdraw.getLayoutParams();
+                params.width = 0;
+                params.weight = 1;
+                params.setMarginStart(activity.getResources().getDimensionPixelSize(R.dimen.spacing_small));
+                withdraw.setLayoutParams(params);
+
+                LinearLayout.LayoutParams logoutParams = (LinearLayout.LayoutParams) logout.getLayoutParams();
+                logoutParams.width = 0;
+                logoutParams.weight = 1;
+                logoutParams.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.spacing_small));
+                logout.setLayoutParams(logoutParams);
+            }
+        });
+
         applyGoogleButtonState(activity, google, viewModel);
     }
 
@@ -140,10 +175,6 @@ public final class SettingDialogController implements DialogController<MainDialo
 
     private void startGoogleSignIn(@NonNull FragmentActivity activity,
                                    @NonNull SettingDialogViewModel viewModel) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            viewModel.onGoogleSignInFailed(activity.getString(R.string.dialog_setting_google_not_supported));
-            return;
-        }
 
         GetGoogleIdOption googleOption = new GetGoogleIdOption.Builder()
                 .setServerClientId(WEB_CLIENT_ID)
@@ -156,42 +187,45 @@ public final class SettingDialogController implements DialogController<MainDialo
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         CredentialManager credentialManager = CredentialManager.create(activity);
-        credentialManager.getCredentialAsync(activity, request, null, executor,
-                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
-                    @Override
-                    public void onError(@NonNull GetCredentialException e) {
-                        executor.shutdown();
-                        Log.e(TAG, "Google sign-in error", e);
-                        viewModel.onGoogleSignInFailed(e.getMessage());
-                    }
+        credentialManager.getCredentialAsync(activity, request, null, executor, getCredentialCallback(executor, viewModel));
+    }
 
-                    @Override
-                    public void onResult(GetCredentialResponse response) {
-                        try {
-                            Credential credential = response.getCredential();
-                            if (credential instanceof CustomCredential
-                                    && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
-                                GoogleIdTokenCredential gid = GoogleIdTokenCredential.createFrom(((CustomCredential) credential).getData());
-                                String googleIdToken = gid.getIdToken();
-                                if (googleIdToken == null || googleIdToken.trim().isEmpty()) {
-                                    googleIdToken = gid.getId();
-                                }
-                                if (googleIdToken == null || googleIdToken.trim().isEmpty()) {
-                                    viewModel.onGoogleSignInFailed(null);
-                                    return;
-                                }
-                                viewModel.onGoogleCredentialReceived(googleIdToken);
-                            } else {
-                                viewModel.onGoogleSignInFailed(null);
-                            }
-                        } catch (Exception exception) {
-                            Log.e(TAG, "Google sign-in result error", exception);
-                            viewModel.onGoogleSignInFailed(exception.getMessage());
-                        } finally {
-                            executor.shutdown();
+    private CredentialManagerCallback<GetCredentialResponse, GetCredentialException> getCredentialCallback(ExecutorService executor, SettingDialogViewModel viewModel) {
+        return new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+            @Override
+            public void onError(@NonNull GetCredentialException e) {
+                executor.shutdown();
+                Log.e(TAG, "Google sign-in error", e);
+                viewModel.onGoogleSignInFailed(e.getMessage());
+            }
+
+            @Override
+            public void onResult(GetCredentialResponse response) {
+                try {
+                    Credential credential = response.getCredential();
+                    if (credential instanceof CustomCredential
+                            && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
+                        GoogleIdTokenCredential gid = GoogleIdTokenCredential.createFrom(((CustomCredential) credential).getData());
+                        String googleIdToken = gid.getIdToken();
+                        if (googleIdToken == null || googleIdToken.trim().isEmpty()) {
+                            googleIdToken = gid.getId();
                         }
+                        if (googleIdToken == null || googleIdToken.trim().isEmpty()) {
+                            viewModel.onGoogleSignInFailed(null);
+                            return;
+                        }
+                        viewModel.onGoogleCredentialReceived(googleIdToken);
+                    } else {
+                        viewModel.onGoogleSignInFailed(null);
                     }
-                });
+                } catch (Exception exception) {
+                    Log.e(TAG, "Google sign-in result error", exception);
+                    viewModel.onGoogleSignInFailed(exception.getMessage());
+                } finally {
+                    executor.shutdown();
+                }
+            }
+        };
     }
 
     private void applyGoogleButtonState(@NonNull FragmentActivity activity,

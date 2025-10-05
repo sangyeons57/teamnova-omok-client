@@ -40,6 +40,7 @@
     <string name="dialog_setting_terms">이용약관</string>
     <string name="dialog_setting_logout">로그아웃</string>
     <string name="dialog_setting_withdraw">회원탈퇴</string>
+    <string name="dialog_setting_delete_local_data">로컬 데이터 삭제</string>
 
     <!-- Logout dialog -->
     <string name="dialog_logout_title">로그아웃</string>

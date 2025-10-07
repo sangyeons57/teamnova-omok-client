@@ -8,55 +8,69 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application.session.GameInfoStore;
-import com.example.application.session.GameMode;
 import com.example.application.session.GameParticipantInfo;
-import com.example.application.session.GameSessionInfo;
-import com.example.feature_game.game.presentation.model.GameInfoSlot;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.example.application.session.GameTurnState;
+import com.example.application.session.OmokBoardState;
+import com.example.application.session.OmokBoardStore;
 
 /**
- * Supplies in-game session details for the game info dialog.
+ * Supplies overlay state for the game info dialog.
  */
 public class GameInfoDialogViewModel extends ViewModel {
 
-    private static final int SLOT_COUNT = 4;
-
     private final GameInfoStore gameInfoStore;
-    private final MutableLiveData<List<GameInfoSlot>> slots = new MutableLiveData<>(Collections.emptyList());
+    private final OmokBoardStore omokBoardStore;
     private final MutableLiveData<Boolean> dismissEvent = new MutableLiveData<>();
-    private final Observer<GameSessionInfo> sessionObserver = this::onSessionUpdated;
-    private final Observer<GameMode> modeObserver = this::onModeUpdated;
+    private final MutableLiveData<GameTurnState> turnState = new MutableLiveData<>(GameTurnState.idle());
+    private final MutableLiveData<OmokBoardState> boardState = new MutableLiveData<>(OmokBoardState.empty());
+    private final MutableLiveData<GameParticipantInfo> activeParticipant = new MutableLiveData<>();
 
-    private GameSessionInfo latestSession;
-    private GameMode latestMode = GameMode.FREE;
+    private final Observer<GameTurnState> turnObserver = this::onTurnUpdated;
+    private final Observer<OmokBoardState> boardObserver = this::onBoardUpdated;
 
-    public GameInfoDialogViewModel(@NonNull GameInfoStore gameInfoStore) {
+    public GameInfoDialogViewModel(@NonNull GameInfoStore gameInfoStore,
+                                   @NonNull OmokBoardStore omokBoardStore) {
         this.gameInfoStore = gameInfoStore;
+        this.omokBoardStore = omokBoardStore;
 
-        GameMode initialMode = gameInfoStore.getModeStream().getValue();
-        if (initialMode == null) {
-            initialMode = gameInfoStore.getCurrentMode();
+        GameTurnState initialTurn = gameInfoStore.getTurnStateStream().getValue();
+        if (initialTurn == null) {
+            initialTurn = gameInfoStore.getCurrentTurnState();
         }
-        latestMode = initialMode;
-
-        GameSessionInfo initialSession = gameInfoStore.getGameSessionStream().getValue();
-        if (initialSession == null) {
-            initialSession = gameInfoStore.getCurrentGameSession();
+        if (initialTurn != null) {
+            turnState.setValue(initialTurn);
         }
-        latestSession = initialSession;
 
-        gameInfoStore.getGameSessionStream().observeForever(sessionObserver);
-        gameInfoStore.getModeStream().observeForever(modeObserver);
+        OmokBoardState initialBoard = omokBoardStore.getBoardStateStream().getValue();
+        if (initialBoard == null) {
+            initialBoard = omokBoardStore.getCurrentBoardState();
+        }
+        if (initialBoard != null) {
+            boardState.setValue(initialBoard);
+        }
 
-        slots.setValue(buildSlots(latestMode, latestSession));
+        GameParticipantInfo participant = gameInfoStore.getCurrentTurnParticipant();
+        if (participant != null) {
+            activeParticipant.setValue(participant);
+        }
+
+        gameInfoStore.getTurnStateStream().observeForever(turnObserver);
+        omokBoardStore.getBoardStateStream().observeForever(boardObserver);
     }
 
     @NonNull
-    public LiveData<List<GameInfoSlot>> getSlots() {
-        return slots;
+    public LiveData<GameTurnState> getTurnState() {
+        return turnState;
+    }
+
+    @NonNull
+    public LiveData<OmokBoardState> getBoardState() {
+        return boardState;
+    }
+
+    @NonNull
+    public LiveData<GameParticipantInfo> getActiveParticipant() {
+        return activeParticipant;
     }
 
     @NonNull
@@ -72,80 +86,26 @@ public class GameInfoDialogViewModel extends ViewModel {
         dismissEvent.setValue(null);
     }
 
-    private void onSessionUpdated(@Nullable GameSessionInfo sessionInfo) {
-        latestSession = sessionInfo;
-        updateSlots();
-    }
-
-    private void onModeUpdated(@Nullable GameMode mode) {
-        if (mode == null) {
-            return;
+    private void onTurnUpdated(@Nullable GameTurnState state) {
+        if (state == null) {
+            state = GameTurnState.idle();
         }
-        latestMode = mode;
-        updateSlots();
+        turnState.postValue(state);
+        GameParticipantInfo participant = gameInfoStore.getCurrentTurnParticipant();
+        activeParticipant.postValue(participant);
     }
 
-    private void updateSlots() {
-        slots.postValue(buildSlots(latestMode, latestSession));
-    }
-
-    private List<GameInfoSlot> buildSlots(@NonNull GameMode mode, @Nullable GameSessionInfo sessionInfo) {
-        int participantCount = resolveParticipantCount(mode);
-        List<GameParticipantInfo> participants = sessionInfo != null
-                ? sessionInfo.getParticipants()
-                : Collections.emptyList();
-
-        List<GameInfoSlot> result = new ArrayList<>(SLOT_COUNT);
-        for (int i = 0; i < SLOT_COUNT; i++) {
-            boolean enabled = i < participantCount;
-            if (enabled && i < participants.size()) {
-                GameParticipantInfo participant = participants.get(i);
-                String userId = participant.getUserId();
-                String displayName = participant.getDisplayName();
-                if (displayName == null || displayName.trim().isEmpty()) {
-                    displayName = userId;
-                }
-                result.add(new GameInfoSlot(
-                        i,
-                        userId != null ? userId : "",
-                        displayName != null ? displayName : "",
-                        true,
-                        enabled,
-                        participant.getProfileIconCode()
-                ));
-            } else {
-                result.add(new GameInfoSlot(
-                        i,
-                        "",
-                        "",
-                        false,
-                        enabled,
-                        0
-                ));
-            }
+    private void onBoardUpdated(@Nullable OmokBoardState state) {
+        if (state == null) {
+            state = OmokBoardState.empty();
         }
-        return result;
-    }
-
-    private int resolveParticipantCount(@NonNull GameMode mode) {
-        switch (mode) {
-            case FOUR_PLAYER:
-                return 4;
-            case THREE_PLAYER:
-                return 3;
-            case TWO_PLAYER:
-                return 2;
-            case FREE:
-                return 2;
-            default:
-                return 2;
-        }
+        boardState.postValue(state);
     }
 
     @Override
     protected void onCleared() {
-        gameInfoStore.getGameSessionStream().removeObserver(sessionObserver);
-        gameInfoStore.getModeStream().removeObserver(modeObserver);
+        gameInfoStore.getTurnStateStream().removeObserver(turnObserver);
+        omokBoardStore.getBoardStateStream().removeObserver(boardObserver);
         super.onCleared();
     }
 }

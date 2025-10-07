@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.application.session.GameInfoStore;
+import com.example.application.session.OmokBoardStore;
 import com.example.core_di.GameInfoContainer;
 import com.example.feature_game.game.presentation.viewmodel.GameInfoDialogViewModel;
 
@@ -27,7 +28,8 @@ public final class GameInfoDialogViewModelFactory implements ViewModelProvider.F
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(GameInfoDialogViewModel.class)) {
             GameInfoStore gameInfoStore = GameInfoContainer.getInstance().getStore();
-            return (T) new GameInfoDialogViewModel(gameInfoStore);
+            OmokBoardStore boardStore = GameInfoContainer.getInstance().getBoardStore();
+            return (T) new GameInfoDialogViewModel(gameInfoStore, boardStore);
         }
         throw new IllegalArgumentException("Unsupported ViewModel class: " + modelClass.getName());
     }

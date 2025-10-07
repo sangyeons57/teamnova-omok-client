@@ -1,6 +1,7 @@
 package com.example.application.session;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +38,42 @@ public final class GameSessionInfo {
         return Collections.unmodifiableList(participants);
     }
 
+    public int getParticipantCount() {
+        return participants.size();
+    }
+
+    public boolean hasParticipants() {
+        return !participants.isEmpty();
+    }
+
+    @NonNull
+    public GameParticipantInfo getParticipantAt(int index) {
+        if (index < 0 || index >= participants.size()) {
+            throw new IndexOutOfBoundsException("index=" + index + " size=" + participants.size());
+        }
+        return participants.get(index);
+    }
+
+    @Nullable
+    public GameParticipantInfo getParticipantOrNull(int index) {
+        if (index < 0 || index >= participants.size()) {
+            return null;
+        }
+        return participants.get(index);
+    }
+
+    @Nullable
+    public GameParticipantInfo getParticipantWrapped(int index) {
+        if (participants.isEmpty()) {
+            return null;
+        }
+        int normalized = index % participants.size();
+        if (normalized < 0) {
+            normalized += participants.size();
+        }
+        return participants.get(normalized);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -64,4 +101,3 @@ public final class GameSessionInfo {
                 '}';
     }
 }
-

@@ -1,6 +1,7 @@
 package com.example.core_di;
 
 import com.example.application.session.GameInfoStore;
+import com.example.application.session.OmokBoardStore;
 
 /**
  * Provides access to the singleton GameInfoStore instance.
@@ -27,13 +28,19 @@ public final class GameInfoContainer {
         return container;
     }
 
+    private final OmokBoardStore boardStore;
     private final GameInfoStore gameInfoStore;
 
     private GameInfoContainer() {
-        this.gameInfoStore = new GameInfoStore();
+        this.boardStore = new OmokBoardStore();
+        this.gameInfoStore = new GameInfoStore(boardStore);
     }
 
     public GameInfoStore getStore() {
         return gameInfoStore;
+    }
+
+    public OmokBoardStore getBoardStore() {
+        return boardStore;
     }
 }

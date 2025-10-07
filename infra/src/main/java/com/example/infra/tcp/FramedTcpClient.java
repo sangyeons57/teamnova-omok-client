@@ -1,5 +1,6 @@
 package com.example.infra.tcp;
 
+import android.os.Debug;
 import android.util.Log;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -182,7 +184,6 @@ public final class FramedTcpClient implements TcpClient {
             return;
         }
         try {
-            Log.d("FramedTcpClient", "Pinging");
             sendPingFrame();
         } catch (IOException e) {
             Log.w("FramedTcpClient", "Ping failed, attempting reconnect", e);
@@ -258,6 +259,9 @@ public final class FramedTcpClient implements TcpClient {
         if (future != null) {
             future.complete(frame);
         }
+
+        Log.d("FramedTcpClient", "[" + frame.requestId() + "] type:" + frame.frameType() + " length:" + frame.payloadLength());
+
         dispatcher.dispatch(this, frame);
     }
 

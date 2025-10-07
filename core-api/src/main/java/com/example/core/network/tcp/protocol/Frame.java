@@ -8,13 +8,11 @@ import java.util.Optional;
  * Immutable representation of a single frame used by the Omok server protocol.
  */
 public final class Frame {
-    private final byte type;
     private final FrameType frameType;
     private final long requestId;
     private final byte[] payload;
 
     public Frame(byte type, long requestId, byte[] payload) {
-        this.type = type;
         this.frameType = FrameType.lookup(type);
         this.requestId = requestId & 0xFFFF_FFFFL;
         this.payload = Objects.requireNonNull(payload, "payload");
@@ -25,7 +23,7 @@ public final class Frame {
     }
 
     public byte type() {
-        return type;
+        return frameType.code();
     }
 
     public Optional<FrameType> frameType() {
@@ -45,13 +43,13 @@ public final class Frame {
     }
 
     public Frame withPayloadCopy() {
-        return new Frame(type, requestId, Arrays.copyOf(payload, payload.length));
+        return new Frame(frameType.code(), requestId, Arrays.copyOf(payload, payload.length));
     }
 
     @Override
     public String toString() {
         return "Frame{" +
-                "type=" + frameType().map(Enum::name).orElseGet(() -> Integer.toString(type & 0xFF)) +
+                "type=" + frameType().map(Enum::name).orElseGet(() -> Integer.toString(frameType.code() & 0xFF)) +
                 ", requestId=" + requestId +
                 ", payloadLength=" + payload.length +
                 '}';

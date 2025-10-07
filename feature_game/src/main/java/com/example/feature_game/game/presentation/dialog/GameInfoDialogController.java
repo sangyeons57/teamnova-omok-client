@@ -62,22 +62,22 @@ public final class GameInfoDialogController implements DialogController<MainDial
         MaterialCardView cardThree = root.findViewById(R.id.cardInfoThree);
         MaterialCardView cardFour = root.findViewById(R.id.cardInfoFour);
 
-        MaterialTextView titleOne = root.findViewById(R.id.textInfoOneTitle);
-        MaterialTextView titleTwo = root.findViewById(R.id.textInfoTwoTitle);
-        MaterialTextView titleThree = root.findViewById(R.id.textInfoThreeTitle);
-        MaterialTextView titleFour = root.findViewById(R.id.textInfoFourTitle);
+        MaterialTextView labelOne = root.findViewById(R.id.textInfoOneLabel);
+        MaterialTextView labelTwo = root.findViewById(R.id.textInfoTwoLabel);
+        MaterialTextView labelThree = root.findViewById(R.id.textInfoThreeLabel);
+        MaterialTextView labelFour = root.findViewById(R.id.textInfoFourLabel);
 
-        MaterialTextView descOne = root.findViewById(R.id.textInfoOneDescription);
-        MaterialTextView descTwo = root.findViewById(R.id.textInfoTwoDescription);
-        MaterialTextView descThree = root.findViewById(R.id.textInfoThreeDescription);
-        MaterialTextView descFour = root.findViewById(R.id.textInfoFourDescription);
+        MaterialTextView nameOne = root.findViewById(R.id.textInfoOneName);
+        MaterialTextView nameTwo = root.findViewById(R.id.textInfoTwoName);
+        MaterialTextView nameThree = root.findViewById(R.id.textInfoThreeName);
+        MaterialTextView nameFour = root.findViewById(R.id.textInfoFourName);
 
         MaterialButton closeButton = root.findViewById(R.id.buttonCloseInfo);
 
         viewModel.getInfoCards().observe(activity, cards -> bindCards(cards, activity,
                 new MaterialCardView[]{cardOne, cardTwo, cardThree, cardFour},
-                new MaterialTextView[]{titleOne, titleTwo, titleThree, titleFour},
-                new MaterialTextView[]{descOne, descTwo, descThree, descFour},
+                new MaterialTextView[]{labelOne, labelTwo, labelThree, labelFour},
+                new MaterialTextView[]{nameOne, nameTwo, nameThree, nameFour},
                 viewModel));
 
         viewModel.getDismissEvent().observe(activity, dismiss -> {
@@ -94,21 +94,22 @@ public final class GameInfoDialogController implements DialogController<MainDial
     private void bindCards(@NonNull List<GameInfoCard> cards,
                            @NonNull FragmentActivity activity,
                            @NonNull MaterialCardView[] cardViews,
-                           @NonNull MaterialTextView[] titleViews,
-                           @NonNull MaterialTextView[] descriptionViews,
+                           @NonNull MaterialTextView[] labelViews,
+                           @NonNull MaterialTextView[] nameViews,
                            @NonNull GameInfoDialogViewModel viewModel) {
         int count = Math.min(cards.size(), cardViews.length);
         for (int i = 0; i < cardViews.length; i++) {
             MaterialCardView cardView = cardViews[i];
-            MaterialTextView titleView = titleViews[i];
-            MaterialTextView descriptionView = descriptionViews[i];
+            MaterialTextView labelView = labelViews[i];
+            MaterialTextView nameView = nameViews[i];
             if (i < count) {
                 GameInfoCard card = cards.get(i);
-                titleView.setText(card.getTitleResId());
-                descriptionView.setText(card.getDescriptionResId());
+                labelView.setText(card.getTitleResId());
+                nameView.setText(card.getDescriptionResId());
                 cardView.setOnClickListener(v -> viewModel.onCardSelected(card));
                 cardView.setVisibility(View.VISIBLE);
             } else {
+                cardView.setOnClickListener(null);
                 cardView.setVisibility(View.INVISIBLE);
             }
         }

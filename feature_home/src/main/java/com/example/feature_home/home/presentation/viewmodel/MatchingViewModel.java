@@ -104,7 +104,7 @@ public class MatchingViewModel extends ViewModel {
         stopTimer();
         elapsedSeconds.set(0);
         elapsedTimeText.setValue(formatElapsedTime(0));
-        timerFuture = timerExecutor.scheduleAtFixedRate(() -> {
+        timerFuture = timerExecutor.scheduleWithFixedDelay(() -> {
             int seconds = elapsedSeconds.incrementAndGet();
             elapsedTimeText.postValue(formatElapsedTime(seconds));
         }, 1, 1, TimeUnit.SECONDS);

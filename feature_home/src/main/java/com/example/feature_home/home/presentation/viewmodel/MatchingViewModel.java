@@ -13,9 +13,14 @@ import com.example.application.session.MatchState;
 import com.example.application.usecase.JoinMatchUseCase;
 import com.example.feature_home.home.presentation.state.MatchingViewEvent;
 
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Coordinates UI actions for the matching screen.
@@ -28,13 +33,17 @@ public class MatchingViewModel extends ViewModel {
     private final JoinMatchUseCase joinMatchUseCase;
     private final GameInfoStore gameInfoStore;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
+    private final ScheduledExecutorService timerExecutor = Executors.newSingleThreadScheduledExecutor();
+    private final MutableLiveData<String> elapsedTimeText = new MutableLiveData<>(formatElapsedTime(0));
+    private final AtomicInteger elapsedSeconds = new AtomicInteger();
+    private ScheduledFuture<?> timerFuture;
 
     public MatchingViewModel(JoinMatchUseCase joinMatchUseCase, GameInfoStore gameInfoStore) {
         this.joinMatchUseCase = joinMatchUseCase;
         this.gameInfoStore = gameInfoStore;
         this.gameInfoStore.updateMatchState(MatchState.MATCHING);
         startMatching();
+        startTimer();
     }
 
     public LiveData<MatchingViewEvent> getViewEvents() {
@@ -45,16 +54,30 @@ public class MatchingViewModel extends ViewModel {
         return gameInfoStore.getMatchStateStream();
     }
 
-    public void onBannerClicked() {
-        Log.d(TAG, "Matching banner tapped");
+    public LiveData<String> getElapsedTimeText() {
+        return elapsedTimeText;
     }
 
-    public void onReturnHomeClicked() {
+    public void onCancelMatchingClicked() {
+        stopTimer();
+        resetTimer();
+        gameInfoStore.updateMatchState(MatchState.IDLE);
         viewEvents.setValue(MatchingViewEvent.RETURN_TO_HOME);
     }
 
     public void onEventHandled() {
         viewEvents.setValue(null);
+    }
+
+    public void onMatchStateUpdated(MatchState state) {
+        if (state == null) {
+            return;
+        }
+        if (state == MatchState.MATCHED) {
+            stopTimer();
+        } else if (state == MatchState.MATCHING) {
+            ensureTimerRunning();
+        }
     }
 
     private void startMatching() {
@@ -77,6 +100,40 @@ public class MatchingViewModel extends ViewModel {
                 });
     }
 
+    private void startTimer() {
+        stopTimer();
+        elapsedSeconds.set(0);
+        elapsedTimeText.setValue(formatElapsedTime(0));
+        timerFuture = timerExecutor.scheduleAtFixedRate(() -> {
+            int seconds = elapsedSeconds.incrementAndGet();
+            elapsedTimeText.postValue(formatElapsedTime(seconds));
+        }, 1, 1, TimeUnit.SECONDS);
+    }
+
+    private void ensureTimerRunning() {
+        if (timerFuture == null || timerFuture.isDone()) {
+            startTimer();
+        }
+    }
+
+    private void stopTimer() {
+        if (timerFuture != null) {
+            timerFuture.cancel(false);
+            timerFuture = null;
+        }
+    }
+
+    private void resetTimer() {
+        elapsedSeconds.set(0);
+        elapsedTimeText.setValue(formatElapsedTime(0));
+    }
+
+    private static String formatElapsedTime(int totalSeconds) {
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+    }
+
     @Override
     protected void onCleared() {
         // Reset match state if the user leaves the screen before a match is found.
@@ -84,6 +141,8 @@ public class MatchingViewModel extends ViewModel {
             gameInfoStore.updateMatchState(MatchState.IDLE);
         }
         executorService.shutdownNow();
+        stopTimer();
+        timerExecutor.shutdownNow();
         super.onCleared();
     }
 }

@@ -7,35 +7,61 @@
     android:background="?attr/colorSurface"
     tools:context="com.example.feature_home.home.presentation.ui.MatchingFragment">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/textMatchingStatus"
-        style="@style/TextAppearance.Material3.TitleLarge"
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chipMatchStatus"
+        style="@style/Widget.Material3.Chip.Assist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/matching_status"
+        android:layout_marginTop="32dp"
+        android:text="@string/matching_status_badge_matching"
+        app:chipBackgroundColor="?attr/colorSecondaryContainer"
+        app:chipStrokeWidth="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/textMatchingMessage"
+        style="@style/TextAppearance.Material3.BodyLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/matching_status"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chipMatchStatus" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/textElapsedTimeLabel"
+        style="@style/TextAppearance.Material3.TitleMedium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:text="@string/matching_elapsed_time_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textMatchingMessage" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/textElapsedTime"
+        style="@style/TextAppearance.Material3.DisplaySmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="00:00"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textElapsedTimeLabel"
+        tools:text="03:25" />
+
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonReturnHome"
+        android:id="@+id/buttonCancelMatching"
         style="@style/Widget.Material3.Button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="48dp"
         android:layout_marginBottom="36dp"
-        android:text="@string/matching_resume_home"
-        app:layout_constraintBottom_toTopOf="@id/buttonMatchingBanner"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonMatchingBanner"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/matching_banner"
+        android:text="@string/matching_cancel"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

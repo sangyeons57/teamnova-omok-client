@@ -4,5 +4,6 @@ public enum AppNavigationKey {
     LOGIN,
     HOME,
     MATCHING,
-    SCORE
+    SCORE,
+    GAME
 }

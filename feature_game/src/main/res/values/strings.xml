@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="game_player_empty_slot">빈 자리</string>
+    <string name="game_player_self_placeholder">나</string>
+    <string name="game_player_avatar_content_description">플레이어 아바타</string>
+    <string name="game_banner_placeholder">배너 광고 영역</string>
+    <string name="game_board_placeholder">오목 보드가 곧 표시됩니다</string>
+    <string name="game_remaining_time_placeholder">남은 시간 --:--</string>
+    <string name="game_turn_count_placeholder">현재 턴 수 정보 없음</string>
+    <string name="game_info_navigation_button_label">정보 화면 이동</string>
+    <string name="game_result_title_win">승리!</string>
+    <string name="game_result_title_loss">패배</string>
+    <string name="game_result_title_draw">무승부</string>
+    <string name="game_result_duration_placeholder">진행 시간: --:--</string>
+    <string name="game_result_turn_count_placeholder">진행 턴 수: -</string>
+    <string name="game_result_duration_prefix">진행 시간: </string>
+    <string name="game_result_turn_count_prefix">진행 턴 수: </string>
+    <string name="game_result_turn_count_suffix">턴</string>
+    <string name="game_result_rematch_votes_placeholder">리매치 요청 0명</string>
+    <string name="game_result_rematch_votes_prefix">리매치 요청 </string>
+    <string name="game_result_rematch_votes_suffix">명</string>
+    <string name="game_result_exit_button">나가기</string>
+    <string name="game_result_rematch_button">리매치</string>
+    <string name="game_result_rematch_cancel_button">리매치 취소</string>
+    <string name="game_result_rematch_requested">리매치 요청 완료</string>
+    <string name="game_info_dialog_title">게임 정보</string>
+    <string name="game_info_close_button">닫기</string>
+    <string name="game_info_card_rules_title">기본 규칙</string>
+    <string name="game_info_card_rules_description">먼저 다섯 알을 직선으로 놓는 플레이어가 승리합니다. 금수 규칙을 확인하세요.</string>
+    <string name="game_info_card_controls_title">조작 방법</string>
+    <string name="game_info_card_controls_description">오목판을 탭해 돌을 두고, 손가락을 길게 눌러 취소 메뉴를 띄울 수 있습니다.</string>
+    <string name="game_info_card_scoring_title">점수</string>
+    <string name="game_info_card_scoring_description">연속 승리와 빠른 승리 보너스로 추가 점수를 획득하세요.</string>
+    <string name="game_info_card_tips_title">전략 팁</string>
+    <string name="game_info_card_tips_description">공격과 수비를 번갈아 생각하고 끊어두기, 장목을 활용해 우위를 잡으세요.</string>
+</resources>

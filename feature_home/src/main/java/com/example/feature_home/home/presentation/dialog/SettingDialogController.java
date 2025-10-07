@@ -167,8 +167,15 @@ public final class SettingDialogController implements DialogController<MainDialo
         }
 
         switch (event.type()) {
-            case REQUEST_GOOGLE_SIGN_IN -> startGoogleSignIn(activity, viewModel);
-            case SHOW_SUCCESS, SHOW_ERROR -> showToast(activity, event);
+            case REQUEST_GOOGLE_SIGN_IN:
+                startGoogleSignIn(activity, viewModel);
+                break;
+            case SHOW_SUCCESS:
+            case SHOW_ERROR:
+                showToast(activity, event);
+                break;
+            default:
+                break;
         }
         viewModel.onEventHandled();
     }
@@ -270,10 +277,11 @@ public final class SettingDialogController implements DialogController<MainDialo
     private void enqueueDialog(@NonNull FragmentActivity activity,
                                @NonNull MainDialogType type,
                                @Nullable Bundle arguments) {
-        if (!(activity instanceof DialogHostOwner<?> owner)) {
+        if (!(activity instanceof DialogHostOwner<?>)) {
             return;
         }
-        DialogHost<MainDialogType> host = ((DialogHostOwner<MainDialogType>) owner).getDialogHost();
+        DialogHostOwner<MainDialogType> owner = (DialogHostOwner<MainDialogType>) activity;
+        DialogHost<MainDialogType> host = owner.getDialogHost();
         if (!host.isAttached()) {
             return;
         }

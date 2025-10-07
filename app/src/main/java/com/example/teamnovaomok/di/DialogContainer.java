@@ -13,6 +13,8 @@ import com.example.feature_home.home.di.LogoutDialogProvider;
 import com.example.feature_home.home.di.RankingDialogProvider;
 import com.example.feature_home.home.di.ScoreDialogProvider;
 import com.example.feature_home.home.di.SettingDialogProvider;
+import com.example.feature_game.game.di.GameInfoDialogProvider;
+import com.example.feature_game.game.di.GameResultDialogProvider;
 import com.example.feature_home.home.di.SettingProfileDialogProvider;
 
 /**
@@ -31,6 +33,8 @@ public final class DialogContainer {
         registry.registerProvider(new RankingDialogProvider());
         registry.registerProvider(new SettingDialogProvider());
         registry.registerProvider(new SettingProfileDialogProvider());
+        registry.registerProvider(new GameInfoDialogProvider());
+        registry.registerProvider(new GameResultDialogProvider());
         registry.registerProvider(new LogoutDialogProvider());
         registry.registerProvider(new DeleteAccountDialogProvider());
 

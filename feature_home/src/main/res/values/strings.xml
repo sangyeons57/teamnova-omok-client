@@ -10,9 +10,12 @@
     <string name="home_log_only">로그 전용</string>
 
     <!-- Matching -->
-    <string name="matching_banner">매칭 배너</string>
-    <string name="matching_resume_home">홈으로 돌아가기</string>
     <string name="matching_status">매칭 상대를 찾는 중…</string>
+    <string name="matching_status_badge_idle">대기 중</string>
+    <string name="matching_status_badge_matching">매칭 중</string>
+    <string name="matching_status_badge_matched">매칭 완료</string>
+    <string name="matching_elapsed_time_label">경과 시간</string>
+    <string name="matching_cancel">매칭 취소</string>
 
     <!-- Dialog commons -->
     <string name="dialog_close">닫기</string>

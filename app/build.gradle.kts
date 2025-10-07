@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":infra"))
 
     implementation(project(":feature_auth"))
+    implementation(project(":feature_game"))
     implementation(project(":feature_home"))
 
     implementation(libs.appcompat)

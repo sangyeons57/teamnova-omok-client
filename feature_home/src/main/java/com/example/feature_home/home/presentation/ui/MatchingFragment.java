@@ -14,13 +14,14 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.application.session.MatchState;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
-import com.example.core.navigation.FragmentNavigator;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.MatchingViewModelFactory;
 import com.example.feature_home.home.presentation.state.MatchingViewEvent;
 import com.example.feature_home.home.presentation.viewmodel.MatchingViewModel;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.textview.MaterialTextView;
 
 /**
  * Displays the opponent matching screen.
@@ -29,6 +30,7 @@ public class MatchingFragment extends Fragment {
 
     private MatchingViewModel viewModel;
     private FragmentNavigationHost<AppNavigationKey> fragmentNavigationHost;
+    private boolean hasNavigatedToGame;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -59,14 +61,15 @@ public class MatchingFragment extends Fragment {
         MatchingViewModelFactory factory = MatchingViewModelFactory.create();
         viewModel = new ViewModelProvider(this, factory).get(MatchingViewModel.class);
 
-        MaterialButton bannerButton = view.findViewById(R.id.buttonMatchingBanner);
-        MaterialButton returnHomeButton = view.findViewById(R.id.buttonReturnHome);
+        Chip statusChip = view.findViewById(R.id.chipMatchStatus);
+        MaterialTextView elapsedTimeText = view.findViewById(R.id.textElapsedTime);
+        MaterialButton cancelButton = view.findViewById(R.id.buttonCancelMatching);
 
-        bannerButton.setOnClickListener(v -> viewModel.onBannerClicked());
-        returnHomeButton.setOnClickListener(v -> viewModel.onReturnHomeClicked());
+        cancelButton.setOnClickListener(v -> viewModel.onCancelMatchingClicked());
 
         observeViewEvents();
-        observeMatchState(returnHomeButton);
+        observeMatchState(statusChip, cancelButton);
+        observeElapsedTime(elapsedTimeText);
     }
 
     private void observeViewEvents() {
@@ -83,16 +86,43 @@ public class MatchingFragment extends Fragment {
         });
     }
 
-    private void observeMatchState(MaterialButton returnHomeButton) {
+    private void observeMatchState(Chip statusChip, MaterialButton cancelButton) {
         viewModel.getMatchState().observe(getViewLifecycleOwner(), state -> {
+            if (state == null) {
+                return;
+            }
+            viewModel.onMatchStateUpdated(state);
+
             if (state == MatchState.MATCHED) {
-                returnHomeButton.setText("매칭됨");
-                returnHomeButton.setEnabled(false);
+                statusChip.setText(R.string.matching_status_badge_matched);
+                cancelButton.setEnabled(false);
+                if (!hasNavigatedToGame) {
+                    navigateToGame();
+                    hasNavigatedToGame = true;
+                }
+            } else if (state == MatchState.MATCHING) {
+                statusChip.setText(R.string.matching_status_badge_matching);
+                cancelButton.setEnabled(true);
+            } else {
+                statusChip.setText(R.string.matching_status_badge_idle);
+                cancelButton.setEnabled(true);
             }
         });
     }
 
+    private void observeElapsedTime(MaterialTextView elapsedTimeText) {
+        viewModel.getElapsedTimeText().observe(getViewLifecycleOwner(), elapsedTimeText::setText);
+    }
+
+    private void navigateToGame() {
+        if (fragmentNavigationHost == null) {
+            return;
+        }
+        fragmentNavigationHost.navigateTo(AppNavigationKey.GAME, true);
+    }
+
     private void returnToHome() {
+        hasNavigatedToGame = false;
         if (fragmentNavigationHost == null) {
             return;
         }

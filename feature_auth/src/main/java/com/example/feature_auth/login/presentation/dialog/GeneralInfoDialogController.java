@@ -56,14 +56,15 @@ public final class GeneralInfoDialogController implements DialogController<MainD
                              @NonNull MaterialTextView titleView,
                              @NonNull MaterialTextView bodyView) {
         switch (type) {
-            case PRIVACY_POLICY -> {
+            case PRIVACY_POLICY:
                 titleView.setText(R.string.general_info_privacy_title);
                 bodyView.setText(R.string.general_info_privacy_body);
-            }
-            case TERMS_OF_SERVICE -> {
+                break;
+            case TERMS_OF_SERVICE:
+            default:
                 titleView.setText(R.string.general_info_terms_title);
                 bodyView.setText(R.string.general_info_terms_body);
-            }
+                break;
         }
     }
 

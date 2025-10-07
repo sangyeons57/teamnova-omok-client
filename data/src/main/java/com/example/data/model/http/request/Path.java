@@ -28,26 +28,41 @@ public enum Path {
 
     @Override
     public String toString() {
-        return switch (this) {
-            case HELLO_WORLD -> "hello-world.php";
-            case INFO -> "info.php";
+        switch (this) {
+            case HELLO_WORLD:
+                return "hello-world.php";
+            case INFO:
+                return "info.php";
 
-            case CREATE_ACCOUNT -> "create-account.php";
-            case DEACTIVATE_ACCOUNT -> "deactivate-account.php";
-            case TERMS_ACCEPTANCES -> "terms-acceptances.php";
-            case LOGIN -> "login.php";
-            case LOGOUT -> "logout.php";
+            case CREATE_ACCOUNT:
+                return "create-account.php";
+            case DEACTIVATE_ACCOUNT:
+                return "deactivate-account.php";
+            case TERMS_ACCEPTANCES:
+                return "terms-acceptances.php";
+            case LOGIN:
+                return "login.php";
+            case LOGOUT:
+                return "logout.php";
 
-            case LINK_GOOGLE -> "link-google.php";
+            case LINK_GOOGLE:
+                return "link-google.php";
 
-            case CHANGE_NAME -> "change-name.php";
-            case CHANGE_PROFILE_ICON -> "change-profile-icon.php";
+            case CHANGE_NAME:
+                return "change-name.php";
+            case CHANGE_PROFILE_ICON:
+                return "change-profile-icon.php";
 
-            case SELF_DATA -> "self-data.php";
-            case USER_DATA -> "user-data.php";
-            case RANKING_DATA -> "ranking-data.php";
+            case SELF_DATA:
+                return "self-data.php";
+            case USER_DATA:
+                return "user-data.php";
+            case RANKING_DATA:
+                return "ranking-data.php";
 
-        };
+            default:
+                throw new IllegalStateException("Unknown path: " + this);
+        }
     }
 }
 

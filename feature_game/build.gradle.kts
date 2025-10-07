@@ -30,8 +30,16 @@ android {
 
 dependencies {
 
+    implementation(project(":core-di"))
+    implementation(project(":domain"))
+    implementation(project(":application"))
+    implementation(project(":data"))
+    implementation(project(":designsystem"))
+
+
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.gridlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

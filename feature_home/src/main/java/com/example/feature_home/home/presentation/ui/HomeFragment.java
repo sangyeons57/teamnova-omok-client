@@ -43,8 +43,9 @@ public class HomeFragment extends Fragment {
             throw new IllegalStateException("Host must implement DialogHostOwner");
         }
 
-        if (context instanceof FragmentNavigationHostOwner<?> owner) {
-            fragmentNavigationHost = ((FragmentNavigationHostOwner<AppNavigationKey>) owner).getFragmentNavigatorHost();
+        if (context instanceof FragmentNavigationHostOwner<?>) {
+            FragmentNavigationHostOwner<AppNavigationKey> owner = (FragmentNavigationHostOwner<AppNavigationKey>) context;
+            fragmentNavigationHost = owner.getFragmentNavigatorHost();
         } else {
             throw new IllegalStateException("Host must provide FragmentNavigatorHost");
         }
@@ -101,11 +102,23 @@ public class HomeFragment extends Fragment {
             }
 
             switch (event) {
-                case NAVIGATE_TO_MATCHING -> navigateToMatching();
-                case SHOW_GAME_MODE_DIALOG -> enqueueDialog(MainDialogType.GAME_MODE);
-                case NAVIGATE_TO_SCORE -> navigateToScore();
-                case SHOW_RANKING_DIALOG -> enqueueDialog(MainDialogType.RANKING);
-                case SHOW_SETTING_DIALOG -> enqueueDialog(MainDialogType.SETTING);
+                case NAVIGATE_TO_MATCHING:
+                    navigateToMatching();
+                    break;
+                case SHOW_GAME_MODE_DIALOG:
+                    enqueueDialog(MainDialogType.GAME_MODE);
+                    break;
+                case NAVIGATE_TO_SCORE:
+                    navigateToScore();
+                    break;
+                case SHOW_RANKING_DIALOG:
+                    enqueueDialog(MainDialogType.RANKING);
+                    break;
+                case SHOW_SETTING_DIALOG:
+                    enqueueDialog(MainDialogType.SETTING);
+                    break;
+                default:
+                    break;
             }
 
             viewModel.onEventHandled();
@@ -113,12 +126,18 @@ public class HomeFragment extends Fragment {
     }
 
     private int gameModeToLabel(@NonNull GameMode mode) {
-        return switch (mode) {
-            case FREE -> R.string.game_mode_free;
-            case TWO_PLAYER -> R.string.game_mode_two_player;
-            case THREE_PLAYER -> R.string.game_mode_three_player;
-            case FOUR_PLAYER -> R.string.game_mode_four_player;
-        };
+        switch (mode) {
+            case FREE:
+                return R.string.game_mode_free;
+            case TWO_PLAYER:
+                return R.string.game_mode_two_player;
+            case THREE_PLAYER:
+                return R.string.game_mode_three_player;
+            case FOUR_PLAYER:
+                return R.string.game_mode_four_player;
+            default:
+                throw new IllegalStateException("Unknown game mode: " + mode);
+        }
     }
 
     private void navigateToMatching() {

@@ -1,6 +1,7 @@
 package com.example.application.session;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -16,6 +17,9 @@ public class GameInfoStore {
 
     private final AtomicReference<MatchState> currentMatchState = new AtomicReference<>(MatchState.IDLE);
     private final MutableLiveData<MatchState> matchStateStream = new MutableLiveData<>(MatchState.IDLE);
+
+    private final AtomicReference<GameSessionInfo> currentGameSession = new AtomicReference<>();
+    private final MutableLiveData<GameSessionInfo> gameSessionStream = new MutableLiveData<>();
 
     @NonNull
     public GameMode getCurrentMode() {
@@ -53,6 +57,36 @@ public class GameInfoStore {
             throw new IllegalArgumentException("state == null");
         }
         currentMatchState.set(state);
+        if (state == MatchState.IDLE) {
+            clearGameSession();
+        }
         matchStateStream.postValue(state);
+    }
+
+    @Nullable
+    public GameSessionInfo getCurrentGameSession() {
+        return currentGameSession.get();
+    }
+
+    @NonNull
+    public LiveData<GameSessionInfo> getGameSessionStream() {
+        GameSessionInfo existing = currentGameSession.get();
+        if (existing != null && gameSessionStream.getValue() == null) {
+            gameSessionStream.setValue(existing);
+        }
+        return gameSessionStream;
+    }
+
+    public void updateGameSession(@NonNull GameSessionInfo session) {
+        if (session == null) {
+            throw new IllegalArgumentException("session == null");
+        }
+        currentGameSession.set(session);
+        gameSessionStream.postValue(session);
+    }
+
+    public void clearGameSession() {
+        currentGameSession.set(null);
+        gameSessionStream.postValue(null);
     }
 }

@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.application.session.GameInfoStore;
+import com.example.core_di.GameInfoContainer;
 import com.example.feature_game.game.presentation.viewmodel.GameInfoDialogViewModel;
 
 /**
@@ -24,7 +26,8 @@ public final class GameInfoDialogViewModelFactory implements ViewModelProvider.F
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(GameInfoDialogViewModel.class)) {
-            return (T) new GameInfoDialogViewModel();
+            GameInfoStore gameInfoStore = GameInfoContainer.getInstance().getStore();
+            return (T) new GameInfoDialogViewModel(gameInfoStore);
         }
         throw new IllegalArgumentException("Unsupported ViewModel class: " + modelClass.getName());
     }

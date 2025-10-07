@@ -35,8 +35,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@string/game_player_avatar_content_description"
-                android:src="@drawable/ic_game_player_placeholder"
-                app:tint="?attr/colorOnSurfaceVariant" />
+                android:src="@drawable/ic_game_player_placeholder" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textPlayerTopLeft"
@@ -136,8 +135,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@string/game_player_avatar_content_description"
-                android:src="@drawable/ic_game_player_placeholder"
-                app:tint="?attr/colorOnSurfaceVariant" />
+                android:src="@drawable/ic_game_player_placeholder" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -170,8 +168,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@string/game_player_avatar_content_description"
-                android:src="@drawable/ic_game_player_placeholder"
-                app:tint="?attr/colorOnSurfaceVariant" />
+                android:src="@drawable/ic_game_player_placeholder" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textPlayerBottomLeft"
@@ -229,8 +226,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:contentDescription="@string/game_player_avatar_content_description"
-                android:src="@drawable/ic_game_player_placeholder"
-                app:tint="?attr/colorOnSurfaceVariant" />
+                android:src="@drawable/ic_game_player_placeholder" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

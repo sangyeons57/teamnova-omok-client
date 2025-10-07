@@ -16,11 +16,13 @@ import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
 import com.example.feature_game.R;
 import com.example.feature_game.game.di.GameInfoDialogViewModelFactory;
-import com.example.feature_game.game.presentation.model.GameInfoCard;
+import com.example.feature_game.game.presentation.model.GameInfoSlot;
+import com.example.feature_game.game.presentation.util.ProfileIconResolver;
 import com.example.feature_game.game.presentation.viewmodel.GameInfoDialogViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.util.List;
@@ -62,6 +64,11 @@ public final class GameInfoDialogController implements DialogController<MainDial
         MaterialCardView cardThree = root.findViewById(R.id.cardInfoThree);
         MaterialCardView cardFour = root.findViewById(R.id.cardInfoFour);
 
+        ShapeableImageView imageOne = root.findViewById(R.id.imageInfoOneProfile);
+        ShapeableImageView imageTwo = root.findViewById(R.id.imageInfoTwoProfile);
+        ShapeableImageView imageThree = root.findViewById(R.id.imageInfoThreeProfile);
+        ShapeableImageView imageFour = root.findViewById(R.id.imageInfoFourProfile);
+
         MaterialTextView labelOne = root.findViewById(R.id.textInfoOneLabel);
         MaterialTextView labelTwo = root.findViewById(R.id.textInfoTwoLabel);
         MaterialTextView labelThree = root.findViewById(R.id.textInfoThreeLabel);
@@ -74,11 +81,11 @@ public final class GameInfoDialogController implements DialogController<MainDial
 
         MaterialButton closeButton = root.findViewById(R.id.buttonCloseInfo);
 
-        viewModel.getInfoCards().observe(activity, cards -> bindCards(cards, activity,
+        viewModel.getSlots().observe(activity, slots -> bindSlots(slots,
                 new MaterialCardView[]{cardOne, cardTwo, cardThree, cardFour},
                 new MaterialTextView[]{labelOne, labelTwo, labelThree, labelFour},
                 new MaterialTextView[]{nameOne, nameTwo, nameThree, nameFour},
-                viewModel));
+                new ShapeableImageView[]{imageOne, imageTwo, imageThree, imageFour}));
 
         viewModel.getDismissEvent().observe(activity, dismiss -> {
             if (dismiss == null || !dismiss) {
@@ -91,27 +98,45 @@ public final class GameInfoDialogController implements DialogController<MainDial
         closeButton.setOnClickListener(v -> viewModel.onCloseClicked());
     }
 
-    private void bindCards(@NonNull List<GameInfoCard> cards,
-                           @NonNull FragmentActivity activity,
+    private void bindSlots(@NonNull List<GameInfoSlot> slots,
                            @NonNull MaterialCardView[] cardViews,
                            @NonNull MaterialTextView[] labelViews,
                            @NonNull MaterialTextView[] nameViews,
-                           @NonNull GameInfoDialogViewModel viewModel) {
-        int count = Math.min(cards.size(), cardViews.length);
+                           @NonNull ShapeableImageView[] imageViews) {
+        int[] labelResIds = {
+                R.string.game_info_slot_label_one,
+                R.string.game_info_slot_label_two,
+                R.string.game_info_slot_label_three,
+                R.string.game_info_slot_label_four
+        };
+
         for (int i = 0; i < cardViews.length; i++) {
             MaterialCardView cardView = cardViews[i];
             MaterialTextView labelView = labelViews[i];
             MaterialTextView nameView = nameViews[i];
-            if (i < count) {
-                GameInfoCard card = cards.get(i);
-                labelView.setText(card.getTitleResId());
-                nameView.setText(card.getDescriptionResId());
-                cardView.setOnClickListener(v -> viewModel.onCardSelected(card));
-                cardView.setVisibility(View.VISIBLE);
+            ShapeableImageView imageView = imageViews[i];
+
+            labelView.setText(labelResIds[i]);
+
+            GameInfoSlot slot = i < slots.size() ? slots.get(i) : null;
+            boolean enabled = slot != null && slot.isEnabled();
+
+            cardView.setEnabled(enabled);
+            cardView.setAlpha(enabled ? 1f : 0.4f);
+            cardView.setOnClickListener(null);
+
+            int iconRes = ProfileIconResolver.resolve(slot != null ? slot.getProfileIconCode() : 0);
+            imageView.setImageResource(iconRes);
+            imageView.setAlpha(slot != null && slot.isOccupied() ? 1f : 0.4f);
+
+            if (slot != null && slot.isOccupied() && !slot.getDisplayName().isEmpty()) {
+                nameView.setText(slot.getDisplayName());
+            } else if (enabled) {
+                nameView.setText(R.string.game_info_slot_empty_placeholder);
             } else {
-                cardView.setOnClickListener(null);
-                cardView.setVisibility(View.INVISIBLE);
+                nameView.setText("");
             }
         }
     }
+
 }

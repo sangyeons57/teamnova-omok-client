@@ -1,19 +1,18 @@
 package com.example.core_di;
 
 import com.example.application.session.GameInfoStore;
-import com.example.application.session.MatchState;
 import com.example.core.network.tcp.TcpClient;
 import com.example.core.network.tcp.TcpClientConfig;
-import com.example.core.network.tcp.dispatcher.ClientDispatchResult;
 import com.example.core.network.tcp.dispatcher.ClientDispatcher;
-import com.example.core.network.tcp.handler.ClientFrameHandler;
 import com.example.core.network.tcp.protocol.FrameType;
+import com.example.core_di.tcp.JoinInGameSessionHandler;
 import com.example.infra.tcp.provider.FramedTcpClientProvider;
 
 /**
  * Provides access to the singleton TCP client instance.
  */
 public final class TcpClientContainer {
+
     private static volatile TcpClientContainer instance;
 
     public static void init(TcpClientConfig config, GameInfoStore gameInfoStore) {
@@ -47,10 +46,8 @@ public final class TcpClientContainer {
 
     private void registerFrameHandlers(GameInfoStore gameInfoStore) {
         ClientDispatcher dispatcher = tcpClient.dispatcher();
-        dispatcher.register(FrameType.JOIN_IN_GAME_SESSION, () -> (client, frame) -> {
-            gameInfoStore.updateMatchState(MatchState.MATCHED);
-            return ClientDispatchResult.continueDispatch();
-        });
+        dispatcher.register(FrameType.JOIN_IN_GAME_SESSION,
+                () -> new JoinInGameSessionHandler(gameInfoStore));
     }
 
     public TcpClient getClient() {

@@ -13,12 +13,18 @@ public final class GamePlayerSlot {
     private final String displayName;
     private final boolean empty;
     private final boolean enabled;
+    private final int profileIconCode;
 
-    public GamePlayerSlot(int position, @NonNull String displayName, boolean empty, boolean enabled) {
+    public GamePlayerSlot(int position,
+                          @NonNull String displayName,
+                          boolean empty,
+                          boolean enabled,
+                          int profileIconCode) {
         this.position = position;
         this.displayName = Objects.requireNonNull(displayName, "displayName");
         this.empty = empty;
         this.enabled = enabled;
+        this.profileIconCode = profileIconCode;
     }
 
     public int getPosition() {
@@ -36,5 +42,9 @@ public final class GamePlayerSlot {
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public int getProfileIconCode() {
+        return profileIconCode;
     }
 }

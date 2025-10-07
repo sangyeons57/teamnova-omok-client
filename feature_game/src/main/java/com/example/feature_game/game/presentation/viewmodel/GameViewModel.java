@@ -13,6 +13,8 @@ import com.example.application.session.GameInfoStore;
 import com.example.application.session.GameMode;
 import com.example.application.session.MatchState;
 import com.example.application.session.UserSessionStore;
+import com.example.application.session.GameParticipantInfo;
+import com.example.application.session.GameSessionInfo;
 import com.example.domain.user.entity.User;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
@@ -37,10 +39,13 @@ public class GameViewModel extends ViewModel {
     private final MutableLiveData<GameViewEvent> viewEvents = new MutableLiveData<>();
     private final Observer<GameMode> modeObserver = this::onModeChanged;
     private final Observer<MatchState> matchObserver = this::onMatchStateChanged;
+    private final Observer<GameSessionInfo> sessionObserver = this::onSessionChanged;
     private final Observer<User> userObserver = this::onUserChanged;
 
     private final List<GamePlayerSlot> cachedSlots = new ArrayList<>(4);
     private String selfDisplayName = "";
+    private String selfUserId = "";
+    private GameSessionInfo latestSessionInfo;
 
     public GameViewModel(@NonNull GameInfoStore gameInfoStore,
                          @NonNull UserSessionStore userSessionStore) {
@@ -49,12 +54,20 @@ public class GameViewModel extends ViewModel {
 
         gameInfoStore.getModeStream().observeForever(modeObserver);
         gameInfoStore.getMatchStateStream().observeForever(matchObserver);
+        gameInfoStore.getGameSessionStream().observeForever(sessionObserver);
         userSessionStore.getUserStream().observeForever(userObserver);
 
         GameMode initialMode = gameInfoStore.getModeStream().getValue();
         if (initialMode == null) {
             initialMode = gameInfoStore.getCurrentMode();
         }
+
+        GameSessionInfo initialSession = gameInfoStore.getGameSessionStream().getValue();
+        if (initialSession == null) {
+            initialSession = gameInfoStore.getCurrentGameSession();
+        }
+        latestSessionInfo = initialSession;
+
         onModeChanged(initialMode);
 
         MatchState initialMatchState = gameInfoStore.getMatchStateStream().getValue();
@@ -65,6 +78,10 @@ public class GameViewModel extends ViewModel {
         User initialUser = userSessionStore.getCurrentUser();
         if (initialUser != null) {
             onUserChanged(initialUser);
+        }
+
+        if (initialSession != null) {
+            onSessionChanged(initialSession);
         }
 
         viewEvents.setValue(GameViewEvent.AUTO_OPEN_GAME_INFO_DIALOG);
@@ -145,11 +162,22 @@ public class GameViewModel extends ViewModel {
         }
     }
 
+    private void onSessionChanged(@Nullable GameSessionInfo sessionInfo) {
+        latestSessionInfo = sessionInfo;
+        GameMode mode = currentMode.getValue();
+        if (mode == null) {
+            mode = gameInfoStore.getCurrentMode();
+        }
+        rebuildSlots(mode);
+    }
+
     private void onUserChanged(@Nullable User user) {
         if (user == null) {
             selfDisplayName = "";
+            selfUserId = "";
         } else {
             selfDisplayName = user.getDisplayName().getValue();
+            selfUserId = user.getUserId().getValue();
         }
         rebuildSlots(currentMode.getValue());
     }
@@ -158,27 +186,54 @@ public class GameViewModel extends ViewModel {
         GameMode safeMode = mode != null ? mode : GameMode.TWO_PLAYER;
         int participantCount = resolveParticipantCount(safeMode);
 
+        List<GameParticipantInfo> participants = latestSessionInfo != null
+                ? new ArrayList<>(latestSessionInfo.getParticipants())
+                : new ArrayList<>();
+
+        if (!participants.isEmpty() && selfUserId != null && !selfUserId.isEmpty()) {
+            for (int i = 0; i < participants.size(); i++) {
+                GameParticipantInfo info = participants.get(i);
+                if (selfUserId.equals(info.getUserId())) {
+                    if (i != 0) {
+                        participants.remove(i);
+                        participants.add(0, info);
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (participants.size() > participantCount) {
+            participants = new ArrayList<>(participants.subList(0, participantCount));
+        }
+
         cachedSlots.clear();
         for (int i = 0; i < 4; i++) {
             boolean withinParticipantRange = i < participantCount;
-            boolean isSelf = i == 0 && withinParticipantRange;
-            String name;
-            boolean empty;
-            boolean enabled;
-            if (isSelf) {
+            GameParticipantInfo participant = withinParticipantRange && i < participants.size()
+                    ? participants.get(i)
+                    : null;
+
+            String name = "";
+            boolean empty = true;
+            boolean enabled = withinParticipantRange;
+
+            if (participant != null) {
+                String participantName = participant.getDisplayName();
+                if (participantName != null && !participantName.trim().isEmpty()) {
+                    name = participantName;
+                    empty = false;
+                } else if (selfUserId != null && selfUserId.equals(participant.getUserId()) && !selfDisplayName.isEmpty()) {
+                    name = selfDisplayName;
+                    empty = false;
+                }
+            } else if (withinParticipantRange && i == 0 && !selfDisplayName.isEmpty()) {
                 name = selfDisplayName;
                 empty = false;
-                enabled = true;
-            } else if (withinParticipantRange) {
-                name = "";
-                empty = true;
-                enabled = true;
-            } else {
-                name = "";
-                empty = true;
-                enabled = false;
             }
-            cachedSlots.add(new GamePlayerSlot(i, name, empty, enabled));
+
+            int profileIconCode = participant != null ? participant.getProfileIconCode() : 0;
+            cachedSlots.add(new GamePlayerSlot(i, name, empty, enabled, profileIconCode));
         }
         playerSlots.postValue(new ArrayList<>(cachedSlots));
     }
@@ -202,6 +257,7 @@ public class GameViewModel extends ViewModel {
     protected void onCleared() {
         gameInfoStore.getModeStream().removeObserver(modeObserver);
         gameInfoStore.getMatchStateStream().removeObserver(matchObserver);
+        gameInfoStore.getGameSessionStream().removeObserver(sessionObserver);
         userSessionStore.getUserStream().removeObserver(userObserver);
         super.onCleared();
     }

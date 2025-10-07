@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +22,7 @@ import com.example.feature_game.R;
 import com.example.feature_game.game.di.GameViewModelFactory;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
+import com.example.feature_game.game.presentation.util.ProfileIconResolver;
 import com.example.feature_game.game.presentation.viewmodel.GameViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -234,11 +236,11 @@ public class GameFragment extends Fragment {
 
     private static final class PlayerSlotView {
         private final MaterialCardView container;
-        private final View avatarView;
+        private final ImageView avatarView;
         private final MaterialTextView nameView;
 
         private PlayerSlotView(@NonNull MaterialCardView container,
-                               @NonNull View avatarView,
+                               @NonNull ImageView avatarView,
                                @NonNull MaterialTextView nameView) {
             this.container = container;
             this.avatarView = avatarView;
@@ -246,6 +248,7 @@ public class GameFragment extends Fragment {
         }
 
         void update(@NonNull GamePlayerSlot slot) {
+            avatarView.setImageResource(ProfileIconResolver.resolve(slot.getProfileIconCode()));
             if (slot.isEmpty()) {
                 nameView.setText(R.string.game_player_empty_slot);
                 avatarView.setAlpha(0.4f);

@@ -33,4 +33,9 @@
     <string name="game_info_card_scoring_description">연속 승리와 빠른 승리 보너스로 추가 점수를 획득하세요.</string>
     <string name="game_info_card_tips_title">전략 팁</string>
     <string name="game_info_card_tips_description">공격과 수비를 번갈아 생각하고 끊어두기, 장목을 활용해 우위를 잡으세요.</string>
+    <string name="game_info_slot_label_one">Player 1</string>
+    <string name="game_info_slot_label_two">Player 2</string>
+    <string name="game_info_slot_label_three">Player 3</string>
+    <string name="game_info_slot_label_four">Player 4</string>
+    <string name="game_info_slot_empty_placeholder">Waiting for player</string>
 </resources>

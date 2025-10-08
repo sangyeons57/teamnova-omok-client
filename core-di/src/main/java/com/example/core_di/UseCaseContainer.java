@@ -20,6 +20,7 @@ import com.example.application.usecase.LinkGoogleAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
 import com.example.application.usecase.RankingDataUseCase;
+import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.application.usecase.SelfDataUseCase;
 import com.example.application.usecase.UserDataUseCase;
 import com.example.application.usecase.TcpAuthUseCase;
@@ -94,6 +95,8 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new TcpAuthUseCase(defaultConfig, realtimeRepository)));
         registry.register(JoinMatchUseCase.class,
                 UseCaseProviders.singleton(() -> new JoinMatchUseCase(defaultConfig, realtimeRepository, gameInfoStore)));
+        registry.register(ReadyInGameSessionUseCase.class,
+                UseCaseProviders.singleton(() -> new ReadyInGameSessionUseCase(defaultConfig, realtimeRepository)));
     }
 
     public <T> T get(Class<T> key) {

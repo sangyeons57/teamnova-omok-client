@@ -9,6 +9,8 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
+import com.example.application.port.in.UResult;
+import com.example.application.port.in.UseCase;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.GameMode;
 import com.example.application.session.GameParticipantInfo;
@@ -20,6 +22,7 @@ import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
 import com.example.application.session.UserSessionStore;
+import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.domain.user.entity.User;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
@@ -27,6 +30,9 @@ import com.example.feature_game.game.presentation.state.GameViewEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Coordinates the Omok game screen UI state.
@@ -44,7 +50,9 @@ public class GameViewModel extends ViewModel {
 
     private final GameInfoStore gameInfoStore;
     private final UserSessionStore userSessionStore;
+    private final ReadyInGameSessionUseCase readyInGameSessionUseCase;
     private final OmokBoardStore boardStore;
+    private final ExecutorService realtimeExecutor = Executors.newSingleThreadExecutor();
     private final MutableLiveData<List<GamePlayerSlot>> playerSlots = new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<Integer> activePlayerIndex = new MutableLiveData<>(0);
     private final MutableLiveData<GameMode> currentMode = new MutableLiveData<>(GameMode.TWO_PLAYER);
@@ -59,14 +67,17 @@ public class GameViewModel extends ViewModel {
     private final Observer<GameTurnState> turnObserver = this::onTurnChanged;
 
     private final List<GamePlayerSlot> cachedSlots = new ArrayList<>(4);
+    private final AtomicBoolean readySignalSent = new AtomicBoolean(false);
     private String selfDisplayName = "";
     private String selfUserId = "";
     private GameSessionInfo latestSessionInfo;
 
     public GameViewModel(@NonNull GameInfoStore gameInfoStore,
-                         @NonNull UserSessionStore userSessionStore) {
+                         @NonNull UserSessionStore userSessionStore,
+                         @NonNull ReadyInGameSessionUseCase readyInGameSessionUseCase) {
         this.gameInfoStore = gameInfoStore;
         this.userSessionStore = userSessionStore;
+        this.readyInGameSessionUseCase = readyInGameSessionUseCase;
         this.boardStore = gameInfoStore.getBoardStore();
 
         gameInfoStore.getModeStream().observeForever(modeObserver);
@@ -154,6 +165,24 @@ public class GameViewModel extends ViewModel {
     @NonNull
     public LiveData<GameViewEvent> getViewEvents() {
         return viewEvents;
+    }
+
+    public void notifyGameReady() {
+        if (readySignalSent.getAndSet(true)) {
+            return;
+        }
+        readyInGameSessionUseCase.executeAsync(UseCase.None.INSTANCE, realtimeExecutor)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        Log.e(TAG, "Failed to send READY_IN_GAME_SESSION frame", throwable);
+                        return;
+                    }
+                    if (result instanceof UResult.Err<?> err) {
+                        Log.w(TAG, "READY_IN_GAME_SESSION rejected: " + err.message());
+                    } else {
+                        Log.d(TAG, "READY_IN_GAME_SESSION dispatched");
+                    }
+                });
     }
 
     public void onInfoButtonClicked() {
@@ -365,6 +394,7 @@ public class GameViewModel extends ViewModel {
         gameInfoStore.getTurnStateStream().removeObserver(turnObserver);
         boardStore.getBoardStateStream().removeObserver(boardObserver);
         userSessionStore.getUserStream().removeObserver(userObserver);
+        realtimeExecutor.shutdownNow();
         super.onCleared();
     }
 }

@@ -97,6 +97,7 @@ public class GameFragment extends Fragment {
 
         bindViews(view);
         observeViewModel();
+        viewModel.notifyGameReady();
     }
 
     private void bindViews(@NonNull View root) {

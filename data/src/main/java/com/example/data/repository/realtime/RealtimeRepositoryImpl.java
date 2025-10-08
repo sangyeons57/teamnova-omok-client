@@ -87,4 +87,19 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
         });
     }
 
+    @Override
+    public void readyInGameSession() {
+        TcpRequest request = TcpRequest.of(FrameType.READY_IN_GAME_SESSION, new byte[0], Duration.ofSeconds(5));
+        CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
+        responseFuture.thenApply(response -> {
+            if (response.isSuccess()) {
+                String payload = new String(response.payload(), StandardCharsets.UTF_8).trim();
+                Log.d("RealtimeRepositoryImpl", "ReadyInGameSession success:" + payload);
+            } else {
+                Log.e("RealtimeRepositoryImpl", "ReadyInGameSession failed:" + response.error());
+            }
+            return null;
+        });
+    }
+
 }

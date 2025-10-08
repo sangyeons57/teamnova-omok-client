@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.UserSessionStore;
 import com.example.application.usecase.ReadyInGameSessionUseCase;
+import com.example.application.usecase.PlaceStoneUseCase;
 import com.example.core_di.GameInfoContainer;
 import com.example.core_di.UseCaseContainer;
 import com.example.core_di.UserSessionContainer;
@@ -34,7 +35,8 @@ public final class GameViewModelFactory implements ViewModelProvider.Factory {
             UserSessionStore userSessionStore = UserSessionContainer.getInstance().getStore();
             UseCaseContainer useCaseContainer = UseCaseContainer.getInstance();
             ReadyInGameSessionUseCase readyInGameSessionUseCase = useCaseContainer.get(ReadyInGameSessionUseCase.class);
-            return (T) new GameViewModel(gameInfoStore, userSessionStore, readyInGameSessionUseCase);
+            PlaceStoneUseCase placeStoneUseCase = useCaseContainer.get(PlaceStoneUseCase.class);
+            return (T) new GameViewModel(gameInfoStore, userSessionStore, readyInGameSessionUseCase, placeStoneUseCase);
         }
         throw new IllegalArgumentException("Unsupported ViewModel class: " + modelClass.getName());
     }

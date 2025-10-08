@@ -16,8 +16,10 @@ import java.util.concurrent.CompletableFuture;
 
 public final class RealtimeRepositoryImpl implements RealtimeRepository {
 
+    private static final String TAG = "RealtimeRepositoryImpl";
     private static final long HELLO_TIMEOUT_SECONDS = 5L;
     private static final long AUTH_TIMEOUT_SECONDS = 5L;
+    private static final long PLACE_STONE_TIMEOUT_SECONDS = 5L;
 
     private final DefaultTcpServerDataSource tcpServerDataSource;
 
@@ -79,9 +81,9 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
         responseFuture.thenApply(response -> {
             if (response.isSuccess()) {
                 String payload = new String(response.payload(), StandardCharsets.UTF_8).trim();
-                Log.d("RealtimeRepositoryImpl", "JoinMatch success:" + payload);
+                Log.d(TAG, "JoinMatch success: " + payload);
             } else {
-                Log.e("RealtimeRepositoryImpl", "JoinMatch failed:" + response.error() + " ");
+                Log.e(TAG, "JoinMatch failed: " + response.error() + " ");
             }
             return null;
         });
@@ -94,11 +96,31 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
         responseFuture.thenApply(response -> {
             if (response.isSuccess()) {
                 String payload = new String(response.payload(), StandardCharsets.UTF_8).trim();
-                Log.d("RealtimeRepositoryImpl", "ReadyInGameSession success:" + payload);
+                Log.d(TAG, "ReadyInGameSession success: " + payload);
             } else {
-                Log.e("RealtimeRepositoryImpl", "ReadyInGameSession failed:" + response.error());
+                Log.e(TAG, "ReadyInGameSession failed: " + response.error());
             }
             return null;
+        });
+    }
+
+    @Override
+    public void placeStone(int x, int y) {
+        String payloadString = x + "," + y;
+        byte[] payload = payloadString.getBytes(StandardCharsets.UTF_8);
+        TcpRequest request = TcpRequest.of(FrameType.PLACE_STONE, payload, Duration.ofSeconds(PLACE_STONE_TIMEOUT_SECONDS));
+        CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
+        responseFuture.whenComplete((response, throwable) -> {
+            if (throwable != null) {
+                Log.e(TAG, "PlaceStone request failed for coords=(" + x + "," + y + ")", throwable);
+                return;
+            }
+            if (response.isSuccess()) {
+                String ackPayload = new String(response.payload(), StandardCharsets.UTF_8).trim();
+                Log.d(TAG, "PlaceStone success: " + ackPayload);
+            } else {
+                Log.e(TAG, "PlaceStone failed: " + response.error());
+            }
         });
     }
 

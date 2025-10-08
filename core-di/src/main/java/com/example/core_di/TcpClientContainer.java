@@ -5,7 +5,11 @@ import com.example.core.network.tcp.TcpClient;
 import com.example.core.network.tcp.TcpClientConfig;
 import com.example.core.network.tcp.dispatcher.ClientDispatcher;
 import com.example.core.network.tcp.protocol.FrameType;
+import com.example.core_di.tcp.GameSessionStartedHandler;
 import com.example.core_di.tcp.JoinInGameSessionHandler;
+import com.example.core_di.tcp.ReadyInGameSessionHandler;
+import com.example.core_di.tcp.StonePlacedHandler;
+import com.example.core_di.tcp.TurnTimeoutHandler;
 import com.example.infra.tcp.provider.FramedTcpClientProvider;
 
 /**
@@ -48,6 +52,14 @@ public final class TcpClientContainer {
         ClientDispatcher dispatcher = tcpClient.dispatcher();
         dispatcher.register(FrameType.JOIN_IN_GAME_SESSION,
                 () -> new JoinInGameSessionHandler(gameInfoStore));
+        dispatcher.register(FrameType.READY_IN_GAME_SESSION,
+                () -> new ReadyInGameSessionHandler(gameInfoStore));
+        dispatcher.register(FrameType.GAME_SESSION_STARTED,
+                () -> new GameSessionStartedHandler(gameInfoStore));
+        dispatcher.register(FrameType.STONE_PLACED,
+                () -> new StonePlacedHandler(gameInfoStore));
+        dispatcher.register(FrameType.TURN_TIMEOUT,
+                () -> new TurnTimeoutHandler(gameInfoStore));
     }
 
     public TcpClient getClient() {

@@ -23,6 +23,7 @@ import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
 import com.example.application.session.UserSessionStore;
 import com.example.application.usecase.ReadyInGameSessionUseCase;
+import com.example.application.usecase.PlaceStoneUseCase;
 import com.example.domain.user.entity.User;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
@@ -51,6 +52,7 @@ public class GameViewModel extends ViewModel {
     private final GameInfoStore gameInfoStore;
     private final UserSessionStore userSessionStore;
     private final ReadyInGameSessionUseCase readyInGameSessionUseCase;
+    private final PlaceStoneUseCase placeStoneUseCase;
     private final OmokBoardStore boardStore;
     private final ExecutorService realtimeExecutor = Executors.newSingleThreadExecutor();
     private final MutableLiveData<List<GamePlayerSlot>> playerSlots = new MutableLiveData<>(Collections.emptyList());
@@ -74,10 +76,12 @@ public class GameViewModel extends ViewModel {
 
     public GameViewModel(@NonNull GameInfoStore gameInfoStore,
                          @NonNull UserSessionStore userSessionStore,
-                         @NonNull ReadyInGameSessionUseCase readyInGameSessionUseCase) {
+                         @NonNull ReadyInGameSessionUseCase readyInGameSessionUseCase,
+                         @NonNull PlaceStoneUseCase placeStoneUseCase) {
         this.gameInfoStore = gameInfoStore;
         this.userSessionStore = userSessionStore;
         this.readyInGameSessionUseCase = readyInGameSessionUseCase;
+        this.placeStoneUseCase = placeStoneUseCase;
         this.boardStore = gameInfoStore.getBoardStore();
 
         gameInfoStore.getModeStream().observeForever(modeObserver);
@@ -207,12 +211,33 @@ public class GameViewModel extends ViewModel {
         if (x < 0 || y < 0 || x >= currentBoard.getWidth() || y >= currentBoard.getHeight()) {
             return;
         }
+        OmokStoneType existingStone = currentBoard.getStone(x, y);
+        if (existingStone != null && existingStone.isPlaced()) {
+            Log.w(TAG, "Ignoring tap on occupied cell (" + x + "," + y + ")");
+            return;
+        }
         OmokStoneType nextType = resolveStoneForActiveTurn();
         if (nextType == OmokStoneType.UNKNOWN || nextType == OmokStoneType.EMPTY) {
             return;
         }
+        dispatchPlaceStone(x, y);
         boardStore.applyStone(new OmokStonePlacement(x, y, nextType));
         gameInfoStore.advanceTurn();
+    }
+
+    private void dispatchPlaceStone(int x, int y) {
+        placeStoneUseCase.executeAsync(new PlaceStoneUseCase.Params(x, y), realtimeExecutor)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        Log.e(TAG, "PLACE_STONE request failed for (" + x + "," + y + ")", throwable);
+                        return;
+                    }
+                    if (result instanceof UResult.Err<?> err) {
+                        Log.w(TAG, "PLACE_STONE rejected (" + x + "," + y + "): " + err.message());
+                    } else {
+                        Log.d(TAG, "PLACE_STONE dispatched for (" + x + "," + y + ")");
+                    }
+                });
     }
 
     public void placeStoneExplicit(int x, int y, @NonNull OmokStoneType stoneType, boolean advanceTurn) {

@@ -7,4 +7,5 @@ public interface RealtimeRepository {
     CompletableFuture<Boolean> auth(String accessToken);
     void joinMatch (String match);
     void readyInGameSession();
+    void placeStone(int x, int y);
 }

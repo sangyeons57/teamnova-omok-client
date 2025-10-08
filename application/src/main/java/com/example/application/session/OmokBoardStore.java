@@ -49,11 +49,6 @@ public final class OmokBoardStore {
         updateBoardState(next);
     }
 
-    public void removeStone(int x, int y) {
-        OmokBoardState next = getCurrentBoardState().withoutStone(x, y);
-        updateBoardState(next);
-    }
-
     public void clearBoard() {
         updateBoardState(OmokBoardState.empty());
     }

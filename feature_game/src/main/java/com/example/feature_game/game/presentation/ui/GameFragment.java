@@ -14,6 +14,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.application.session.OmokBoardState;
+import com.example.application.session.OmokStonePlacement;
+import com.example.application.session.OmokStoneType;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
@@ -22,6 +25,7 @@ import com.example.feature_game.R;
 import com.example.feature_game.game.di.GameViewModelFactory;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
+import com.example.feature_game.game.presentation.ui.OmokBoardView;
 import com.example.feature_game.game.presentation.util.ProfileIconResolver;
 import com.example.feature_game.game.presentation.viewmodel.GameViewModel;
 import com.google.android.material.button.MaterialButton;
@@ -30,6 +34,7 @@ import com.google.android.material.color.MaterialColors;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,12 +43,14 @@ import java.util.List;
 public class GameFragment extends Fragment {
 
     private static final long INFO_AUTO_DISMISS_DELAY_MS = 5_000L;
+    private static final int DEFAULT_BOARD_SIZE = 10;
 
     private DialogHost<MainDialogType> dialogHost;
     private GameViewModel viewModel;
     private final List<PlayerSlotView> slotViews = new ArrayList<>(4);
     private List<GamePlayerSlot> latestSlots = new ArrayList<>();
     private int latestActiveIndex = 0;
+    private OmokBoardView boardView;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable pendingAutoDismiss;
 
@@ -72,6 +79,7 @@ public class GameFragment extends Fragment {
     public void onDestroyView() {
         clearPendingAutoDismiss();
         slotViews.clear();
+        boardView = null;
         super.onDestroyView();
     }
 
@@ -118,8 +126,15 @@ public class GameFragment extends Fragment {
         slotViews.add(bottomLeft);
         slotViews.add(bottomRight);
 
-        View board = root.findViewById(R.id.cardBoardPlaceholder);
-        board.setOnClickListener(v -> viewModel.onBoardTapped());
+        boardView = root.findViewById(R.id.omokBoardView);
+        if (boardView != null) {
+            boardView.clearStoneDrawables();
+            boardView.registerStoneDrawable(0, R.drawable.omok_stone_black);
+            boardView.registerStoneDrawable(1, R.drawable.omok_stone_white);
+            boardView.registerStoneDrawable(2, R.drawable.omok_stone_red);
+            boardView.registerStoneDrawable(3, R.drawable.omok_stone_blue);
+            boardView.setOnCellTapListener((x, y) -> viewModel.onBoardCellTapped(x, y));
+        }
 
         MaterialButton infoNavigation = root.findViewById(R.id.buttonGameInfoNavigation);
 
@@ -140,6 +155,8 @@ public class GameFragment extends Fragment {
             updateTurnIndicator();
         });
 
+        viewModel.getBoardState().observe(getViewLifecycleOwner(), this::renderBoard);
+
         viewModel.getViewEvents().observe(getViewLifecycleOwner(), event -> {
             if (event == null) {
                 return;
@@ -159,6 +176,47 @@ public class GameFragment extends Fragment {
             }
             viewModel.onEventHandled();
         });
+    }
+
+    private void renderBoard(@Nullable OmokBoardState state) {
+        if (boardView == null) {
+            return;
+        }
+        if (state == null || state.getWidth() <= 0 || state.getHeight() <= 0) {
+            boardView.setBoardSize(DEFAULT_BOARD_SIZE, DEFAULT_BOARD_SIZE);
+            boardView.clearBoard();
+            return;
+        }
+        int width = state.getWidth();
+        int height = state.getHeight();
+        int[] indices = new int[width * height];
+        Arrays.fill(indices, -1);
+        for (OmokStonePlacement placement : state.getPlacements()) {
+            int mappedIndex = mapStoneTypeToDrawableIndex(placement.getStoneType());
+            if (mappedIndex < 0) {
+                continue;
+            }
+            int flattened = placement.getY() * width + placement.getX();
+            if (flattened >= 0 && flattened < indices.length) {
+                indices[flattened] = mappedIndex;
+            }
+        }
+        boardView.setBoardState(width, height, indices);
+    }
+
+    private int mapStoneTypeToDrawableIndex(@NonNull OmokStoneType stoneType) {
+        switch (stoneType) {
+            case BLACK:
+                return 0;
+            case WHITE:
+                return 1;
+            case RED:
+                return 2;
+            case BLUE:
+                return 3;
+            default:
+                return -1;
+        }
     }
 
     private void updatePlayerSlots() {

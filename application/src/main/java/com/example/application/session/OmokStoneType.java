@@ -6,6 +6,8 @@ package com.example.application.session;
 public enum OmokStoneType {
     BLACK,
     WHITE,
+    RED,
+    BLUE,
     EMPTY,
     UNKNOWN;
 
@@ -13,6 +15,6 @@ public enum OmokStoneType {
      * Returns {@code true} if this stone represents an actual piece on the board.
      */
     public boolean isPlaced() {
-        return this == BLACK || this == WHITE;
+        return this == BLACK || this == WHITE || this == RED || this == BLUE;
     }
 }

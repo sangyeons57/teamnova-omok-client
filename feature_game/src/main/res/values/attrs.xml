@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="OmokBoardView">
+        <attr name="boardColumns" format="integer" />
+        <attr name="boardRows" format="integer" />
+        <attr name="gridLineColor" format="color" />
+        <attr name="gridBorderColor" format="color" />
+        <attr name="gridLineWidth" format="dimension" />
+        <attr name="gridBorderWidth" format="dimension" />
+        <attr name="stoneRadiusRatio" format="float" />
+    </declare-styleable>
+
+</resources>

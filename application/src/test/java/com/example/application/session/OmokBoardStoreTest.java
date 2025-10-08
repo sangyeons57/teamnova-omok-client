@@ -44,17 +44,6 @@ public class OmokBoardStoreTest {
     }
 
     @Test
-    public void removeStone_clearsPlacement() {
-        boardStore.initializeBoard(15, 15);
-        boardStore.applyStone(new OmokStonePlacement(1, 2, OmokStoneType.BLACK));
-
-        boardStore.removeStone(1, 2);
-
-        OmokBoardState boardState = boardStore.getBoardStateStream().getValue();
-        assertTrue(boardState.getPlacements().isEmpty());
-    }
-
-    @Test
     public void clearBoard_resetsToEmpty() {
         boardStore.initializeBoard(10, 10);
         boardStore.applyStone(new OmokStonePlacement(0, 0, OmokStoneType.BLACK));

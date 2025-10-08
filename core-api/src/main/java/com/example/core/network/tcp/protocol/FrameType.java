@@ -16,6 +16,11 @@ public enum FrameType {
     JOIN_MATCH((byte) 3),
     JOIN_IN_GAME_SESSION((byte) 4),
     LEAVE_IN_GAME_SESSION((byte) 5),
+    READY_IN_GAME_SESSION((byte)6),
+    GAME_SESSION_STARTED((byte)7),
+    PLACE_STONE((byte)8),
+    STONE_PLACED((byte)9),
+    TURN_TIMEOUT((byte)10),
     ;
 
     private static final Map<Byte, FrameType> LOOKUP = new ConcurrentHashMap<>();

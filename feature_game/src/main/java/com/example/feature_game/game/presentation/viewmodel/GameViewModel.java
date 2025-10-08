@@ -11,10 +11,15 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.GameMode;
-import com.example.application.session.MatchState;
-import com.example.application.session.UserSessionStore;
 import com.example.application.session.GameParticipantInfo;
 import com.example.application.session.GameSessionInfo;
+import com.example.application.session.GameTurnState;
+import com.example.application.session.MatchState;
+import com.example.application.session.OmokBoardState;
+import com.example.application.session.OmokBoardStore;
+import com.example.application.session.OmokStonePlacement;
+import com.example.application.session.OmokStoneType;
+import com.example.application.session.UserSessionStore;
 import com.example.domain.user.entity.User;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
@@ -29,18 +34,29 @@ import java.util.List;
 public class GameViewModel extends ViewModel {
 
     private static final String TAG = "GameViewModel";
+    private static final int DEFAULT_BOARD_SIZE = 10;
+    private static final OmokStoneType[] TURN_ORDER = new OmokStoneType[]{
+            OmokStoneType.BLACK,
+            OmokStoneType.WHITE,
+            OmokStoneType.RED,
+            OmokStoneType.BLUE
+    };
 
     private final GameInfoStore gameInfoStore;
     private final UserSessionStore userSessionStore;
+    private final OmokBoardStore boardStore;
     private final MutableLiveData<List<GamePlayerSlot>> playerSlots = new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<Integer> activePlayerIndex = new MutableLiveData<>(0);
     private final MutableLiveData<GameMode> currentMode = new MutableLiveData<>(GameMode.TWO_PLAYER);
     private final MutableLiveData<MatchState> matchState = new MutableLiveData<>(MatchState.IDLE);
+    private final MutableLiveData<OmokBoardState> boardState = new MutableLiveData<>(OmokBoardState.empty());
     private final MutableLiveData<GameViewEvent> viewEvents = new MutableLiveData<>();
     private final Observer<GameMode> modeObserver = this::onModeChanged;
     private final Observer<MatchState> matchObserver = this::onMatchStateChanged;
     private final Observer<GameSessionInfo> sessionObserver = this::onSessionChanged;
     private final Observer<User> userObserver = this::onUserChanged;
+    private final Observer<OmokBoardState> boardObserver = this::onBoardStateChanged;
+    private final Observer<GameTurnState> turnObserver = this::onTurnChanged;
 
     private final List<GamePlayerSlot> cachedSlots = new ArrayList<>(4);
     private String selfDisplayName = "";
@@ -51,10 +67,13 @@ public class GameViewModel extends ViewModel {
                          @NonNull UserSessionStore userSessionStore) {
         this.gameInfoStore = gameInfoStore;
         this.userSessionStore = userSessionStore;
+        this.boardStore = gameInfoStore.getBoardStore();
 
         gameInfoStore.getModeStream().observeForever(modeObserver);
         gameInfoStore.getMatchStateStream().observeForever(matchObserver);
         gameInfoStore.getGameSessionStream().observeForever(sessionObserver);
+        gameInfoStore.getTurnStateStream().observeForever(turnObserver);
+        boardStore.getBoardStateStream().observeForever(boardObserver);
         userSessionStore.getUserStream().observeForever(userObserver);
 
         GameMode initialMode = gameInfoStore.getModeStream().getValue();
@@ -67,6 +86,26 @@ public class GameViewModel extends ViewModel {
             initialSession = gameInfoStore.getCurrentGameSession();
         }
         latestSessionInfo = initialSession;
+
+        OmokBoardState initialBoard = boardStore.getBoardStateStream().getValue();
+        if (initialBoard == null) {
+            initialBoard = boardStore.getCurrentBoardState();
+        }
+        if (initialBoard == null
+                || initialBoard.getWidth() <= 0
+                || initialBoard.getHeight() <= 0) {
+            boardStore.initializeBoard(DEFAULT_BOARD_SIZE, DEFAULT_BOARD_SIZE);
+            initialBoard = boardStore.getCurrentBoardState();
+        }
+        if (initialBoard != null) {
+            boardState.setValue(initialBoard);
+        }
+
+        GameTurnState initialTurn = gameInfoStore.getTurnStateStream().getValue();
+        if (initialTurn == null) {
+            initialTurn = gameInfoStore.getCurrentTurnState();
+        }
+        onTurnChanged(initialTurn);
 
         onModeChanged(initialMode);
 
@@ -108,6 +147,11 @@ public class GameViewModel extends ViewModel {
     }
 
     @NonNull
+    public LiveData<OmokBoardState> getBoardState() {
+        return boardState;
+    }
+
+    @NonNull
     public LiveData<GameViewEvent> getViewEvents() {
         return viewEvents;
     }
@@ -121,22 +165,44 @@ public class GameViewModel extends ViewModel {
     }
 
     public void onBoardTapped() {
-        List<GamePlayerSlot> slots = playerSlots.getValue();
-        if (slots == null || slots.isEmpty()) {
+        gameInfoStore.advanceTurn();
+    }
+
+    public void onBoardCellTapped(int x, int y) {
+        OmokBoardState currentBoard = boardStore.getCurrentBoardState();
+        if (currentBoard == null
+                || currentBoard.getWidth() <= 0
+                || currentBoard.getHeight() <= 0) {
             return;
         }
-        int participantCount = 0;
-        for (GamePlayerSlot slot : slots) {
-            if (slot.isEnabled()) {
-                participantCount++;
-            }
-        }
-        if (participantCount <= 0) {
+        if (x < 0 || y < 0 || x >= currentBoard.getWidth() || y >= currentBoard.getHeight()) {
             return;
         }
-        Integer current = activePlayerIndex.getValue();
-        int nextIndex = ((current != null ? current : 0) + 1) % participantCount;
-        activePlayerIndex.setValue(nextIndex);
+        OmokStoneType nextType = resolveStoneForActiveTurn();
+        if (nextType == OmokStoneType.UNKNOWN || nextType == OmokStoneType.EMPTY) {
+            return;
+        }
+        boardStore.applyStone(new OmokStonePlacement(x, y, nextType));
+        gameInfoStore.advanceTurn();
+    }
+
+    public void placeStoneExplicit(int x, int y, @NonNull OmokStoneType stoneType, boolean advanceTurn) {
+        OmokBoardState currentBoard = boardStore.getCurrentBoardState();
+        if (currentBoard == null
+                || currentBoard.getWidth() <= 0
+                || currentBoard.getHeight() <= 0) {
+            return;
+        }
+        if (x < 0 || y < 0 || x >= currentBoard.getWidth() || y >= currentBoard.getHeight()) {
+            return;
+        }
+        if (stoneType == null || stoneType == OmokStoneType.EMPTY || stoneType == OmokStoneType.UNKNOWN) {
+            return;
+        }
+        boardStore.applyStone(new OmokStonePlacement(x, y, stoneType));
+        if (advanceTurn) {
+            gameInfoStore.advanceTurn();
+        }
     }
 
     public void onEventHandled() {
@@ -149,6 +215,7 @@ public class GameViewModel extends ViewModel {
         }
         currentMode.postValue(mode);
         rebuildSlots(mode);
+        gameInfoStore.setTurnIndex(0);
         activePlayerIndex.postValue(0);
     }
 
@@ -180,6 +247,43 @@ public class GameViewModel extends ViewModel {
             selfUserId = user.getUserId().getValue();
         }
         rebuildSlots(currentMode.getValue());
+    }
+
+    private void onBoardStateChanged(@Nullable OmokBoardState state) {
+        if (state == null) {
+            state = OmokBoardState.empty();
+        }
+        boardState.postValue(state);
+    }
+
+    private void onTurnChanged(@Nullable GameTurnState state) {
+        if (state == null || !state.isActive()) {
+            activePlayerIndex.postValue(0);
+            return;
+        }
+        activePlayerIndex.postValue(state.getCurrentIndex());
+    }
+
+    private OmokStoneType resolveStoneForActiveTurn() {
+        GameTurnState turnState = gameInfoStore.getCurrentTurnState();
+        if (turnState == null || !turnState.isActive()) {
+            GameSessionInfo session = latestSessionInfo;
+            if (session != null && session.hasParticipants()) {
+                gameInfoStore.setTurnIndex(0);
+                turnState = gameInfoStore.getCurrentTurnState();
+            }
+        }
+        if (turnState == null || !turnState.isActive()) {
+            return OmokStoneType.BLACK;
+        }
+        return mapStoneTypeForIndex(turnState.getCurrentIndex());
+    }
+
+    private OmokStoneType mapStoneTypeForIndex(int participantIndex) {
+        if (participantIndex < 0 || TURN_ORDER.length == 0) {
+            return OmokStoneType.BLACK;
+        }
+        return TURN_ORDER[participantIndex % TURN_ORDER.length];
     }
 
     private void rebuildSlots(@Nullable GameMode mode) {
@@ -258,6 +362,8 @@ public class GameViewModel extends ViewModel {
         gameInfoStore.getModeStream().removeObserver(modeObserver);
         gameInfoStore.getMatchStateStream().removeObserver(matchObserver);
         gameInfoStore.getGameSessionStream().removeObserver(sessionObserver);
+        gameInfoStore.getTurnStateStream().removeObserver(turnObserver);
+        boardStore.getBoardStateStream().removeObserver(boardObserver);
         userSessionStore.getUserStream().removeObserver(userObserver);
         super.onCleared();
     }

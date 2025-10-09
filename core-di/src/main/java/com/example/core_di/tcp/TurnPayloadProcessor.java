@@ -11,6 +11,8 @@ import com.example.application.session.GameSessionInfo;
 
 import org.json.JSONObject;
 
+import java.util.function.LongSupplier;
+
 /**
  * Applies turn payload updates coming from realtime frames.
  */
@@ -23,6 +25,13 @@ final class TurnPayloadProcessor {
     static void applyTurn(@NonNull GameInfoStore gameInfoStore,
                           @Nullable JSONObject turnJson,
                           @NonNull String tag) {
+        applyTurn(gameInfoStore, turnJson, tag, System::currentTimeMillis);
+    }
+
+    static void applyTurn(@NonNull GameInfoStore gameInfoStore,
+                          @Nullable JSONObject turnJson,
+                          @NonNull String tag,
+                          @NonNull LongSupplier nowSupplier) {
         if (turnJson == null) {
             Log.d(tag, "Turn payload missing. Clearing local turn state.");
             gameInfoStore.clearTurnState();
@@ -32,7 +41,7 @@ final class TurnPayloadProcessor {
         String currentPlayerId = turnJson.optString("currentPlayerId", null);
         long startAt = turnJson.optLong("startAt", 0L);
         long endAt = turnJson.optLong("endAt", 0L);
-        int remainingSeconds = computeRemainingSeconds(endAt);
+        int remainingSeconds = computeRemainingSeconds(endAt, nowSupplier);
         int participantIndex = resolveParticipantIndex(gameInfoStore.getCurrentGameSession(), currentPlayerId);
 
         Log.d(tag, "Turn update #" + turnNumber
@@ -52,11 +61,12 @@ final class TurnPayloadProcessor {
         }
     }
 
-    private static int computeRemainingSeconds(long endAtMillis) {
+    private static int computeRemainingSeconds(long endAtMillis,
+                                               @NonNull LongSupplier nowSupplier) {
         if (endAtMillis <= 0L) {
             return 0;
         }
-        long now = System.currentTimeMillis();
+        long now = nowSupplier.getAsLong();
         long remainingMillis = endAtMillis - now;
         if (remainingMillis <= 0L) {
             return 0;

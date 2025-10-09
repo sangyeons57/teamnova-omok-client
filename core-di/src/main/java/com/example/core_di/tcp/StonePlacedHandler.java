@@ -8,22 +8,15 @@ import com.example.application.session.GameInfoStore;
 import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
-import com.example.core.network.tcp.TcpClient;
-import com.example.core.network.tcp.dispatcher.ClientDispatchResult;
-import com.example.core.network.tcp.handler.ClientFrameHandler;
-import com.example.core.network.tcp.protocol.Frame;
-
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Objects;
 
 /**
  * Handles STONE_PLACED broadcasts to keep the local board in sync with the server.
  */
-public final class StonePlacedHandler implements ClientFrameHandler {
+public final class StonePlacedHandler extends AbstractJsonFrameHandler {
 
     private static final String TAG = "StonePlacedHandler";
 
@@ -36,58 +29,37 @@ public final class StonePlacedHandler implements ClientFrameHandler {
 
     StonePlacedHandler(@NonNull GameInfoStore gameInfoStore,
                        @NonNull OmokBoardStore boardStore) {
+        super(TAG, "STONE_PLACED");
         this.gameInfoStore = Objects.requireNonNull(gameInfoStore, "gameInfoStore");
         this.boardStore = Objects.requireNonNull(boardStore, "boardStore");
     }
 
     @Override
-    public ClientDispatchResult handle(TcpClient client, Frame frame) {
-        if (frame == null) {
-            Log.w(TAG, "Received null frame for STONE_PLACED");
-            return ClientDispatchResult.continueDispatch();
-        }
-        byte[] payload = frame.payload();
-        if (payload == null || payload.length == 0) {
-            Log.w(TAG, "STONE_PLACED payload missing");
-            return ClientDispatchResult.continueDispatch();
-        }
+    protected void onJsonPayload(@NonNull JSONObject root) {
+        String sessionId = root.optString("sessionId", "");
+        String placedBy = root.optString("placedBy", "");
+        int x = root.optInt("x", -1);
+        int y = root.optInt("y", -1);
+        String stoneLabel = root.optString("stone", "");
 
-        String raw = new String(payload, StandardCharsets.UTF_8);
-        Log.d(TAG, "STONE_PLACED payload: " + raw);
+        OmokStoneType stoneType = parseStoneType(stoneLabel);
+        Log.i(TAG, "Stone placed → sessionId=" + sessionId
+                + ", placedBy=" + placedBy
+                + ", stone=" + stoneType
+                + ", coord=(" + x + "," + y + ")");
 
-        try {
-            JSONObject root = new JSONObject(raw);
-            String sessionId = root.optString("sessionId", "");
-            String placedBy = root.optString("placedBy", "");
-            int x = root.optInt("x", -1);
-            int y = root.optInt("y", -1);
-            String stoneLabel = root.optString("stone", "");
-
-            OmokStoneType stoneType = parseStoneType(stoneLabel);
-            Log.i(TAG, "Stone placed → sessionId=" + sessionId
-                    + ", placedBy=" + placedBy
-                    + ", stone=" + stoneType
-                    + ", coord=(" + x + "," + y + ")");
-
-            if (stoneType.isPlaced() && x >= 0 && y >= 0) {
-                try {
-                    boardStore.applyStone(new OmokStonePlacement(x, y, stoneType));
-                } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-                    Log.e(TAG, "Stone coordinate outside board bounds (" + x + "," + y + ")", e);
-                }
-            } else {
-                Log.w(TAG, "Skipping board update due to invalid stone or coordinates.");
+        if (stoneType.isPlaced() && x >= 0 && y >= 0) {
+            try {
+                boardStore.applyStone(new OmokStonePlacement(x, y, stoneType));
+            } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+                Log.e(TAG, "Stone coordinate outside board bounds (" + x + "," + y + ")", e);
             }
-
-            JSONObject turnJson = root.optJSONObject("turn");
-            TurnPayloadProcessor.applyTurn(gameInfoStore, turnJson, TAG);
-        } catch (JSONException e) {
-            Log.e(TAG, "Failed to parse STONE_PLACED payload", e);
-        } catch (Exception e) {
-            Log.e(TAG, "Unexpected error handling STONE_PLACED frame", e);
+        } else {
+            Log.w(TAG, "Skipping board update due to invalid stone or coordinates.");
         }
 
-        return ClientDispatchResult.continueDispatch();
+        JSONObject turnJson = root.optJSONObject("turn");
+        TurnPayloadProcessor.applyTurn(gameInfoStore, turnJson, TAG);
     }
 
     @NonNull

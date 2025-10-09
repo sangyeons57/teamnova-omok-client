@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public final class RealtimeRepositoryImpl implements RealtimeRepository {
 
@@ -77,31 +78,15 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
                 : new byte[0];
 
         TcpRequest request = TcpRequest.of(FrameType.JOIN_MATCH, requestPayload, Duration.ofSeconds(10));
-        CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
-        responseFuture.thenApply(response -> {
-            if (response.isSuccess()) {
-                String payload = new String(response.payload(), StandardCharsets.UTF_8).trim();
-                Log.d(TAG, "JoinMatch success: " + payload);
-            } else {
-                Log.e(TAG, "JoinMatch failed: " + response.error() + " ");
-            }
-            return null;
-        });
+        executeAndLog(request, "JoinMatch",
+                payload -> new String(payload, StandardCharsets.UTF_8).trim());
     }
 
     @Override
     public void readyInGameSession() {
         TcpRequest request = TcpRequest.of(FrameType.READY_IN_GAME_SESSION, new byte[0], Duration.ofSeconds(5));
-        CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
-        responseFuture.thenApply(response -> {
-            if (response.isSuccess()) {
-                String payload = new String(response.payload(), StandardCharsets.UTF_8).trim();
-                Log.d(TAG, "ReadyInGameSession success: " + payload);
-            } else {
-                Log.e(TAG, "ReadyInGameSession failed: " + response.error());
-            }
-            return null;
-        });
+        executeAndLog(request, "ReadyInGameSession",
+                payload -> new String(payload, StandardCharsets.UTF_8).trim());
     }
 
     @Override
@@ -109,17 +94,37 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
         String payloadString = x + "," + y;
         byte[] payload = payloadString.getBytes(StandardCharsets.UTF_8);
         TcpRequest request = TcpRequest.of(FrameType.PLACE_STONE, payload, Duration.ofSeconds(PLACE_STONE_TIMEOUT_SECONDS));
+        String operation = "PlaceStone(" + x + "," + y + ")";
+        executeAndLog(request, operation,
+                payloadBytes -> new String(payloadBytes, StandardCharsets.UTF_8).trim());
+    }
+
+    private void executeAndLog(TcpRequest request,
+                               String operation,
+                               Function<byte[], String> payloadFormatter) {
         CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
         responseFuture.whenComplete((response, throwable) -> {
             if (throwable != null) {
-                Log.e(TAG, "PlaceStone request failed for coords=(" + x + "," + y + ")", throwable);
+                Log.e(TAG, operation + " failed", throwable);
+                return;
+            }
+            if (response == null) {
+                Log.e(TAG, operation + " failed: null response");
                 return;
             }
             if (response.isSuccess()) {
-                String ackPayload = new String(response.payload(), StandardCharsets.UTF_8).trim();
-                Log.d(TAG, "PlaceStone success: " + ackPayload);
+                byte[] payload = response.payload();
+                String payloadText = payloadFormatter != null && payload != null
+                        ? payloadFormatter.apply(payload)
+                        : "";
+                if (payloadText == null || payloadText.isEmpty()) {
+                    Log.d(TAG, operation + " success");
+                } else {
+                    Log.d(TAG, operation + " success: " + payloadText);
+                }
             } else {
-                Log.e(TAG, "PlaceStone failed: " + response.error());
+                Throwable error = response.error();
+                Log.e(TAG, operation + " failed: " + (error != null ? error : "unknown error"));
             }
         });
     }

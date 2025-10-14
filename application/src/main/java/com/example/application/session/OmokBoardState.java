@@ -45,6 +45,13 @@ public final class OmokBoardState {
         return new OmokBoardState(width, height, cells);
     }
 
+    public static OmokBoardState fromCells(int width,
+                                           int height,
+                                           @NonNull OmokStoneType[] cells) {
+        Objects.requireNonNull(cells, "cells");
+        return new OmokBoardState(width, height, cells);
+    }
+
     public int getWidth() {
         return width;
     }

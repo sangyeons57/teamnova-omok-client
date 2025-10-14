@@ -10,7 +10,6 @@ import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
 import org.json.JSONObject;
 
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -42,7 +41,10 @@ public final class StonePlacedHandler extends AbstractJsonFrameHandler {
         int y = root.optInt("y", -1);
         String stoneLabel = root.optString("stone", "");
 
-        OmokStoneType stoneType = parseStoneType(stoneLabel);
+        OmokStoneType stoneType = StoneTypeMapper.fromNetworkLabel(stoneLabel);
+        if (stoneType == OmokStoneType.UNKNOWN && !stoneLabel.isEmpty()) {
+            Log.w(TAG, "Unknown stone label '" + stoneLabel + "'. Treating as UNKNOWN.");
+        }
         Log.i(TAG, "Stone placed → sessionId=" + sessionId
                 + ", placedBy=" + placedBy
                 + ", stone=" + stoneType
@@ -58,21 +60,15 @@ public final class StonePlacedHandler extends AbstractJsonFrameHandler {
             Log.w(TAG, "Skipping board update due to invalid stone or coordinates.");
         }
 
+        JSONObject boardJson = root.optJSONObject("board");
+        if (boardJson == null && root.has("width") && root.has("height")) {
+            boardJson = root;
+        }
+        if (boardJson != null) {
+            BoardPayloadProcessor.applyBoardSnapshot(boardJson, boardStore, TAG);
+        }
+
         JSONObject turnJson = root.optJSONObject("turn");
         TurnPayloadProcessor.applyTurn(gameInfoStore, turnJson, TAG);
-    }
-
-    @NonNull
-    private OmokStoneType parseStoneType(@NonNull String stoneLabel) {
-        if (stoneLabel.isEmpty()) {
-            return OmokStoneType.UNKNOWN;
-        }
-        String normalized = stoneLabel.toUpperCase(Locale.US);
-        try {
-            return OmokStoneType.valueOf(normalized);
-        } catch (IllegalArgumentException e) {
-            Log.w(TAG, "Unknown stone label '" + stoneLabel + "'. Treating as UNKNOWN.");
-            return OmokStoneType.UNKNOWN;
-        }
     }
 }

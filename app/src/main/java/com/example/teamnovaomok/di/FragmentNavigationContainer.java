@@ -12,6 +12,7 @@ import com.example.feature_home.home.navigation.HomeNavigationProvider;
 import com.example.feature_home.home.navigation.MatchingNavigationProvider;
 import com.example.feature_home.home.navigation.ScoreNavigationProvider;
 import com.example.feature_game.game.navigation.GameNavigationProvider;
+import com.example.feature_game.game.navigation.PostGameNavigationProvider;
 
 /**
  * Composes the navigation infrastructure by wiring providers into a host instance.
@@ -27,6 +28,7 @@ public final class FragmentNavigationContainer {
         registry.registerProvider(new MatchingNavigationProvider());
         registry.registerProvider(new ScoreNavigationProvider());
         registry.registerProvider(new GameNavigationProvider());
+        registry.registerProvider(new PostGameNavigationProvider());
         host = new FragmentNavigationHost<>(navigator, registry);
     }
 

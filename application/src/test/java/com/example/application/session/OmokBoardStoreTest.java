@@ -53,4 +53,26 @@ public class OmokBoardStoreTest {
         OmokBoardState boardState = boardStore.getBoardStateStream().getValue();
         assertTrue(boardState.getPlacements().isEmpty());
     }
+
+    @Test
+    public void updateBoardSnapshot_replacesEntireBoard() {
+        boardStore.initializeBoard(2, 2);
+
+        OmokStoneType[] cells = new OmokStoneType[]{
+                OmokStoneType.RED,
+                OmokStoneType.EMPTY,
+                OmokStoneType.UNKNOWN,
+                OmokStoneType.BLUE,
+                OmokStoneType.JOKER,
+                OmokStoneType.BLOCKER
+        };
+
+        boardStore.updateBoardSnapshot(3, 2, cells);
+
+        OmokBoardState boardState = boardStore.getBoardStateStream().getValue();
+        assertEquals(3, boardState.getWidth());
+        assertEquals(2, boardState.getHeight());
+        assertEquals(OmokStoneType.RED, boardState.getStone(0, 0));
+        assertEquals(OmokStoneType.BLOCKER, boardState.getStone(2, 1));
+    }
 }

@@ -38,17 +38,16 @@ public final class GameSessionStartedHandler extends AbstractJsonFrameHandler {
         Log.i(TAG, "Game session started → sessionId=" + sessionId + ", startedAt=" + startedAt);
 
         JSONObject boardJson = root.optJSONObject("board");
-        int width = 0;
-        int height = 0;
-        if (boardJson != null) {
-            width = boardJson.optInt("width", 0);
-            height = boardJson.optInt("height", 0);
-        }
-        if (width > 0 && height > 0) {
-            boardStore.initializeBoard(width, height);
-            Log.i(TAG, "Board initialized with size " + width + "x" + height);
-        } else {
-            Log.w(TAG, "Board dimensions missing or invalid in GAME_SESSION_STARTED payload");
+        boolean boardApplied = BoardPayloadProcessor.applyBoardSnapshot(boardJson, boardStore, TAG);
+        if (!boardApplied) {
+            int width = boardJson != null ? boardJson.optInt("width", 0) : 0;
+            int height = boardJson != null ? boardJson.optInt("height", 0) : 0;
+            if (width > 0 && height > 0) {
+                boardStore.initializeBoard(width, height);
+                Log.i(TAG, "Board initialized with size " + width + "x" + height);
+            } else {
+                Log.w(TAG, "Board dimensions missing or invalid in GAME_SESSION_STARTED payload");
+            }
         }
 
         JSONObject turnJson = root.optJSONObject("turn");

@@ -33,6 +33,13 @@ public final class OmokBoardStore {
         updateBoardState(OmokBoardState.create(width, height));
     }
 
+    public void updateBoardSnapshot(int width, int height, @NonNull OmokStoneType[] cells) {
+        if (cells == null) {
+            throw new IllegalArgumentException("cells == null");
+        }
+        updateBoardState(OmokBoardState.fromCells(width, height, cells));
+    }
+
     private void updateBoardState(@NonNull OmokBoardState boardState) {
         if (boardState == null) {
             throw new IllegalArgumentException("boardState == null");

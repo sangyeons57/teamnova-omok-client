@@ -19,6 +19,7 @@ import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigator;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.application.session.GameMode;
+import com.example.domain.user.entity.User;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.HomeViewModelFactory;
 import com.example.feature_home.home.presentation.viewmodel.HomeViewModel;
@@ -32,6 +33,7 @@ public class HomeFragment extends Fragment {
     private HomeViewModel viewModel;
     private DialogHost<MainDialogType> dialogHost;
     private FragmentNavigationHost<AppNavigationKey> fragmentNavigationHost;
+    private MaterialButton scoreButton;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -58,6 +60,14 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (viewModel != null) {
+            viewModel.refreshSelfProfile();
+        }
+    }
+
+    @Override
     public void onDetach() {
         dialogHost = null;
         fragmentNavigationHost = null;
@@ -74,7 +84,7 @@ public class HomeFragment extends Fragment {
         MaterialButton bannerButton = view.findViewById(R.id.buttonBannerAd);
         MaterialButton matchingButton = view.findViewById(R.id.buttonMatching);
         MaterialButton gameModeButton = view.findViewById(R.id.buttonGameMode);
-        MaterialButton scoreButton = view.findViewById(R.id.buttonScore);
+        scoreButton = view.findViewById(R.id.buttonScore);
         MaterialButton rankingButton = view.findViewById(R.id.buttonRanking);
         MaterialButton settingsButton = view.findViewById(R.id.buttonSettings);
         MaterialButton logOnlyButton = view.findViewById(R.id.buttonLogOnly);
@@ -91,8 +101,27 @@ public class HomeFragment extends Fragment {
             gameModeButton.setText(label);
             gameModeButton.setContentDescription(getString(R.string.home_game_mode_content_description, label));
         });
+        observeUserScore();
 
         observeViewEvents();
+    }
+
+    private void observeUserScore() {
+        updateScoreButton(null);
+        viewModel.getUser().observe(getViewLifecycleOwner(), this::updateScoreButton);
+    }
+
+    private void updateScoreButton(@Nullable User user) {
+        if (scoreButton == null) {
+            return;
+        }
+        int scoreValue = 0;
+        if (user != null && user.getScore() != null) {
+            scoreValue = user.getScore().getValue();
+        }
+        String label = getString(R.string.home_score_button_format, scoreValue);
+        scoreButton.setText(label);
+        scoreButton.setContentDescription(label);
     }
 
     private void observeViewEvents() {

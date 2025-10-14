@@ -4,7 +4,9 @@
     <string name="home_banner">배너 광고(추가 할수도 있음)</string>
     <string name="home_matching">매칭 시작</string>
     <string name="home_game_mode">게임 모드</string>
-    <string name="home_score">점수 확인</string>
+    <string name="home_score">내 점수</string>
+    <string name="home_score_loading">점수를 불러오는 중…</string>
+    <string name="home_score_button_format">내 점수 %1$d점</string>
     <string name="home_ranking">랭킹</string>
     <string name="home_settings">설정</string>
     <string name="home_log_only">로그 전용</string>

@@ -15,6 +15,7 @@ okhttp = "5.1.0"
 playServicesAuth = "21.4.0"
 playServicesBase = "18.9.0"
 gridlayout = "1.1.0"
+annotationJvm = "1.9.1"
 
 [libraries]
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentialsPlayServicesAuth" }
@@ -35,6 +36,7 @@ play-services-base = { group = "com.google.android.gms", name = "play-services-b
 androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
 orgJson = { group = "org.json", name = "json", version = "20240303" }
 archCoreTesting = { group = "androidx.arch.core", name = "core-testing", version = "2.2.0" }
+androidx-annotation-jvm = { group = "androidx.annotation", name = "annotation-jvm", version.ref = "annotationJvm" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

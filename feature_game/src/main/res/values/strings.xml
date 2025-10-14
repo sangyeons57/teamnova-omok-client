@@ -6,6 +6,7 @@
     <string name="game_banner_placeholder">배너 광고 영역</string>
     <string name="game_board_placeholder">오목 보드가 곧 표시됩니다</string>
     <string name="game_remaining_time_placeholder">남은 시간 --:--</string>
+    <string name="game_remaining_time_format">남은 시간 %1$s</string>
     <string name="game_turn_count_placeholder">현재 턴 수 정보 없음</string>
     <string name="game_info_navigation_button_label">정보 화면 이동</string>
     <string name="game_result_title_win">승리!</string>
@@ -16,6 +17,8 @@
     <string name="game_result_duration_prefix">진행 시간: </string>
     <string name="game_result_turn_count_prefix">진행 턴 수: </string>
     <string name="game_result_turn_count_suffix">턴</string>
+    <string name="game_result_duration_format">진행 시간: %1$s</string>
+    <string name="game_result_turn_count_format">진행 턴 수: %1$d턴</string>
     <string name="game_result_rematch_votes_placeholder">리매치 요청 0명</string>
     <string name="game_result_rematch_votes_prefix">리매치 요청 </string>
     <string name="game_result_rematch_votes_suffix">명</string>
@@ -38,4 +41,32 @@
     <string name="game_info_slot_label_three">Player 3</string>
     <string name="game_info_slot_label_four">Player 4</string>
     <string name="game_info_slot_empty_placeholder">Waiting for player</string>
+    <string name="game_place_stone_error_out_of_turn">내 턴이 아닙니다.</string>
+    <string name="game_place_stone_error_cell_occupied">이미 돌이 놓여 있습니다.</string>
+    <string name="game_place_stone_error_out_of_bounds">보드 밖입니다.</string>
+    <string name="game_place_stone_error_invalid">잘못된 위치입니다.</string>
+    <string name="game_place_stone_error_game_not_started">아직 게임이 시작되지 않았습니다.</string>
+    <string name="game_place_stone_error_unknown">돌을 둘 수 없습니다. 잠시 후 다시 시도하세요.</string>
+    <string name="post_game_button_rematch">다시하기</string>
+    <string name="post_game_button_leave">나가기</string>
+    <string name="post_game_rematch_count">다시하기 선택: %1$d명</string>
+    <string name="post_game_leave_count">나가기 선택: %1$d명</string>
+    <string name="post_game_countdown_prefix">결정 마감까지 </string>
+    <string name="post_game_countdown_expired">결정 시간이 종료되었습니다.</string>
+    <string name="post_game_auto_leave">시간 초과 시 자동으로 나가기</string>
+    <string name="post_game_auto_rematch">시간 초과 시 자동으로 다시하기</string>
+    <string name="post_game_waiting_prefix">대기 중: </string>
+    <string name="post_game_waiting_empty">모든 플레이어가 선택했습니다.</string>
+    <string name="post_game_rematch_icon_content_description">리매치 선택한 플레이어</string>
+    <plurals name="post_game_rematch_icon_count_description">
+        <item quantity="one">리매치 선택 %d명</item>
+        <item quantity="other">리매치 선택 %d명</item>
+    </plurals>
+    <string name="post_game_error_generic">결정을 전송할 수 없습니다.</string>
+    <string name="post_game_error_invalid_player">참가자 권한이 없습니다.</string>
+    <string name="post_game_error_already_decided">이미 결정을 선택했습니다.</string>
+    <string name="post_game_error_time_window_closed">결정 시간이 종료되었습니다.</string>
+    <string name="post_game_error_session_closed">세션이 이미 종료되었습니다.</string>
+    <string name="post_game_error_session_not_found">세션 정보를 찾을 수 없습니다.</string>
+    <string name="post_game_error_invalid_payload">요청 형식이 올바르지 않습니다.</string>
 </resources>

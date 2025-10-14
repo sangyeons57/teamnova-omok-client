@@ -1,0 +1,52 @@
+package com.example.core_di.tcp;
+
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import com.example.application.session.GameInfoStore;
+import com.example.application.session.OmokBoardStore;
+
+import org.json.JSONObject;
+
+import java.util.Objects;
+
+/**
+ * Handles BOARD_UPDATED frames containing the full board snapshot.
+ */
+public final class BoardUpdatedHandler extends AbstractJsonFrameHandler {
+
+    private static final String TAG = "BoardUpdatedHandler";
+
+    private final OmokBoardStore boardStore;
+
+    public BoardUpdatedHandler(@NonNull GameInfoStore gameInfoStore) {
+        this(gameInfoStore, gameInfoStore.getBoardStore());
+    }
+
+    BoardUpdatedHandler(@NonNull GameInfoStore gameInfoStore,
+                        @NonNull OmokBoardStore boardStore) {
+        super(TAG, "BOARD_UPDATED");
+        this.boardStore = Objects.requireNonNull(boardStore, "boardStore");
+    }
+
+    @Override
+    protected void onJsonPayload(@NonNull JSONObject root) {
+        String sessionId = root.optString("sessionId", "");
+        JSONObject boardJson = extractBoardJson(root);
+        boolean applied = BoardPayloadProcessor.applyBoardSnapshot(boardJson, boardStore, TAG);
+        if (!applied) {
+            Log.w(TAG, "Ignored BOARD_UPDATED payload for sessionId=" + sessionId + " due to invalid board data.");
+        } else {
+            Log.d(TAG, "Board snapshot synchronized for sessionId=" + sessionId);
+        }
+    }
+
+    private JSONObject extractBoardJson(@NonNull JSONObject root) {
+        JSONObject boardJson = root.optJSONObject("board");
+        if (boardJson == null && root.has("width") && root.has("height")) {
+            boardJson = root;
+        }
+        return boardJson;
+    }
+}

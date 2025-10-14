@@ -21,6 +21,14 @@ public enum FrameType {
     PLACE_STONE((byte)8),
     STONE_PLACED((byte)9),
     TURN_TIMEOUT((byte)10),
+    GAME_SESSION_COMPLETED((byte)11),
+    GAME_POST_DECISION_PROMPT((byte)12),
+    POST_GAME_DECISION((byte)13),
+    GAME_POST_DECISION_UPDATE((byte)14),
+    GAME_SESSION_REMATCH_STARTED((byte)15),
+    GAME_SESSION_TERMINATED((byte)16),
+    GAME_SESSION_PLAYER_DISCONNECTED((byte)17),
+    BOARD_UPDATED((byte)18),
     ;
 
     private static final Map<Byte, FrameType> LOOKUP = new ConcurrentHashMap<>();

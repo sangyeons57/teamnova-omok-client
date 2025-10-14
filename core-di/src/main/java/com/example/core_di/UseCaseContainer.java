@@ -22,6 +22,7 @@ import com.example.application.usecase.LogoutUseCase;
 import com.example.application.usecase.RankingDataUseCase;
 import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.application.usecase.PlaceStoneUseCase;
+import com.example.application.usecase.PostGameDecisionUseCase;
 import com.example.application.usecase.SelfDataUseCase;
 import com.example.application.usecase.UserDataUseCase;
 import com.example.application.usecase.TcpAuthUseCase;
@@ -100,6 +101,8 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new ReadyInGameSessionUseCase(defaultConfig, realtimeRepository)));
         registry.register(PlaceStoneUseCase.class,
                 UseCaseProviders.singleton(() -> new PlaceStoneUseCase(defaultConfig, realtimeRepository)));
+        registry.register(PostGameDecisionUseCase.class,
+                UseCaseProviders.singleton(() -> new PostGameDecisionUseCase(defaultConfig, realtimeRepository)));
     }
 
     public <T> T get(Class<T> key) {

@@ -2,12 +2,17 @@ package com.example.data.repository.realtime;
 
 import android.util.Log;
 
+import com.example.application.port.out.realtime.PlaceStoneResponse;
+import com.example.application.port.out.realtime.PostGameDecisionAck;
+import com.example.application.port.out.realtime.PostGameDecisionOption;
 import com.example.application.port.out.realtime.RealtimeRepository;
 import com.example.core.network.tcp.protocol.FrameType;
 import com.example.data.datasource.DefaultTcpServerDataSource;
 import com.example.data.exception.TcpRemoteException;
 import com.example.data.model.tcp.TcpRequest;
 import com.example.data.model.tcp.TcpResponse;
+import com.example.data.repository.realtime.codec.PlaceStoneMessageCodec;
+import com.example.data.repository.realtime.codec.PostGameDecisionMessageCodec;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -21,6 +26,7 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
     private static final long HELLO_TIMEOUT_SECONDS = 5L;
     private static final long AUTH_TIMEOUT_SECONDS = 5L;
     private static final long PLACE_STONE_TIMEOUT_SECONDS = 5L;
+    private static final long POST_GAME_DECISION_TIMEOUT_SECONDS = 5L;
 
     private final DefaultTcpServerDataSource tcpServerDataSource;
 
@@ -90,13 +96,22 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
     }
 
     @Override
-    public void placeStone(int x, int y) {
-        String payloadString = x + "," + y;
-        byte[] payload = payloadString.getBytes(StandardCharsets.UTF_8);
+    public CompletableFuture<PlaceStoneResponse> placeStone(int x, int y) {
+        byte[] payload = PlaceStoneMessageCodec.encode(x, y);
         TcpRequest request = TcpRequest.of(FrameType.PLACE_STONE, payload, Duration.ofSeconds(PLACE_STONE_TIMEOUT_SECONDS));
         String operation = "PlaceStone(" + x + "," + y + ")";
-        executeAndLog(request, operation,
-                payloadBytes -> new String(payloadBytes, StandardCharsets.UTF_8).trim());
+        CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
+        return responseFuture.thenApply(response -> handlePlaceStoneResponse(operation, response));
+    }
+
+    @Override
+    public CompletableFuture<PostGameDecisionAck> postGameDecision(PostGameDecisionOption decision) {
+        Objects.requireNonNull(decision, "decision");
+        byte[] payload = PostGameDecisionMessageCodec.encode(decision);
+        TcpRequest request = TcpRequest.of(FrameType.POST_GAME_DECISION, payload, Duration.ofSeconds(POST_GAME_DECISION_TIMEOUT_SECONDS));
+        String operation = "PostGameDecision(" + decision.name() + ")";
+        CompletableFuture<TcpResponse> responseFuture = tcpServerDataSource.execute(request);
+        return responseFuture.thenApply(response -> handlePostGameDecisionResponse(operation, response));
     }
 
     private void executeAndLog(TcpRequest request,
@@ -127,6 +142,47 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
                 Log.e(TAG, operation + " failed: " + (error != null ? error : "unknown error"));
             }
         });
+    }
+
+    private PlaceStoneResponse handlePlaceStoneResponse(String operation, TcpResponse response) {
+        if (response == null) {
+            throw new TcpRemoteException(operation + " failed: null response");
+        }
+        if (!response.isSuccess()) {
+            Throwable error = response.error();
+            Log.e(TAG, operation + " failed", error);
+            throw new TcpRemoteException(operation + " failed", error);
+        }
+        PlaceStoneResponse decoded = PlaceStoneMessageCodec.decode(response.payload());
+        if (decoded.isSuccess()) {
+            Log.d(TAG, operation + " success: " + decoded.rawMessage());
+        } else {
+            Log.w(TAG, operation + " rejected → status=" + decoded.status()
+                    + " turn=" + decoded.turnNumber()
+                    + " payload=" + decoded.rawMessage());
+        }
+        return decoded;
+    }
+
+    private PostGameDecisionAck handlePostGameDecisionResponse(String operation, TcpResponse response) {
+        if (response == null) {
+            throw new TcpRemoteException(operation + " failed: null response");
+        }
+        if (!response.isSuccess()) {
+            Throwable error = response.error();
+            Log.e(TAG, operation + " failed", error);
+            throw new TcpRemoteException(operation + " failed", error);
+        }
+        PostGameDecisionAck ack = PostGameDecisionMessageCodec.decodeAck(response.payload());
+        if (ack.status() == PostGameDecisionAck.Status.OK) {
+            Log.d(TAG, operation + " success → decision=" + ack.decision());
+        } else if (ack.status() == PostGameDecisionAck.Status.ERROR) {
+            Log.w(TAG, operation + " rejected → reason=" + ack.errorReason()
+                    + ", payload=" + ack.rawMessage());
+        } else {
+            Log.w(TAG, operation + " returned UNKNOWN state: " + ack.rawMessage());
+        }
+        return ack;
     }
 
 }

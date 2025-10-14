@@ -8,6 +8,10 @@ public enum OmokStoneType {
     WHITE,
     RED,
     BLUE,
+    YELLOW,
+    GREEN,
+    JOKER,
+    BLOCKER,
     EMPTY,
     UNKNOWN;
 
@@ -15,6 +19,9 @@ public enum OmokStoneType {
      * Returns {@code true} if this stone represents an actual piece on the board.
      */
     public boolean isPlaced() {
-        return this == BLACK || this == WHITE || this == RED || this == BLUE;
+        return switch (this) {
+            case RED, BLUE, YELLOW, GREEN, JOKER, BLOCKER, BLACK, WHITE -> true;
+            case EMPTY, UNKNOWN -> false;
+        };
     }
 }

@@ -38,14 +38,25 @@ final class TurnPayloadProcessor {
             return;
         }
         int turnNumber = turnJson.optInt("number", -1);
+        int sequentialTurn = turnJson.optInt("turn", -1);
         String currentPlayerId = turnJson.optString("currentPlayerId", null);
         long startAt = turnJson.optLong("startAt", 0L);
         long endAt = turnJson.optLong("endAt", 0L);
         int remainingSeconds = computeRemainingSeconds(endAt, nowSupplier);
-        int participantIndex = resolveParticipantIndex(gameInfoStore.getCurrentGameSession(), currentPlayerId);
+        GameSessionInfo session = gameInfoStore.getCurrentGameSession();
+        int participantIndex = resolveParticipantIndex(session, currentPlayerId);
+
+        if (participantIndex < 0) {
+            int participantCount = session != null ? session.getParticipantCount() : 0;
+            int turnValue = sequentialTurn > 0 ? sequentialTurn : turnNumber;
+            if (participantCount > 0 && turnValue > 0) {
+                participantIndex = (turnValue - 1) % participantCount;
+            }
+        }
 
         Log.d(tag, "Turn update #" + turnNumber
                 + " currentPlayerId=" + currentPlayerId
+                + " sequentialTurn=" + sequentialTurn
                 + " remainingSeconds=" + remainingSeconds
                 + " startAt=" + startAt
                 + " endAt=" + endAt);

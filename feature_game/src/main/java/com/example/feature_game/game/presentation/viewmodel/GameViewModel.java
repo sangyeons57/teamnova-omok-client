@@ -1,5 +1,7 @@
 package com.example.feature_game.game.presentation.viewmodel;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -21,16 +23,24 @@ import com.example.application.session.OmokBoardState;
 import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
+import com.example.application.session.postgame.PlayerDisconnectReason;
+import com.example.application.session.postgame.PostGameSessionState;
+import com.example.application.session.postgame.PostGameSessionStore;
 import com.example.application.session.UserSessionStore;
 import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.application.usecase.PlaceStoneUseCase;
+import com.example.application.port.out.realtime.PlaceStoneResponse;
 import com.example.domain.user.entity.User;
+import com.example.core.sound.SoundManager;
+import com.example.designsystem.R;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,18 +52,23 @@ public class GameViewModel extends ViewModel {
 
     private static final String TAG = "GameViewModel";
     private static final int DEFAULT_BOARD_SIZE = 10;
+    private static final int TURN_TOTAL_SECONDS = 15;
     private static final OmokStoneType[] TURN_ORDER = new OmokStoneType[]{
-            OmokStoneType.BLACK,
-            OmokStoneType.WHITE,
             OmokStoneType.RED,
-            OmokStoneType.BLUE
+            OmokStoneType.BLUE,
+            OmokStoneType.YELLOW,
+            OmokStoneType.GREEN
     };
+    private static final String SOUND_ID_PLACE_STONE = "game_place_stone";
 
     private final GameInfoStore gameInfoStore;
     private final UserSessionStore userSessionStore;
     private final ReadyInGameSessionUseCase readyInGameSessionUseCase;
     private final PlaceStoneUseCase placeStoneUseCase;
+    private final PostGameSessionStore postGameSessionStore;
+    private final SoundManager soundManager;
     private final OmokBoardStore boardStore;
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private final ExecutorService realtimeExecutor = Executors.newSingleThreadExecutor();
     private final MutableLiveData<List<GamePlayerSlot>> playerSlots = new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<Integer> activePlayerIndex = new MutableLiveData<>(0);
@@ -61,28 +76,65 @@ public class GameViewModel extends ViewModel {
     private final MutableLiveData<MatchState> matchState = new MutableLiveData<>(MatchState.IDLE);
     private final MutableLiveData<OmokBoardState> boardState = new MutableLiveData<>(OmokBoardState.empty());
     private final MutableLiveData<GameViewEvent> viewEvents = new MutableLiveData<>();
+    private final MutableLiveData<PlaceStoneResponse.Status> placementErrors = new MutableLiveData<>();
+    private final MutableLiveData<Integer> remainingSeconds = new MutableLiveData<>(TURN_TOTAL_SECONDS);
     private final Observer<GameMode> modeObserver = this::onModeChanged;
     private final Observer<MatchState> matchObserver = this::onMatchStateChanged;
     private final Observer<GameSessionInfo> sessionObserver = this::onSessionChanged;
     private final Observer<User> userObserver = this::onUserChanged;
     private final Observer<OmokBoardState> boardObserver = this::onBoardStateChanged;
     private final Observer<GameTurnState> turnObserver = this::onTurnChanged;
+    private final Observer<PostGameSessionState> postGameObserver = this::onPostGameStateChanged;
 
     private final List<GamePlayerSlot> cachedSlots = new ArrayList<>(4);
+    private final Map<String, PlayerDisconnectReason> disconnectedPlayers = new HashMap<>();
     private final AtomicBoolean readySignalSent = new AtomicBoolean(false);
+    private final AtomicBoolean postGameNavigationDispatched = new AtomicBoolean(false);
+    private final SoundManager.PlaybackListener placeStoneSoundListener = new SoundManager.PlaybackListener() {
+        @Override
+        public void onStart(@NonNull String soundId) {
+            Log.d(TAG, "Sound started: " + soundId);
+        }
+
+        @Override
+        public void onEnd(@NonNull String soundId) {
+            Log.d(TAG, "Sound ended: " + soundId);
+        }
+
+        @Override
+        public void onError(@NonNull String soundId, @NonNull Exception exception) {
+            Log.e(TAG, "Sound playback failed for " + soundId, exception);
+        }
+    };
     private String selfDisplayName = "";
     private String selfUserId = "";
     private GameSessionInfo latestSessionInfo;
+    private Runnable turnCountdownRunnable;
+    private int currentTurnRemainingSeconds = TURN_TOTAL_SECONDS;
+    private int lastTurnParticipantIndex = -1;
 
     public GameViewModel(@NonNull GameInfoStore gameInfoStore,
                          @NonNull UserSessionStore userSessionStore,
                          @NonNull ReadyInGameSessionUseCase readyInGameSessionUseCase,
-                         @NonNull PlaceStoneUseCase placeStoneUseCase) {
+                         @NonNull PlaceStoneUseCase placeStoneUseCase,
+                         @NonNull PostGameSessionStore postGameSessionStore,
+                         @NonNull SoundManager soundManager) {
         this.gameInfoStore = gameInfoStore;
         this.userSessionStore = userSessionStore;
         this.readyInGameSessionUseCase = readyInGameSessionUseCase;
         this.placeStoneUseCase = placeStoneUseCase;
         this.boardStore = gameInfoStore.getBoardStore();
+        this.postGameSessionStore = postGameSessionStore;
+        this.soundManager = soundManager;
+
+        if (!this.soundManager.isRegistered(SOUND_ID_PLACE_STONE)) {
+            this.soundManager.register(new SoundManager.SoundRegistration(
+                    SOUND_ID_PLACE_STONE,
+                    R.raw.placing_stone_sound_effect,
+                    1f,
+                    false
+            ));
+        }
 
         gameInfoStore.getModeStream().observeForever(modeObserver);
         gameInfoStore.getMatchStateStream().observeForever(matchObserver);
@@ -90,6 +142,7 @@ public class GameViewModel extends ViewModel {
         gameInfoStore.getTurnStateStream().observeForever(turnObserver);
         boardStore.getBoardStateStream().observeForever(boardObserver);
         userSessionStore.getUserStream().observeForever(userObserver);
+        postGameSessionStore.getStateStream().observeForever(postGameObserver);
 
         GameMode initialMode = gameInfoStore.getModeStream().getValue();
         if (initialMode == null) {
@@ -171,6 +224,16 @@ public class GameViewModel extends ViewModel {
         return viewEvents;
     }
 
+    @NonNull
+    public LiveData<PlaceStoneResponse.Status> getPlacementErrors() {
+        return placementErrors;
+    }
+
+    @NonNull
+    public LiveData<Integer> getRemainingSeconds() {
+        return remainingSeconds;
+    }
+
     public void notifyGameReady() {
         if (readySignalSent.getAndSet(true)) {
             return;
@@ -216,28 +279,93 @@ public class GameViewModel extends ViewModel {
             Log.w(TAG, "Ignoring tap on occupied cell (" + x + "," + y + ")");
             return;
         }
+        if (!isSelfTurn()) {
+            Log.w(TAG, "Ignoring tap → not current player's turn");
+            return;
+        }
         OmokStoneType nextType = resolveStoneForActiveTurn();
         if (nextType == OmokStoneType.UNKNOWN || nextType == OmokStoneType.EMPTY) {
             return;
         }
-        dispatchPlaceStone(x, y);
+        soundManager.play(SOUND_ID_PLACE_STONE, placeStoneSoundListener);
         boardStore.applyStone(new OmokStonePlacement(x, y, nextType));
-        gameInfoStore.advanceTurn();
+        dispatchPlaceStone(x, y, nextType);
     }
 
-    private void dispatchPlaceStone(int x, int y) {
+    private void dispatchPlaceStone(int x, int y, @NonNull OmokStoneType expectedStone) {
         placeStoneUseCase.executeAsync(new PlaceStoneUseCase.Params(x, y), realtimeExecutor)
                 .whenComplete((result, throwable) -> {
                     if (throwable != null) {
                         Log.e(TAG, "PLACE_STONE request failed for (" + x + "," + y + ")", throwable);
+                        rollbackPlacement(x, y, expectedStone);
+                        placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
                         return;
                     }
                     if (result instanceof UResult.Err<?> err) {
                         Log.w(TAG, "PLACE_STONE rejected (" + x + "," + y + "): " + err.message());
+                        rollbackPlacement(x, y, expectedStone);
+                        placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
                     } else {
                         Log.d(TAG, "PLACE_STONE dispatched for (" + x + "," + y + ")");
+                        if (result instanceof UResult.Ok<PlaceStoneResponse> ok && ok.value() != null) {
+                            handlePlaceStoneResponse(x, y, expectedStone, ok.value());
+                            return;
+                        }
+                        rollbackPlacement(x, y, expectedStone);
+                        placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
                     }
                 });
+    }
+
+    private void handlePlaceStoneResponse(int x, int y, @NonNull OmokStoneType expectedStone, @NonNull PlaceStoneResponse response) {
+        if (response.isSuccess()) {
+            return;
+        }
+        Log.w(TAG, "PLACE_STONE outcome for (" + x + "," + y + ") rejected → status="
+                + response.status() + ", message='" + response.rawMessage() + "'");
+        rollbackPlacement(x, y, expectedStone);
+        placementErrors.postValue(response.status());
+    }
+
+    private void rollbackPlacement(int x, int y, @NonNull OmokStoneType expectedStone) {
+        OmokBoardState current = boardStore.getCurrentBoardState();
+        if (current == null || current.getWidth() <= 0 || current.getHeight() <= 0) {
+            return;
+        }
+        try {
+            OmokStoneType stone = current.getStone(x, y);
+            if (stone == expectedStone) {
+                boardStore.applyStone(new OmokStonePlacement(x, y, OmokStoneType.EMPTY));
+            }
+        } catch (IndexOutOfBoundsException e) {
+            Log.w(TAG, "Cannot rollback placement outside board bounds (" + x + "," + y + ")", e);
+        }
+    }
+
+    private boolean isSelfTurn() {
+        GameTurnState turnState = gameInfoStore.getCurrentTurnState();
+        if (turnState == null || !turnState.isActive()) {
+            return false;
+        }
+        int selfIndex = resolveSelfParticipantIndex();
+        return selfIndex >= 0 && turnState.getCurrentIndex() == selfIndex;
+    }
+
+    private int resolveSelfParticipantIndex() {
+        if (latestSessionInfo == null) {
+            return -1;
+        }
+        if (selfUserId == null || selfUserId.isEmpty()) {
+            return -1;
+        }
+        List<GameParticipantInfo> participants = latestSessionInfo.getParticipants();
+        for (int i = 0; i < participants.size(); i++) {
+            GameParticipantInfo participant = participants.get(i);
+            if (participant != null && selfUserId.equals(participant.getUserId())) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public void placeStoneExplicit(int x, int y, @NonNull OmokStoneType stoneType, boolean advanceTurn) {
@@ -263,6 +391,10 @@ public class GameViewModel extends ViewModel {
         viewEvents.setValue(null);
     }
 
+    public void onPlacementFeedbackHandled() {
+        placementErrors.setValue(null);
+    }
+
     private void onModeChanged(@Nullable GameMode mode) {
         if (mode == null) {
             mode = GameMode.TWO_PLAYER;
@@ -271,6 +403,8 @@ public class GameViewModel extends ViewModel {
         rebuildSlots(mode);
         gameInfoStore.setTurnIndex(0);
         activePlayerIndex.postValue(0);
+        lastTurnParticipantIndex = -1;
+        startTurnCountdown(TURN_TOTAL_SECONDS);
     }
 
     private void onMatchStateChanged(@Nullable MatchState state) {
@@ -280,11 +414,31 @@ public class GameViewModel extends ViewModel {
         matchState.postValue(state);
         if (state == MatchState.MATCHED) {
             Log.d(TAG, "Players matched. Ready to begin game.");
+        } else if (state == MatchState.IDLE) {
+            synchronized (disconnectedPlayers) {
+                if (!disconnectedPlayers.isEmpty()) {
+                    disconnectedPlayers.clear();
+                    rebuildSlots(currentMode.getValue());
+                }
+            }
+            lastTurnParticipantIndex = -1;
+            startTurnCountdown(0);
         }
     }
 
     private void onSessionChanged(@Nullable GameSessionInfo sessionInfo) {
+        GameSessionInfo previousSession = latestSessionInfo;
         latestSessionInfo = sessionInfo;
+        postGameNavigationDispatched.set(false);
+        if (sessionInfo == null
+                || previousSession == null
+                || !previousSession.getSessionId().equals(sessionInfo.getSessionId())) {
+            synchronized (disconnectedPlayers) {
+                disconnectedPlayers.clear();
+            }
+            lastTurnParticipantIndex = -1;
+            startTurnCountdown(TURN_TOTAL_SECONDS);
+        }
         GameMode mode = currentMode.getValue();
         if (mode == null) {
             mode = gameInfoStore.getCurrentMode();
@@ -313,9 +467,50 @@ public class GameViewModel extends ViewModel {
     private void onTurnChanged(@Nullable GameTurnState state) {
         if (state == null || !state.isActive()) {
             activePlayerIndex.postValue(0);
+            lastTurnParticipantIndex = -1;
+            startTurnCountdown(0);
             return;
         }
-        activePlayerIndex.postValue(state.getCurrentIndex());
+        int currentIndex = state.getCurrentIndex();
+        activePlayerIndex.postValue(currentIndex);
+        int reportedSeconds = clampTurnSeconds(state.getRemainingSeconds());
+        boolean isNewTurn = currentIndex != lastTurnParticipantIndex;
+        if (!isNewTurn && reportedSeconds > currentTurnRemainingSeconds) {
+            isNewTurn = true;
+        }
+        int startingSeconds = isNewTurn ? TURN_TOTAL_SECONDS : reportedSeconds;
+        startTurnCountdown(startingSeconds);
+        lastTurnParticipantIndex = currentIndex;
+    }
+
+    private void onPostGameStateChanged(@Nullable PostGameSessionState state) {
+        if (state == null) {
+            return;
+        }
+        boolean disconnectedChanged = updateDisconnectedPlayers(state);
+        if (disconnectedChanged) {
+            rebuildSlots(currentMode.getValue());
+        }
+        if (postGameNavigationDispatched.get()) {
+            return;
+        }
+        if (state.getOutcomes().isEmpty()) {
+            return;
+        }
+        GameSessionInfo sessionInfo = latestSessionInfo;
+        if (sessionInfo == null) {
+            return;
+        }
+        String currentSessionId = sessionInfo.getSessionId();
+        if (currentSessionId == null || currentSessionId.isEmpty()) {
+            return;
+        }
+        if (!currentSessionId.equals(state.getSessionId())) {
+            return;
+        }
+        if (postGameNavigationDispatched.compareAndSet(false, true)) {
+            viewEvents.postValue(GameViewEvent.OPEN_POST_GAME_SCREEN);
+        }
     }
 
     private OmokStoneType resolveStoneForActiveTurn() {
@@ -373,10 +568,12 @@ public class GameViewModel extends ViewModel {
                     : null;
 
             String name = "";
+            String userId = "";
             boolean empty = true;
             boolean enabled = withinParticipantRange;
 
             if (participant != null) {
+                userId = participant.getUserId();
                 String participantName = participant.getDisplayName();
                 if (participantName != null && !participantName.trim().isEmpty()) {
                     name = participantName;
@@ -386,14 +583,98 @@ public class GameViewModel extends ViewModel {
                     empty = false;
                 }
             } else if (withinParticipantRange && i == 0 && !selfDisplayName.isEmpty()) {
+                userId = selfUserId;
                 name = selfDisplayName;
                 empty = false;
             }
 
+            if (userId == null) {
+                userId = "";
+            }
+            PlayerDisconnectReason reason = resolveDisconnectReason(userId);
+            boolean disconnected = reason != PlayerDisconnectReason.UNKNOWN;
+            if (disconnected) {
+                enabled = false;
+            }
+
             int profileIconCode = participant != null ? participant.getProfileIconCode() : 0;
-            cachedSlots.add(new GamePlayerSlot(i, name, empty, enabled, profileIconCode));
+            cachedSlots.add(new GamePlayerSlot(i, userId, name, empty, enabled, profileIconCode, reason));
         }
         playerSlots.postValue(new ArrayList<>(cachedSlots));
+    }
+
+    private boolean updateDisconnectedPlayers(@NonNull PostGameSessionState state) {
+        String sessionId = state.getSessionId();
+        if (sessionId == null || sessionId.isEmpty()) {
+            synchronized (disconnectedPlayers) {
+                if (disconnectedPlayers.isEmpty()) {
+                    return false;
+                }
+                disconnectedPlayers.clear();
+                return true;
+            }
+        }
+        GameSessionInfo sessionInfo = latestSessionInfo;
+        if (sessionInfo == null || !sessionId.equals(sessionInfo.getSessionId())) {
+            return false;
+        }
+        Map<String, PlayerDisconnectReason> incoming = state.getDisconnectedPlayers();
+        synchronized (disconnectedPlayers) {
+            if (disconnectedPlayers.equals(incoming)) {
+                return false;
+            }
+            disconnectedPlayers.clear();
+            disconnectedPlayers.putAll(incoming);
+            return true;
+        }
+    }
+
+    @NonNull
+    private PlayerDisconnectReason resolveDisconnectReason(@Nullable String userId) {
+        if (userId == null || userId.isEmpty()) {
+            return PlayerDisconnectReason.UNKNOWN;
+        }
+        synchronized (disconnectedPlayers) {
+            PlayerDisconnectReason reason = disconnectedPlayers.get(userId);
+            return reason != null ? reason : PlayerDisconnectReason.UNKNOWN;
+        }
+    }
+
+    private void startTurnCountdown(int seconds) {
+        cancelTurnCountdown();
+        int clamped = clampTurnSeconds(seconds);
+        remainingSeconds.setValue(clamped);
+        currentTurnRemainingSeconds = clamped;
+        if (clamped <= 0) {
+            return;
+        }
+        turnCountdownRunnable = new Runnable() {
+            @Override
+            public void run() {
+                currentTurnRemainingSeconds = Math.max(0, currentTurnRemainingSeconds - 1);
+                remainingSeconds.setValue(currentTurnRemainingSeconds);
+                if (currentTurnRemainingSeconds > 0) {
+                    handler.postDelayed(this, 1_000L);
+                } else {
+                    turnCountdownRunnable = null;
+                }
+            }
+        };
+        handler.postDelayed(turnCountdownRunnable, 1_000L);
+    }
+
+    private void cancelTurnCountdown() {
+        if (turnCountdownRunnable != null) {
+            handler.removeCallbacks(turnCountdownRunnable);
+            turnCountdownRunnable = null;
+        }
+    }
+
+    private int clampTurnSeconds(int seconds) {
+        if (seconds < 0) {
+            return 0;
+        }
+        return Math.min(TURN_TOTAL_SECONDS, seconds);
     }
 
     private int resolveParticipantCount(@NonNull GameMode mode) {
@@ -413,12 +694,14 @@ public class GameViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
+        cancelTurnCountdown();
         gameInfoStore.getModeStream().removeObserver(modeObserver);
         gameInfoStore.getMatchStateStream().removeObserver(matchObserver);
         gameInfoStore.getGameSessionStream().removeObserver(sessionObserver);
         gameInfoStore.getTurnStateStream().removeObserver(turnObserver);
         boardStore.getBoardStateStream().removeObserver(boardObserver);
         userSessionStore.getUserStream().removeObserver(userObserver);
+        postGameSessionStore.getStateStream().removeObserver(postGameObserver);
         realtimeExecutor.shutdownNow();
         super.onCleared();
     }

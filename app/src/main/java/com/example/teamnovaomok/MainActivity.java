@@ -99,6 +99,4 @@ public class MainActivity extends AppCompatActivity implements
             host.navigateTo(AppNavigationKey.LOGIN, false);
         });
     }
-
-
 }

@@ -20,6 +20,7 @@ import com.example.feature_game.game.presentation.model.GameResultOutcome;
 import com.example.feature_game.game.presentation.model.GameResultUiState;
 import com.example.feature_game.game.presentation.state.GameResultDialogEvent;
 import com.example.feature_game.game.presentation.viewmodel.GameResultDialogViewModel;
+import com.example.core_di.sound.SoundEffects;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textview.MaterialTextView;
@@ -83,8 +84,14 @@ public final class GameResultDialogController implements DialogController<MainDi
             viewModel.onEventHandled();
         });
 
-        exitButton.setOnClickListener(v -> viewModel.onExitClicked());
-        rematchButton.setOnClickListener(v -> viewModel.onRematchClicked());
+        exitButton.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onExitClicked();
+        });
+        rematchButton.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onRematchClicked();
+        });
     }
 
     private void bindState(@NonNull FragmentActivity activity,

@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.viewmodel.ScoreDialogViewModel;
 import com.google.android.material.button.MaterialButton;
@@ -58,10 +59,14 @@ public final class ScoreDialogController implements DialogController<MainDialogT
         populateScores(scoreList, viewModel.getScores());
 
         close.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onCloseClicked();
             dialog.dismiss();
         });
-        share.setOnClickListener(v -> viewModel.onShareClicked());
+        share.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onShareClicked();
+        });
     }
 
     private void populateScores(@NonNull ViewGroup root, @NonNull List<String> scores) {

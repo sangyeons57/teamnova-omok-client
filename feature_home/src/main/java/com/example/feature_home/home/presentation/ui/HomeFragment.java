@@ -20,6 +20,7 @@ import com.example.core.navigation.FragmentNavigator;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.application.session.GameMode;
 import com.example.domain.user.entity.User;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.HomeViewModelFactory;
 import com.example.feature_home.home.presentation.viewmodel.HomeViewModel;
@@ -89,13 +90,13 @@ public class HomeFragment extends Fragment {
         MaterialButton settingsButton = view.findViewById(R.id.buttonSettings);
         MaterialButton logOnlyButton = view.findViewById(R.id.buttonLogOnly);
 
-        bannerButton.setOnClickListener(v -> viewModel.onBannerClicked());
-        matchingButton.setOnClickListener(v -> viewModel.onMatchingClicked());
-        gameModeButton.setOnClickListener(v -> viewModel.onGameModeClicked());
-        scoreButton.setOnClickListener(v -> viewModel.onScoreClicked());
-        rankingButton.setOnClickListener(v -> viewModel.onRankingClicked());
-        settingsButton.setOnClickListener(v -> viewModel.onSettingsClicked());
-        logOnlyButton.setOnClickListener(v -> viewModel.onLogOnlyClicked());
+        setClickWithSound(bannerButton, () -> viewModel.onBannerClicked());
+        setClickWithSound(matchingButton, () -> viewModel.onMatchingClicked());
+        setClickWithSound(gameModeButton, () -> viewModel.onGameModeClicked());
+        setClickWithSound(scoreButton, () -> viewModel.onScoreClicked());
+        setClickWithSound(rankingButton, () -> viewModel.onRankingClicked());
+        setClickWithSound(settingsButton, () -> viewModel.onSettingsClicked());
+        setClickWithSound(logOnlyButton, () -> viewModel.onLogOnlyClicked());
         viewModel.getGameMode().observe(getViewLifecycleOwner(), mode -> {
             String label = getString(gameModeToLabel(mode));
             gameModeButton.setText(label);
@@ -187,5 +188,12 @@ public class HomeFragment extends Fragment {
         if (dialogHost != null && dialogHost.isAttached()) {
             dialogHost.enqueue(type);
         }
+    }
+
+    private void setClickWithSound(@NonNull View view, @NonNull Runnable action) {
+        view.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            action.run();
+        });
     }
 }

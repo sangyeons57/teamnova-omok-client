@@ -15,6 +15,7 @@ import com.example.application.session.MatchState;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.MatchingViewModelFactory;
 import com.example.feature_home.home.presentation.state.MatchingViewEvent;
@@ -65,7 +66,7 @@ public class MatchingFragment extends Fragment {
         MaterialTextView elapsedTimeText = view.findViewById(R.id.textElapsedTime);
         MaterialButton cancelButton = view.findViewById(R.id.buttonCancelMatching);
 
-        cancelButton.setOnClickListener(v -> viewModel.onCancelMatchingClicked());
+        setClickWithSound(cancelButton, () -> viewModel.onCancelMatchingClicked());
 
         observeViewEvents();
         observeMatchState(statusChip, cancelButton);
@@ -130,5 +131,12 @@ public class MatchingFragment extends Fragment {
         if (!popped) {
             fragmentNavigationHost.navigateTo(AppNavigationKey.HOME, false);
         }
+    }
+
+    private void setClickWithSound(@NonNull View view, @NonNull Runnable action) {
+        view.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            action.run();
+        });
     }
 }

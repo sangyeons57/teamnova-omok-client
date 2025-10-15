@@ -8,6 +8,8 @@ import com.example.application.session.GameInfoStore;
 import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
+import com.example.core.sound.SoundManager;
+import com.example.core_di.R;
 import org.json.JSONObject;
 
 import java.util.Objects;
@@ -18,23 +20,30 @@ import java.util.Objects;
 public final class StonePlacedHandler extends AbstractJsonFrameHandler {
 
     private static final String TAG = "StonePlacedHandler";
+    private static final String SOUND_ID_PLACE_STONE = "game_place_stone";
 
     private final GameInfoStore gameInfoStore;
     private final OmokBoardStore boardStore;
+    private final SoundManager soundManager;
+    private volatile boolean soundRegistered = false;
 
-    public StonePlacedHandler(@NonNull GameInfoStore gameInfoStore) {
-        this(gameInfoStore, gameInfoStore.getBoardStore());
+    public StonePlacedHandler(@NonNull GameInfoStore gameInfoStore,
+                              @NonNull SoundManager soundManager) {
+        this(gameInfoStore, gameInfoStore.getBoardStore(), soundManager);
     }
 
     StonePlacedHandler(@NonNull GameInfoStore gameInfoStore,
-                       @NonNull OmokBoardStore boardStore) {
+                       @NonNull OmokBoardStore boardStore,
+                       @NonNull SoundManager soundManager) {
         super(TAG, "STONE_PLACED");
         this.gameInfoStore = Objects.requireNonNull(gameInfoStore, "gameInfoStore");
         this.boardStore = Objects.requireNonNull(boardStore, "boardStore");
+        this.soundManager = Objects.requireNonNull(soundManager, "soundManager");
     }
 
     @Override
     protected void onJsonPayload(@NonNull JSONObject root) {
+        ensureSoundRegistered();
         String sessionId = root.optString("sessionId", "");
         String placedBy = root.optString("placedBy", "");
         int x = root.optInt("x", -1);
@@ -53,6 +62,7 @@ public final class StonePlacedHandler extends AbstractJsonFrameHandler {
         if (stoneType.isPlaced() && x >= 0 && y >= 0) {
             try {
                 boardStore.applyStone(new OmokStonePlacement(x, y, stoneType));
+                soundManager.play(SOUND_ID_PLACE_STONE);
             } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
                 Log.e(TAG, "Stone coordinate outside board bounds (" + x + "," + y + ")", e);
             }
@@ -70,5 +80,25 @@ public final class StonePlacedHandler extends AbstractJsonFrameHandler {
 
         JSONObject turnJson = root.optJSONObject("turn");
         TurnPayloadProcessor.applyTurn(gameInfoStore, turnJson, TAG);
+    }
+
+    private void ensureSoundRegistered() {
+        if (soundRegistered) {
+            return;
+        }
+        synchronized (this) {
+            if (soundRegistered) {
+                return;
+            }
+            if (!soundManager.isRegistered(SOUND_ID_PLACE_STONE)) {
+                soundManager.register(new SoundManager.SoundRegistration(
+                        SOUND_ID_PLACE_STONE,
+                        R.raw.placing_stone_sound_effect,
+                        1f,
+                        false
+                ));
+            }
+            soundRegistered = true;
+        }
     }
 }

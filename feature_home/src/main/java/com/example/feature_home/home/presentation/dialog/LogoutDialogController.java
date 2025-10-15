@@ -24,6 +24,7 @@ import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
 import com.example.core_di.UseCaseContainer;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.viewmodel.LogoutDialogViewModel;
 import com.google.android.material.button.MaterialButton;
@@ -96,10 +97,12 @@ public final class LogoutDialogController implements DialogController<MainDialog
         });
 
         closeButton.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onCloseClicked();
             dialog.dismiss();
         });
         confirmButton.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             dismissAll(activity);
             handleLogout(activity, dialog, viewModel, logoutUseCase);
         });

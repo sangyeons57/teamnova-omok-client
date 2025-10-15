@@ -6,6 +6,7 @@ import com.example.core.network.tcp.TcpClient;
 import com.example.core.network.tcp.TcpClientConfig;
 import com.example.core.network.tcp.dispatcher.ClientDispatcher;
 import com.example.core.network.tcp.protocol.FrameType;
+import com.example.core.sound.SoundManager;
 import com.example.core_di.tcp.BoardUpdatedHandler;
 import com.example.core_di.tcp.GamePostDecisionPromptHandler;
 import com.example.core_di.tcp.GamePostDecisionUpdateHandler;
@@ -62,6 +63,7 @@ public final class TcpClientContainer {
 
     private void registerFrameHandlers(GameInfoStore gameInfoStore,
                                        PostGameSessionStore postGameSessionStore) {
+        SoundManager soundManager = SoundManagerContainer.getInstance().getSoundManager();
         ClientDispatcher dispatcher = tcpClient.dispatcher();
         dispatcher.register(FrameType.JOIN_IN_GAME_SESSION,
                 () -> new JoinInGameSessionHandler(gameInfoStore));
@@ -70,7 +72,7 @@ public final class TcpClientContainer {
         dispatcher.register(FrameType.GAME_SESSION_STARTED,
                 () -> new GameSessionStartedHandler(gameInfoStore));
         dispatcher.register(FrameType.STONE_PLACED,
-                () -> new StonePlacedHandler(gameInfoStore));
+                () -> new StonePlacedHandler(gameInfoStore, soundManager));
         dispatcher.register(FrameType.BOARD_UPDATED,
                 () -> new BoardUpdatedHandler(gameInfoStore));
         dispatcher.register(FrameType.TURN_TIMEOUT,

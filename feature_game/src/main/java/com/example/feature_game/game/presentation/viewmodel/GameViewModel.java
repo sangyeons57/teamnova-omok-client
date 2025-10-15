@@ -31,8 +31,6 @@ import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.application.usecase.PlaceStoneUseCase;
 import com.example.application.port.out.realtime.PlaceStoneResponse;
 import com.example.domain.user.entity.User;
-import com.example.core.sound.SoundManager;
-import com.example.designsystem.R;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
 
@@ -59,14 +57,12 @@ public class GameViewModel extends ViewModel {
             OmokStoneType.YELLOW,
             OmokStoneType.GREEN
     };
-    private static final String SOUND_ID_PLACE_STONE = "game_place_stone";
 
     private final GameInfoStore gameInfoStore;
     private final UserSessionStore userSessionStore;
     private final ReadyInGameSessionUseCase readyInGameSessionUseCase;
     private final PlaceStoneUseCase placeStoneUseCase;
     private final PostGameSessionStore postGameSessionStore;
-    private final SoundManager soundManager;
     private final OmokBoardStore boardStore;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final ExecutorService realtimeExecutor = Executors.newSingleThreadExecutor();
@@ -90,22 +86,6 @@ public class GameViewModel extends ViewModel {
     private final Map<String, PlayerDisconnectReason> disconnectedPlayers = new HashMap<>();
     private final AtomicBoolean readySignalSent = new AtomicBoolean(false);
     private final AtomicBoolean postGameNavigationDispatched = new AtomicBoolean(false);
-    private final SoundManager.PlaybackListener placeStoneSoundListener = new SoundManager.PlaybackListener() {
-        @Override
-        public void onStart(@NonNull String soundId) {
-            Log.d(TAG, "Sound started: " + soundId);
-        }
-
-        @Override
-        public void onEnd(@NonNull String soundId) {
-            Log.d(TAG, "Sound ended: " + soundId);
-        }
-
-        @Override
-        public void onError(@NonNull String soundId, @NonNull Exception exception) {
-            Log.e(TAG, "Sound playback failed for " + soundId, exception);
-        }
-    };
     private String selfDisplayName = "";
     private String selfUserId = "";
     private GameSessionInfo latestSessionInfo;
@@ -117,24 +97,13 @@ public class GameViewModel extends ViewModel {
                          @NonNull UserSessionStore userSessionStore,
                          @NonNull ReadyInGameSessionUseCase readyInGameSessionUseCase,
                          @NonNull PlaceStoneUseCase placeStoneUseCase,
-                         @NonNull PostGameSessionStore postGameSessionStore,
-                         @NonNull SoundManager soundManager) {
+                         @NonNull PostGameSessionStore postGameSessionStore) {
         this.gameInfoStore = gameInfoStore;
         this.userSessionStore = userSessionStore;
         this.readyInGameSessionUseCase = readyInGameSessionUseCase;
         this.placeStoneUseCase = placeStoneUseCase;
         this.boardStore = gameInfoStore.getBoardStore();
         this.postGameSessionStore = postGameSessionStore;
-        this.soundManager = soundManager;
-
-        if (!this.soundManager.isRegistered(SOUND_ID_PLACE_STONE)) {
-            this.soundManager.register(new SoundManager.SoundRegistration(
-                    SOUND_ID_PLACE_STONE,
-                    R.raw.placing_stone_sound_effect,
-                    1f,
-                    false
-            ));
-        }
 
         gameInfoStore.getModeStream().observeForever(modeObserver);
         gameInfoStore.getMatchStateStream().observeForever(matchObserver);
@@ -287,7 +256,6 @@ public class GameViewModel extends ViewModel {
         if (nextType == OmokStoneType.UNKNOWN || nextType == OmokStoneType.EMPTY) {
             return;
         }
-        soundManager.play(SOUND_ID_PLACE_STONE, placeStoneSoundListener);
         boardStore.applyStone(new OmokStonePlacement(x, y, nextType));
         dispatchPlaceStone(x, y, nextType);
     }

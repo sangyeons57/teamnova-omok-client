@@ -24,6 +24,7 @@ import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
 import com.example.core_di.UseCaseContainer;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.viewmodel.DeleteAccountDialogViewModel;
 import com.google.android.material.button.MaterialButton;
@@ -95,13 +96,18 @@ public final class DeleteAccountDialogController implements DialogController<Mai
         viewModel.isInProgress().observe(activity, inProgress -> updateConfirmState(confirmButton, viewModel));
 
         acknowledgeCheck.setChecked(Boolean.TRUE.equals(viewModel.isAcknowledged().getValue()));
-        acknowledgeCheck.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.setAcknowledged(isChecked));
+        acknowledgeCheck.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SoundEffects.playButtonClick();
+            viewModel.setAcknowledged(isChecked);
+        });
 
         closeButton.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onCloseClicked();
             dialog.dismiss();
         });
         confirmButton.setOnClickListener(v ->{
+            SoundEffects.playButtonClick();
             dismissAll(activity);
             handleAccountDeletion(activity, dialog, viewModel, deactivateAccountUseCase);
         });

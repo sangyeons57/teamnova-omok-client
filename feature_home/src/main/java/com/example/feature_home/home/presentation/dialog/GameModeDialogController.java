@@ -15,6 +15,7 @@ import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
 import com.example.application.session.GameMode;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.home.presentation.viewmodel.GameModeDialogViewModel;
 import com.example.feature_home.R;
 import com.google.android.material.button.MaterialButton;
@@ -58,7 +59,10 @@ public final class GameModeDialogController implements DialogController<MainDial
         MaterialButton threePlayer = contentView.findViewById(R.id.buttonGameModeThreePlayer);
         MaterialButton fourPlayer = contentView.findViewById(R.id.buttonGameModeFourPlayer);
 
-        close.setOnClickListener(v -> dialog.dismiss());
+        close.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            dialog.dismiss();
+        });
 
         Map<GameMode, MaterialButton> buttonMap = new EnumMap<>(GameMode.class);
         buttonMap.put(GameMode.FREE, free);
@@ -73,7 +77,10 @@ public final class GameModeDialogController implements DialogController<MainDial
             GameMode mode = entry.getKey();
             MaterialButton button = entry.getValue();
             button.setCheckable(true);
-            button.setOnClickListener(v -> viewModel.onModeSelected(mode));
+            button.setOnClickListener(v -> {
+                SoundEffects.playButtonClick();
+                viewModel.onModeSelected(mode);
+            });
         }
 
         updateSelection(buttonMap, viewModel.getCurrentMode(), defaultStroke, selectedStroke);

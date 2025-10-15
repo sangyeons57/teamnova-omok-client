@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.adapter.RankingDialogAdapter;
 import com.example.feature_home.home.presentation.viewmodel.RankingDialogViewModel;
@@ -91,10 +92,14 @@ public final class RankingDialogController implements DialogController<MainDialo
         viewModel.getSelfRow().observe(activity, row -> updateSelfSummary(row, selfRank, selfName, selfScore, numberFormat));
 
         close.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onCloseClicked();
             dialog.dismiss();
         });
-        overall.setOnClickListener(v -> viewModel.refreshRanking());
+        overall.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.refreshRanking();
+        });
     }
 
     private void updateSelfSummary(@Nullable RankingDialogViewModel.RankingRow row,

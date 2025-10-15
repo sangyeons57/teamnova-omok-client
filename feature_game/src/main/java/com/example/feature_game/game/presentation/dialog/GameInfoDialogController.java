@@ -16,6 +16,7 @@ import com.example.core.dialog.MainDialogType;
 import com.example.feature_game.R;
 import com.example.feature_game.game.di.GameInfoDialogViewModelFactory;
 import com.example.feature_game.game.presentation.viewmodel.GameInfoDialogViewModel;
+import com.example.core_di.sound.SoundEffects;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -61,6 +62,9 @@ public final class GameInfoDialogController implements DialogController<MainDial
             viewModel.onEventHandled();
         });
 
-        closeButton.setOnClickListener(v -> viewModel.onCloseClicked());
+        closeButton.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onCloseClicked();
+        });
     }
 }

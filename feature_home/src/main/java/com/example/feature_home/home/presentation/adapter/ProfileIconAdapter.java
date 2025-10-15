@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.core.sprite.SpriteSheet;
 import com.example.core.sprite.SpriteView;
 import com.example.core.sprite.provider.CircleClip;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.sprite.ProfileSpriteSheetProvider;
 import com.google.android.material.card.MaterialCardView;
@@ -143,7 +144,10 @@ public final class ProfileIconAdapter extends RecyclerView.Adapter<ProfileIconAd
             cardView.setStrokeColor(strokeColor);
             cardView.setStrokeWidth(strokeWidth);
 
-            cardView.setOnClickListener(v -> listener.onIconClick(item.iconCode));
+            cardView.setOnClickListener(v -> {
+                SoundEffects.playButtonClick();
+                listener.onIconClick(item.iconCode);
+            });
             cardView.setFocusable(true);
             cardView.setClickable(true);
         }

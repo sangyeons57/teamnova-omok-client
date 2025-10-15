@@ -25,6 +25,7 @@ import com.example.feature_game.game.di.PostGameViewModelFactory;
 import com.example.feature_game.game.presentation.model.PostGameUiState;
 import com.example.feature_game.game.presentation.state.PostGameViewEvent;
 import com.example.feature_game.game.presentation.viewmodel.PostGameViewModel;
+import com.example.core_di.sound.SoundEffects;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textview.MaterialTextView;
 
@@ -80,8 +81,14 @@ public final class PostGameFragment extends Fragment {
         rematchButton = root.findViewById(R.id.buttonPostGameRematch);
         leaveButton = root.findViewById(R.id.buttonPostGameLeave);
 
-        rematchButton.setOnClickListener(v -> viewModel.onRematchClicked());
-        leaveButton.setOnClickListener(v -> viewModel.onLeaveClicked());
+        rematchButton.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onRematchClicked();
+        });
+        leaveButton.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onLeaveClicked();
+        });
     }
 
     private void observeViewModel() {

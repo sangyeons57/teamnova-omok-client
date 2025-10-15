@@ -37,6 +37,7 @@ import com.example.feature_home.R;
 import com.example.feature_home.home.di.SettingDialogViewModelFactory;
 import com.example.feature_home.home.presentation.viewmodel.SettingDialogViewModel;
 import com.example.feature_home.home.presentation.viewmodel.SettingDialogViewModel.SettingDialogEvent;
+import com.example.core_di.sound.SoundEffects;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.button.MaterialButton;
@@ -92,30 +93,42 @@ public final class SettingDialogController implements DialogController<MainDialo
         LinearLayout authButtonsContainer = contentView.findViewById(R.id.containerAuthButtons);
 
         close.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onCloseClicked();
             dialog.dismiss();
         });
-        google.setOnClickListener(v -> viewModel.onGoogleSettingClicked());
-        language.setOnClickListener(v -> viewModel.onGeneralSettingClicked("language"));
+        google.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onGoogleSettingClicked();
+        });
+        language.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onGeneralSettingClicked("language");
+        });
         privacy.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onGeneralSettingClicked("privacy_policy");
             enqueueDialog(activity, MainDialogType.GENERAL_INFO, createGeneralInfoArguments(GeneralInfoContentType.PRIVACY_POLICY));
         });
         terms.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onGeneralSettingClicked("terms_of_service");
             enqueueDialog(activity, MainDialogType.GENERAL_INFO, createGeneralInfoArguments(GeneralInfoContentType.TERMS_OF_SERVICE));
         });
         logout.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onGeneralSettingClicked("logout");
             viewModel.onLogoutRequested();
             enqueueDialog(activity, MainDialogType.LOGOUT_CONFIRMATION, null);
         });
         withdraw.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onGeneralSettingClicked("withdraw");
             viewModel.onWithdrawRequested();
             enqueueDialog(activity, MainDialogType.ACCOUNT_DELETION_CONFIRMATION, null);
         });
         profile.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onGeneralSettingClicked("profile");
             viewModel.onOpenProfileClicked();
             enqueueDialog(activity, MainDialogType.SETTING_PROFILE, null);

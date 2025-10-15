@@ -89,6 +89,13 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
     }
 
     @Override
+    public void leaveMatch() {
+        TcpRequest request = TcpRequest.of(FrameType.LEAVE_MATCH, new byte[0], Duration.ofSeconds(5));
+        executeAndLog(request, "LeaveMatch",
+                payload -> new String(payload, StandardCharsets.UTF_8).trim());
+    }
+
+    @Override
     public void readyInGameSession() {
         TcpRequest request = TcpRequest.of(FrameType.READY_IN_GAME_SESSION, new byte[0], Duration.ofSeconds(5));
         executeAndLog(request, "ReadyInGameSession",

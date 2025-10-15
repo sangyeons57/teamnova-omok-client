@@ -25,6 +25,7 @@ import com.example.core.dialog.DialogController;
 import com.example.core.dialog.DialogRequest;
 import com.example.core.dialog.MainDialogType;
 import com.example.core_di.UseCaseContainer;
+import com.example.core_di.sound.SoundEffects;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.value.UserDisplayName;
 import com.example.domain.user.value.UserProfileIcon;
@@ -163,10 +164,12 @@ public final class SettingProfileDialogController implements DialogController<Ma
         });
 
         close.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             viewModel.onCloseClicked();
             dialog.dismiss();
         });
         apply.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
             CharSequence value = input.getText();
             String nickname = value == null ? "" : value.toString().trim();
             handleApply(activity, viewModel, changeNameUseCase, nickname, input);

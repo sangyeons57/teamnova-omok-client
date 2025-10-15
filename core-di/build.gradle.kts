@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":infra"))
     implementation(project(":application"))
     implementation(project(":data"))
+    implementation(project(":designsystem"))
 
     implementation(libs.appcompat)
     implementation(libs.material)

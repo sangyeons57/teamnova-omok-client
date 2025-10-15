@@ -16,6 +16,7 @@ import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.DeactivateAccountUseCase;
 import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.JoinMatchUseCase;
+import com.example.application.usecase.LeaveMatchUseCase;
 import com.example.application.usecase.LinkGoogleAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
@@ -97,6 +98,8 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new TcpAuthUseCase(defaultConfig, realtimeRepository)));
         registry.register(JoinMatchUseCase.class,
                 UseCaseProviders.singleton(() -> new JoinMatchUseCase(defaultConfig, realtimeRepository, gameInfoStore)));
+        registry.register(LeaveMatchUseCase.class,
+                UseCaseProviders.singleton(() -> new LeaveMatchUseCase(defaultConfig, realtimeRepository)));
         registry.register(ReadyInGameSessionUseCase.class,
                 UseCaseProviders.singleton(() -> new ReadyInGameSessionUseCase(defaultConfig, realtimeRepository)));
         registry.register(PlaceStoneUseCase.class,

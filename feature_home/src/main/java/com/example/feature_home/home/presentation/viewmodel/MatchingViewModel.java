@@ -11,6 +11,7 @@ import com.example.application.port.in.UseCase;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.MatchState;
 import com.example.application.usecase.JoinMatchUseCase;
+import com.example.application.usecase.LeaveMatchUseCase;
 import com.example.feature_home.home.presentation.state.MatchingViewEvent;
 
 import java.util.Locale;
@@ -31,6 +32,7 @@ public class MatchingViewModel extends ViewModel {
 
     private final MutableLiveData<MatchingViewEvent> viewEvents = new MutableLiveData<>();
     private final JoinMatchUseCase joinMatchUseCase;
+    private final LeaveMatchUseCase leaveMatchUseCase;
     private final GameInfoStore gameInfoStore;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final ScheduledExecutorService timerExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -38,8 +40,11 @@ public class MatchingViewModel extends ViewModel {
     private final AtomicInteger elapsedSeconds = new AtomicInteger();
     private ScheduledFuture<?> timerFuture;
 
-    public MatchingViewModel(JoinMatchUseCase joinMatchUseCase, GameInfoStore gameInfoStore) {
+    public MatchingViewModel(JoinMatchUseCase joinMatchUseCase,
+                             LeaveMatchUseCase leaveMatchUseCase,
+                             GameInfoStore gameInfoStore) {
         this.joinMatchUseCase = joinMatchUseCase;
+        this.leaveMatchUseCase = leaveMatchUseCase;
         this.gameInfoStore = gameInfoStore;
         this.gameInfoStore.updateMatchState(MatchState.MATCHING);
         startMatching();
@@ -61,6 +66,18 @@ public class MatchingViewModel extends ViewModel {
     public void onCancelMatchingClicked() {
         stopTimer();
         resetTimer();
+        leaveMatchUseCase.executeAsync(UseCase.None.INSTANCE, executorService)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        Log.e(TAG, "Failed to leave match", throwable);
+                        return;
+                    }
+                    if (result instanceof UResult.Err<?> err) {
+                        Log.w(TAG, "Leave match failed: " + err.message());
+                    } else {
+                        Log.d(TAG, "Leave match request sent");
+                    }
+                });
         gameInfoStore.updateMatchState(MatchState.IDLE);
         viewEvents.setValue(MatchingViewEvent.RETURN_TO_HOME);
     }

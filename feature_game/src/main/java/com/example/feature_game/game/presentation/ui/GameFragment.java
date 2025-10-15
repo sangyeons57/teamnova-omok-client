@@ -26,6 +26,7 @@ import com.example.core.dialog.MainDialogType;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHostOwner;
 import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_game.R;
 import com.example.feature_game.game.di.GameViewModelFactory;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
@@ -156,7 +157,10 @@ public class GameFragment extends Fragment {
 
         MaterialButton infoNavigation = root.findViewById(R.id.buttonGameInfoNavigation);
 
-        infoNavigation.setOnClickListener(v -> viewModel.onInfoButtonClicked());
+        infoNavigation.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            viewModel.onInfoButtonClicked();
+        });
     }
 
     private void observeViewModel() {

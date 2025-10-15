@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.ScoreViewModelFactory;
 import com.example.feature_home.home.presentation.ui.adapter.ScoreMilestoneAdapter;
@@ -117,8 +118,8 @@ public class ScoreFragment extends Fragment {
             gaugeView.configure(viewModel.getMinScore(), viewModel.getMaxScore(), viewModel.getWindowSize(), currentScoreValue);
         });
 
-        backButton.setOnClickListener(v -> navigateHome());
-        banner.setOnClickListener(v -> navigateHome());
+        setClickWithSound(backButton, this::navigateHome);
+        setClickWithSound(banner, this::navigateHome);
     }
 
     @Override
@@ -135,5 +136,12 @@ public class ScoreFragment extends Fragment {
         if (!popped) {
             fragmentNavigationHost.navigateTo(AppNavigationKey.HOME, false);
         }
+    }
+
+    private void setClickWithSound(@NonNull View view, @NonNull Runnable action) {
+        view.setOnClickListener(v -> {
+            SoundEffects.playButtonClick();
+            action.run();
+        });
     }
 }

@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Enumerates well-known frame types. Extend as new protocol messages are introduced.
  */
 public enum FrameType {
-    NONE((byte) -1),
     HELLO((byte) 0),
     AUTH((byte) 1),
     PING((byte) 2),
@@ -30,6 +29,8 @@ public enum FrameType {
     GAME_SESSION_PLAYER_DISCONNECTED((byte)17),
     BOARD_UPDATED((byte)18),
     LEAVE_MATCH((byte)19),
+
+    ERROR((byte)255)
     ;
 
     private static final Map<Byte, FrameType> LOOKUP = new ConcurrentHashMap<>();
@@ -49,6 +50,6 @@ public enum FrameType {
     }
 
     public static FrameType lookup(byte code) {
-        return LOOKUP.get(code) == null ? NONE : LOOKUP.get(code) ;
+        return LOOKUP.get(code) == null ? ERROR : LOOKUP.get(code) ;
     }
 }

@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 public final class GamePostDecisionPromptHandler extends AbstractJsonFrameHandler {
 
-    private static final String TAG = "PostDecisionPromptHdl";
+    private static final String TAG = "PostDecisionPromptHdler";
 
     private final PostGameSessionStore postGameSessionStore;
 

@@ -103,24 +103,6 @@ public class HomeViewModel extends ViewModel {
                         Log.w(TAG, "Failed to refresh profile: " + err.message());
                     }
                 });
-
-        helloHandshakeUseCase.executeAsync("test", executorService).thenAccept( result -> {
-            if (result instanceof UResult.Err<?> err) {
-                Log.w(TAG, "Hello handshake failed: " + err.message());
-            } else if (result instanceof UResult.Ok<CompletableFuture<String>> ok) {
-                ok.value().whenComplete((success, throwable) -> {
-                    if (throwable != null) {
-                        Log.e(TAG, "Hello handshake failed", throwable);
-                        return;
-                    }
-                    if (success != null) {
-                        Log.d(TAG, "Hello handshake succeeded: " + success);
-                    } else {
-                        Log.w(TAG, "Hello handshake reported failure");
-                    }
-                });
-            }
-        });
     }
 
     @Override

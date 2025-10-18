@@ -15,7 +15,7 @@ import com.example.core.sprite.SpriteView;
 import com.example.core.sprite.provider.CircleClip;
 import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
-import com.example.feature_home.home.presentation.sprite.ProfileSpriteSheetProvider;
+import com.example.designsystem.ProfileSpriteSheetProvider;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.Arrays;

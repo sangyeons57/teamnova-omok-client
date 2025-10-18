@@ -2,8 +2,10 @@ package com.example.feature_game.game.presentation.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,26 +111,25 @@ public class GameFragment extends Fragment {
 
         bindViews(view);
         observeViewModel();
-        viewModel.notifyGameReady();
     }
 
     private void bindViews(@NonNull View root) {
-        PlayerSlotView topLeft = new PlayerSlotView(
+        PlayerSlotView topLeft = PlayerSlotView.create(
                 root.findViewById(R.id.cardPlayerTopLeft),
                 root.findViewById(R.id.imagePlayerTopLeft),
                 root.findViewById(R.id.textPlayerTopLeft)
         );
-        PlayerSlotView topRight = new PlayerSlotView(
+        PlayerSlotView topRight = PlayerSlotView.create(
                 root.findViewById(R.id.cardPlayerTopRight),
                 root.findViewById(R.id.imagePlayerTopRight),
                 root.findViewById(R.id.textPlayerTopRight)
         );
-        PlayerSlotView bottomLeft = new PlayerSlotView(
+        PlayerSlotView bottomLeft = PlayerSlotView.create(
                 root.findViewById(R.id.cardPlayerBottomLeft),
                 root.findViewById(R.id.imagePlayerBottomLeft),
                 root.findViewById(R.id.textPlayerBottomLeft)
         );
-        PlayerSlotView bottomRight = new PlayerSlotView(
+        PlayerSlotView bottomRight = PlayerSlotView.create(
                 root.findViewById(R.id.cardPlayerBottomRight),
                 root.findViewById(R.id.imagePlayerBottomRight),
                 root.findViewById(R.id.textPlayerBottomRight)
@@ -142,12 +143,12 @@ public class GameFragment extends Fragment {
         boardView = root.findViewById(R.id.omokBoardView);
         if (boardView != null) {
             boardView.clearStoneDrawables();
-            boardView.registerStoneDrawable(0, R.drawable.omok_stone_red);
-            boardView.registerStoneDrawable(1, R.drawable.omok_stone_blue);
-            boardView.registerStoneDrawable(2, R.drawable.omok_stone_yellow);
-            boardView.registerStoneDrawable(3, R.drawable.omok_stone_green);
-            boardView.registerStoneDrawable(4, R.drawable.omok_stone_white);
-            boardView.registerStoneDrawable(5, R.drawable.omok_stone_black);
+            boardView.registerStoneDrawable(OmokStoneType.RED.index, R.drawable.omok_stone_red);
+            boardView.registerStoneDrawable(OmokStoneType.BLUE.index, R.drawable.omok_stone_blue);
+            boardView.registerStoneDrawable(OmokStoneType.YELLOW.index, R.drawable.omok_stone_yellow);
+            boardView.registerStoneDrawable(OmokStoneType.GREEN.index, R.drawable.omok_stone_green);
+            boardView.registerStoneDrawable(OmokStoneType.WHITE.index, R.drawable.omok_stone_white);
+            boardView.registerStoneDrawable(OmokStoneType.BLACK.index, R.drawable.omok_stone_black);
             boardView.setOnCellTapListener((x, y) -> viewModel.onBoardCellTapped(x, y));
         }
 
@@ -164,58 +165,14 @@ public class GameFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        viewModel.getPlayerSlots().observe(getViewLifecycleOwner(), slots -> {
-            if (slots == null) {
-                return;
-            }
-            latestSlots = slots;
-            updatePlayerSlots();
-        });
-
-        viewModel.getActivePlayerIndex().observe(getViewLifecycleOwner(), index -> {
-            latestActiveIndex = index != null ? index : 0;
-            updateTurnIndicator();
-        });
-
-        viewModel.getRemainingSeconds().observe(getViewLifecycleOwner(), seconds -> {
-            int value = seconds != null ? seconds : 0;
-            updateRemainingTime(value);
-        });
-
+        viewModel.getPlayerSlots().observe(getViewLifecycleOwner(), this::playerSlotObserve);
+        viewModel.getActivePlayerIndex().observe(getViewLifecycleOwner(), this::activePlayerIndexObserve);
+        viewModel.getRemainingSeconds().observe(getViewLifecycleOwner(), this::remainingSecondsObserve);
         viewModel.getBoardState().observe(getViewLifecycleOwner(), this::renderBoard);
-
-        viewModel.getViewEvents().observe(getViewLifecycleOwner(), event -> {
-            if (event == null) {
-                return;
-            }
-            switch (event) {
-                case OPEN_GAME_INFO_DIALOG:
-                    showGameInfoDialog(false);
-                    break;
-                case AUTO_OPEN_GAME_INFO_DIALOG:
-                    showGameInfoDialog(true);
-                    break;
-                case OPEN_GAME_RESULT_DIALOG:
-                    enqueueDialog(MainDialogType.GAME_RESULT);
-                    break;
-                case OPEN_POST_GAME_SCREEN:
-                    navigateToPostGame();
-                    break;
-                default:
-                    break;
-            }
-            viewModel.onEventHandled();
-        });
-
-        viewModel.getPlacementErrors().observe(getViewLifecycleOwner(), status -> {
-            if (status == null) {
-                return;
-            }
-            int messageRes = resolvePlacementErrorMessage(status);
-            Toast.makeText(requireContext(), messageRes, Toast.LENGTH_SHORT).show();
-            viewModel.onPlacementFeedbackHandled();
-        });
+        viewModel.getViewEvents().observe(getViewLifecycleOwner(), this::viewEventObserve);
+        viewModel.getPlacementErrors().observe(getViewLifecycleOwner(), this::placementErrorObserve);
     }
+
 
     private void renderBoard(@Nullable OmokBoardState state) {
         if (boardView == null) {
@@ -231,7 +188,7 @@ public class GameFragment extends Fragment {
         int[] indices = new int[width * height];
         Arrays.fill(indices, -1);
         for (OmokStonePlacement placement : state.getPlacements()) {
-            int mappedIndex = mapStoneTypeToDrawableIndex(placement.getStoneType());
+            int mappedIndex = placement.getStoneType().index;
             if (mappedIndex < 0) {
                 continue;
             }
@@ -244,19 +201,13 @@ public class GameFragment extends Fragment {
     }
 
     private void updateRemainingTime(int seconds) {
+        Log.d("GameFragment", "updateRemainingTime:" + seconds);
         if (remainingTimeText == null) {
             return;
         }
         int clamped = Math.max(0, seconds);
-        String formatted = formatSeconds(clamped);
-        remainingTimeText.setText(getString(R.string.game_remaining_time_format, formatted));
-    }
-
-    @NonNull
-    private String formatSeconds(int seconds) {
-        int minutes = seconds / 60;
-        int secs = seconds % 60;
-        return String.format(Locale.getDefault(), "%02d:%02d", minutes, secs);
+        String formatted = String.format(Locale.getDefault(), "%02d", clamped % 60);
+        remainingTimeText.setText(formatted);
     }
 
     private int resolvePlacementErrorMessage(@NonNull PlaceStoneResponse.Status status) {
@@ -273,27 +224,6 @@ public class GameFragment extends Fragment {
                 return R.string.game_place_stone_error_game_not_started;
             default:
                 return R.string.game_place_stone_error_unknown;
-        }
-    }
-
-    private int mapStoneTypeToDrawableIndex(@NonNull OmokStoneType stoneType) {
-        switch (stoneType) {
-            case RED:
-                return 0;
-            case BLUE:
-                return 1;
-            case YELLOW:
-                return 2;
-            case GREEN:
-                return 3;
-            case JOKER:
-            case WHITE:
-                return 4;
-            case BLOCKER:
-            case BLACK:
-                return 5;
-            default:
-                return -1;
         }
     }
 
@@ -344,6 +274,8 @@ public class GameFragment extends Fragment {
         pendingAutoDismiss = () -> {
             dismissDialog(type);
             pendingAutoDismiss = null;
+            viewModel.notifyGameReady();
+            viewModel.startTurnCountdown(15);
         };
         handler.postDelayed(pendingAutoDismiss, INFO_AUTO_DISMISS_DELAY_MS);
     }
@@ -377,82 +309,54 @@ public class GameFragment extends Fragment {
         fragmentNavigationHost.navigateTo(AppNavigationKey.POST_GAME, true);
     }
 
-    private static final class PlayerSlotView {
-        private final MaterialCardView container;
-        private final ImageView avatarView;
-        private final MaterialTextView nameView;
-        private boolean disconnected = false;
-        private boolean emptySlot = true;
-        private PlayerDisconnectReason disconnectReason = PlayerDisconnectReason.UNKNOWN;
-
-        private PlayerSlotView(@NonNull MaterialCardView container,
-                               @NonNull ImageView avatarView,
-                               @NonNull MaterialTextView nameView) {
-            this.container = container;
-            this.avatarView = avatarView;
-            this.nameView = nameView;
+    private void playerSlotObserve(List<GamePlayerSlot> slots) {
+        if (slots == null) {
+            return;
         }
-
-        void update(@NonNull GamePlayerSlot slot) {
-            avatarView.setImageResource(ProfileIconResolver.resolve(slot.getProfileIconCode()));
-            disconnected = slot.isDisconnected();
-            disconnectReason = slot.getDisconnectReason();
-            emptySlot = slot.isEmpty();
-            if (slot.isEmpty()) {
-                nameView.setText(R.string.game_player_empty_slot);
-            } else if (slot.getPosition() == 0 && slot.getDisplayName().isEmpty()) {
-                nameView.setText(R.string.game_player_self_placeholder);
-            } else {
-                nameView.setText(slot.getDisplayName());
-            }
-            setActive(false, slot.isEnabled());
-        }
-
-        void setActive(boolean active, boolean enabled) {
-            boolean effectiveEnabled = enabled && !disconnected;
-            container.setEnabled(effectiveEnabled);
-            float alpha = effectiveEnabled
-                    ? 1f
-                    : (disconnected ? 1f : 0.4f);
-            container.setAlpha(alpha);
-
-            int background;
-            if (disconnected) {
-                background = MaterialColors.getColor(container, com.google.android.material.R.attr.colorErrorContainer);
-            } else if (!effectiveEnabled) {
-                background = MaterialColors.getColor(container, com.google.android.material.R.attr.colorSurfaceVariant);
-            } else if (active) {
-                background = MaterialColors.getColor(container, com.google.android.material.R.attr.colorPrimaryContainer);
-            } else {
-                background = MaterialColors.getColor(container, com.google.android.material.R.attr.colorSurfaceVariant);
-            }
-            container.setCardBackgroundColor(background);
-
-            int strokeColor;
-            if (disconnected) {
-                strokeColor = MaterialColors.getColor(container, com.google.android.material.R.attr.colorOnError);
-            } else if (active) {
-                strokeColor = MaterialColors.getColor(container, androidx.appcompat.R.attr.colorPrimary);
-            } else {
-                strokeColor = MaterialColors.getColor(container, com.google.android.material.R.attr.colorOutline);
-            }
-            container.setStrokeColor(strokeColor);
-            container.setStrokeWidth(disconnected ? 4 : active ? 6 : 2);
-
-            int nameColor = disconnected
-                    ? MaterialColors.getColor(container, com.google.android.material.R.attr.colorOnErrorContainer)
-                    : MaterialColors.getColor(container, com.google.android.material.R.attr.colorOnSurface);
-            nameView.setTextColor(nameColor);
-
-            float avatarAlpha;
-            if (emptySlot) {
-                avatarAlpha = 0.4f;
-            } else if (disconnected) {
-                avatarAlpha = 0.6f;
-            } else {
-                avatarAlpha = 1f;
-            }
-            avatarView.setAlpha(avatarAlpha);
-        }
+        latestSlots = slots;
+        updatePlayerSlots();
     }
+
+    private void activePlayerIndexObserve(Integer index) {
+        latestActiveIndex = index != null ? index : 0;
+        updateTurnIndicator();
+    }
+
+    private void remainingSecondsObserve(Integer seconds) {
+        int value = seconds != null ? seconds : 0;
+        updateRemainingTime(value);
+    }
+
+    private void viewEventObserve(GameViewEvent event) {
+        if (event == null) {
+            return;
+        }
+        switch (event) {
+            case OPEN_GAME_INFO_DIALOG:
+                showGameInfoDialog(false);
+                break;
+            case AUTO_OPEN_GAME_INFO_DIALOG:
+                showGameInfoDialog(true);
+                break;
+            case OPEN_GAME_RESULT_DIALOG:
+                enqueueDialog(MainDialogType.GAME_RESULT);
+                break;
+            case OPEN_POST_GAME_SCREEN:
+                navigateToPostGame();
+                break;
+            default:
+                break;
+        }
+        viewModel.onEventHandled();
+    }
+
+    private void placementErrorObserve(PlaceStoneResponse.Status status) {
+        if (status == null) {
+            return;
+        }
+        int messageRes = resolvePlacementErrorMessage(status);
+        Toast.makeText(requireContext(), messageRes, Toast.LENGTH_SHORT).show();
+        viewModel.onPlacementFeedbackHandled();
+    }
+
 }

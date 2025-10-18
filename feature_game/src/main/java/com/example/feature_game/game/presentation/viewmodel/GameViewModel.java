@@ -372,7 +372,6 @@ public class GameViewModel extends ViewModel {
         gameInfoStore.setTurnIndex(0);
         activePlayerIndex.postValue(0);
         lastTurnParticipantIndex = -1;
-        startTurnCountdown(TURN_TOTAL_SECONDS);
     }
 
     private void onMatchStateChanged(@Nullable MatchState state) {
@@ -390,7 +389,6 @@ public class GameViewModel extends ViewModel {
                 }
             }
             lastTurnParticipantIndex = -1;
-            startTurnCountdown(0);
         }
     }
 
@@ -405,7 +403,6 @@ public class GameViewModel extends ViewModel {
                 disconnectedPlayers.clear();
             }
             lastTurnParticipantIndex = -1;
-            startTurnCountdown(TURN_TOTAL_SECONDS);
         }
         GameMode mode = currentMode.getValue();
         if (mode == null) {
@@ -511,6 +508,7 @@ public class GameViewModel extends ViewModel {
                 ? new ArrayList<>(latestSessionInfo.getParticipants())
                 : new ArrayList<>();
 
+        /** 재정렬 필요 없어서 주석처리
         if (!participants.isEmpty() && selfUserId != null && !selfUserId.isEmpty()) {
             for (int i = 0; i < participants.size(); i++) {
                 GameParticipantInfo info = participants.get(i);
@@ -523,6 +521,7 @@ public class GameViewModel extends ViewModel {
                 }
             }
         }
+         **/
 
         if (participants.size() > participantCount) {
             participants = new ArrayList<>(participants.subList(0, participantCount));
@@ -608,7 +607,8 @@ public class GameViewModel extends ViewModel {
         }
     }
 
-    private void startTurnCountdown(int seconds) {
+    public void startTurnCountdown(int seconds) {
+        Log.d("GameViewModel", "Starting turn countdown with " + seconds + " seconds");
         cancelTurnCountdown();
         int clamped = clampTurnSeconds(seconds);
         remainingSeconds.setValue(clamped);

@@ -2,6 +2,7 @@ package com.example.feature_home.home.presentation.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,6 +65,7 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (viewModel != null) {
+            Log.d("HomeFragment", "onResume: refreshing self profile");
             viewModel.refreshSelfProfile();
         }
     }

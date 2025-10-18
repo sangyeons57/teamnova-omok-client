@@ -29,6 +29,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core-api"))
 
     implementation(libs.appcompat)
     implementation(libs.material)

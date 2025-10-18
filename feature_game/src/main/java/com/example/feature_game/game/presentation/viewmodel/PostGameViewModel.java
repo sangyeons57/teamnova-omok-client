@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application.port.in.UResult;
+import com.example.application.port.in.UseCase;
 import com.example.application.port.out.realtime.PostGameDecisionAck;
 import com.example.application.port.out.realtime.PostGameDecisionOption;
 import com.example.application.session.GameInfoStore;
@@ -26,6 +27,7 @@ import com.example.application.session.postgame.PostGameDecisionStatus;
 import com.example.application.session.postgame.PostGameSessionState;
 import com.example.application.session.postgame.PostGameSessionStore;
 import com.example.application.usecase.PostGameDecisionUseCase;
+import com.example.application.usecase.SelfDataUseCase;
 import com.example.domain.user.entity.User;
 import com.example.feature_game.game.presentation.model.GameResultOutcome;
 import com.example.feature_game.game.presentation.model.PostGameUiState;
@@ -50,6 +52,7 @@ public final class PostGameViewModel extends ViewModel {
     private final GameInfoStore gameInfoStore;
     private final PostGameSessionStore postGameSessionStore;
     private final UserSessionStore userSessionStore;
+    private final SelfDataUseCase selfDataUseCase;
     private final PostGameDecisionUseCase postGameDecisionUseCase;
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final Handler countdownHandler = new Handler(Looper.getMainLooper());
@@ -71,14 +74,17 @@ public final class PostGameViewModel extends ViewModel {
     private long activeDeadlineAtMillis;
     private Runnable countdownRunnable;
     private final AtomicBoolean exitDispatched = new AtomicBoolean(false);
+    private final AtomicBoolean profileRefreshInProgress = new AtomicBoolean(false);
 
     public PostGameViewModel(@NonNull GameInfoStore gameInfoStore,
                              @NonNull PostGameSessionStore postGameSessionStore,
                              @NonNull UserSessionStore userSessionStore,
+                             @NonNull SelfDataUseCase selfDataUseCase,
                              @NonNull PostGameDecisionUseCase postGameDecisionUseCase) {
         this.gameInfoStore = Objects.requireNonNull(gameInfoStore, "gameInfoStore");
         this.postGameSessionStore = Objects.requireNonNull(postGameSessionStore, "postGameSessionStore");
         this.userSessionStore = Objects.requireNonNull(userSessionStore, "userSessionStore");
+        this.selfDataUseCase = Objects.requireNonNull(selfDataUseCase, "selfDataUseCase");
         this.postGameDecisionUseCase = Objects.requireNonNull(postGameDecisionUseCase, "postGameDecisionUseCase");
 
         postGameSessionStore.getStateStream().observeForever(postGameObserver);
@@ -124,6 +130,7 @@ public final class PostGameViewModel extends ViewModel {
         viewEvents.postValue(new PostGameViewEvent(PostGameViewEvent.Type.EXIT_TO_HOME));
         gameInfoStore.updateMatchState(MatchState.IDLE);
         postGameSessionStore.clear();
+        triggerSelfProfileRefresh();
         sendDecision(PostGameDecisionOption.LEAVE);
     }
 
@@ -285,6 +292,7 @@ public final class PostGameViewModel extends ViewModel {
         }
         if (state.isTerminated() && !terminatedEventEmitted) {
             terminatedEventEmitted = true;
+            triggerSelfProfileRefresh();
             viewEvents.postValue(new PostGameViewEvent(PostGameViewEvent.Type.SESSION_TERMINATED));
         }
     }
@@ -336,6 +344,26 @@ public final class PostGameViewModel extends ViewModel {
                 ack.rawMessage(),
                 ack.errorReason()
         ));
+    }
+
+    private void triggerSelfProfileRefresh() {
+        if (profileRefreshInProgress.getAndSet(true)) {
+            return;
+        }
+        selfDataUseCase.executeAsync(UseCase.None.INSTANCE, ioExecutor)
+                .whenComplete((result, throwable) -> {
+                    try {
+                        if (throwable != null) {
+                            Log.w(TAG, "Failed to refresh self profile after post game exit", throwable);
+                            return;
+                        }
+                        if (result instanceof UResult.Err<?> err) {
+                            Log.w(TAG, "Failed to refresh self profile after post game exit: " + err.message());
+                        }
+                    } finally {
+                        profileRefreshInProgress.set(false);
+                    }
+                });
     }
 
     @NonNull

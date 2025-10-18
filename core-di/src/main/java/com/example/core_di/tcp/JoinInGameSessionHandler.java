@@ -1,5 +1,7 @@
 package com.example.core_di.tcp;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.example.application.session.GameInfoStore;
@@ -10,6 +12,7 @@ import com.example.core.network.tcp.TcpClient;
 import com.example.core.network.tcp.dispatcher.ClientDispatchResult;
 import com.example.core.network.tcp.handler.ClientFrameHandler;
 import com.example.core.network.tcp.protocol.Frame;
+import com.example.core.network.tcp.protocol.FrameType;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,9 +26,10 @@ import java.util.Objects;
 /**
  * Handles JOIN_IN_GAME_SESSION frames and updates shared game session state.
  */
-public final class JoinInGameSessionHandler implements ClientFrameHandler {
+public final class JoinInGameSessionHandler extends AbstractJsonFrameHandler {
     private final GameInfoStore gameInfoStore;
     private final Logger logger;
+    private static final String TAG = "JoinInGameSessionHandler";
 
     public JoinInGameSessionHandler(@NonNull GameInfoStore gameInfoStore) {
         this(gameInfoStore, new AndroidLogger());
@@ -33,38 +37,13 @@ public final class JoinInGameSessionHandler implements ClientFrameHandler {
 
     public JoinInGameSessionHandler(@NonNull GameInfoStore gameInfoStore,
                                     @NonNull Logger logger) {
+        super(TAG, FrameType.JOIN_IN_GAME_SESSION.name());
         this.gameInfoStore = Objects.requireNonNull(gameInfoStore, "gameInfoStore");
         this.logger = Objects.requireNonNull(logger, "logger");
     }
 
     @Override
-    public ClientDispatchResult handle(TcpClient client, Frame frame) {
-        if (frame == null) {
-            logger.warn("JOIN_IN_GAME_SESSION frame is null");
-            return ClientDispatchResult.continueDispatch();
-        }
-
-        byte[] payload = frame.payload();
-        if (payload == null || payload.length == 0) {
-            logger.warn("JOIN_IN_GAME_SESSION payload empty");
-            return ClientDispatchResult.continueDispatch();
-        }
-
-        try {
-            GameSessionInfo sessionInfo = parsePayload(payload);
-            gameInfoStore.updateGameSession(sessionInfo);
-            gameInfoStore.updateMatchState(MatchState.MATCHED);
-        } catch (JSONException e) {
-            logger.error("Failed to parse JOIN_IN_GAME_SESSION payload", e);
-        } catch (Exception e) {
-            logger.error("Unexpected error handling JOIN_IN_GAME_SESSION", e);
-        }
-
-        return ClientDispatchResult.continueDispatch();
-    }
-
-    GameSessionInfo parsePayload(@NonNull byte[] payload) throws JSONException {
-        JSONObject root = new JSONObject(new String(payload, StandardCharsets.UTF_8));
+    protected void onJsonPayload(@NonNull JSONObject root) {
         String sessionId = root.optString("sessionId", "");
         long createdAt = root.optLong("createdAt", 0L);
         JSONArray usersArray = root.optJSONArray("users");
@@ -81,10 +60,16 @@ public final class JoinInGameSessionHandler implements ClientFrameHandler {
                     displayName = userId;
                 }
                 int profileIconCode = userObject.optInt("profileIconCode", 0);
+                Log.d(TAG, "User joined session → userId=" + userId
+                        + ", displayName=" + displayName
+                        + ", profileIconCode");
                 participants.add(new GameParticipantInfo(userId, displayName, profileIconCode));
             }
         }
-        return new GameSessionInfo(sessionId, createdAt, participants);
+
+        GameSessionInfo sessionInfo = new GameSessionInfo(sessionId, createdAt, participants);
+        gameInfoStore.updateGameSession(sessionInfo);
+        gameInfoStore.updateMatchState(MatchState.MATCHED);
     }
 
     public interface Logger {

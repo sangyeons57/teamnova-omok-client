@@ -1,4 +1,4 @@
-package com.example.feature_home.home.presentation.sprite;
+package com.example.designsystem;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -10,7 +10,6 @@ import com.example.core.session.CellAdjust;
 import com.example.core.sprite.SpriteLayout;
 import com.example.core.sprite.SpriteLayoutBuilder;
 import com.example.core.sprite.SpriteSheet;
-import com.example.feature_home.R;
 
 /**
  * Lazily provides the sprite sheet that contains the selectable profile icons.

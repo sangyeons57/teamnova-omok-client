@@ -25,9 +25,6 @@ import com.example.application.session.postgame.PlayerDisconnectReason;
 import com.example.core.dialog.DialogHost;
 import com.example.core.dialog.DialogHostOwner;
 import com.example.core.dialog.MainDialogType;
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationHostOwner;
-import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core_di.sound.SoundEffects;
 import com.example.feature_game.R;
 import com.example.feature_game.game.di.GameViewModelFactory;
@@ -56,7 +53,6 @@ public class GameFragment extends Fragment {
 
     private DialogHost<MainDialogType> dialogHost;
     private GameViewModel viewModel;
-    private FragmentNavigationHost<AppNavigationKey> fragmentNavigationHost;
     private final List<PlayerSlotView> slotViews = new ArrayList<>(4);
     private List<GamePlayerSlot> latestSlots = new ArrayList<>();
     private int latestActiveIndex = 0;
@@ -73,12 +69,6 @@ public class GameFragment extends Fragment {
             dialogHost = ((DialogHostOwner<MainDialogType>) context).getDialogHost();
         } else {
             throw new IllegalStateException("Host must implement DialogHostOwner");
-        }
-
-        if (context instanceof FragmentNavigationHostOwner<?> owner) {
-            fragmentNavigationHost = ((FragmentNavigationHostOwner<AppNavigationKey>) owner).getFragmentNavigatorHost();
-        } else {
-            throw new IllegalStateException("Host must provide FragmentNavigationHost");
         }
     }
 
@@ -99,7 +89,6 @@ public class GameFragment extends Fragment {
     @Override
     public void onDetach() {
         dialogHost = null;
-        fragmentNavigationHost = null;
         super.onDetach();
     }
 
@@ -302,13 +291,6 @@ public class GameFragment extends Fragment {
         dialogHost.enqueue(type);
     }
 
-    private void navigateToPostGame() {
-        if (fragmentNavigationHost == null) {
-            return;
-        }
-        fragmentNavigationHost.navigateTo(AppNavigationKey.POST_GAME, true);
-    }
-
     private void playerSlotObserve(List<GamePlayerSlot> slots) {
         if (slots == null) {
             return;
@@ -342,7 +324,7 @@ public class GameFragment extends Fragment {
                 enqueueDialog(MainDialogType.GAME_RESULT);
                 break;
             case OPEN_POST_GAME_SCREEN:
-                navigateToPostGame();
+                enqueueDialog(MainDialogType.POST_GAME);
                 break;
             default:
                 break;

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rule_catalog_rule_convert_stone_title">돌 변환</string>
+    <string name="rule_catalog_rule_convert_stone_description">5턴마다 각 플레이어의 돌을 방해 돌로 변환하는 규칙입니다.</string>
+
+    <string name="rule_catalog_speed_game_title">스피드 게임</string>
+    <string name="rule_catalog_speed_game_description">각 플레이어의 제한 시간이 15초에서 5초로 줄어드는 규칙입니다.</string>
+
+    <string name="rule_catalog_disruption_title">방해돌 소환</string>
+    <string name="rule_catalog_disruption_description">한 턴마다 존재하는 돌 주변에 무작위로 방해 돌을 소환합니다.</string>
+</resources>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="16dp">
+
+    <ImageView
+        android:id="@+id/imageRuleIcon"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_rule_icon_placeholder"
+        android:contentDescription="@null"
+        android:padding="8dp"
+        android:scaleType="centerInside" />
+
+    <TextView
+        android:id="@+id/textRuleName"
+        style="@style/TextAppearance.Material3.TitleMedium"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
+        tools:text="돌 변환" />
+
+    <TextView
+        android:id="@+id/textRuleDescription"
+        style="@style/TextAppearance.Material3.BodyMedium"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:text="5턴마다 각 플레이어의 돌을 방해 돌로 변환하는 규칙입니다." />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonRuleDialogClose"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/designsystem_rule_dialog_close" />
+
+</LinearLayout>

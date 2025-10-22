@@ -9,7 +9,6 @@ import java.util.Objects;
  * Value object describing the outcome of a PLACE_STONE request.
  */
 public record PlaceStoneResponse(@NonNull Status status,
-                                 int turnNumber,
                                  @NonNull String rawMessage) {
 
     public PlaceStoneResponse {
@@ -22,18 +21,16 @@ public record PlaceStoneResponse(@NonNull Status status,
     }
 
     @NonNull
-    public static PlaceStoneResponse success(int turnNumber, @NonNull String rawMessage) {
-        return new PlaceStoneResponse(Status.SUCCESS, turnNumber, rawMessage);
+    public static PlaceStoneResponse success(@NonNull String rawMessage) {
+        return new PlaceStoneResponse(Status.SUCCESS, rawMessage);
     }
 
     @NonNull
-    public static PlaceStoneResponse failure(@NonNull Status status,
-                                             int turnNumber,
-                                             @NonNull String rawMessage) {
+    public static PlaceStoneResponse failure(@NonNull Status status, @NonNull String rawMessage) {
         if (status == Status.SUCCESS) {
             throw new IllegalArgumentException("failure() cannot be called with SUCCESS status");
         }
-        return new PlaceStoneResponse(status, turnNumber, rawMessage);
+        return new PlaceStoneResponse(status, rawMessage);
     }
 
     @NonNull

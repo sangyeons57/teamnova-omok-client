@@ -12,23 +12,27 @@ public final class GameTurnState {
     private final boolean active;
     private final int currentIndex;
     private final int remainingSeconds;
+    private final int round;
+    private final int positionInRound;
 
-    private GameTurnState(boolean active, int currentIndex, int remainingSeconds) {
+    private GameTurnState(boolean active, int currentIndex, int remainingSeconds, int round, int positionInRound) {
         this.active = active;
         this.currentIndex = active ? Math.max(currentIndex, 0) : -1;
         this.remainingSeconds = Math.max(remainingSeconds, 0);
+        this.round = Math.max(round, 0);
+        this.positionInRound = Math.max(positionInRound, 0);
     }
 
     public static GameTurnState idle() {
-        return new GameTurnState(false, -1, 0);
+        return new GameTurnState(false, -1, 0, 0, 0);
     }
 
-    public static GameTurnState active(int currentIndex, int remainingSeconds) {
-        return new GameTurnState(true, currentIndex, remainingSeconds);
+    public static GameTurnState active(int currentIndex, int remainingSeconds, int round, int positionInRound) {
+        return new GameTurnState(true, currentIndex, remainingSeconds, round, positionInRound);
     }
 
     private static GameTurnState idleWithSeconds(int seconds) {
-        return new GameTurnState(false, -1, seconds);
+        return new GameTurnState(false, -1, seconds, 0, 0);
     }
 
     public boolean isActive() {
@@ -43,17 +47,25 @@ public final class GameTurnState {
         return remainingSeconds;
     }
 
+    public int getRound() {
+        return round;
+    }
+
+    public int getPositionInRound() {
+        return positionInRound;
+    }
+
     @NonNull
     public GameTurnState withCurrentIndex(int index, int participantCount) {
         if (participantCount <= 0) {
             return idleWithSeconds(remainingSeconds);
         }
-        return new GameTurnState(true, normalizeIndex(index, participantCount), remainingSeconds);
+        return new GameTurnState(true, normalizeIndex(index, participantCount), remainingSeconds, round, positionInRound);
     }
 
     @NonNull
     public GameTurnState withRemainingSeconds(int seconds) {
-        return new GameTurnState(active, currentIndex, seconds);
+        return new GameTurnState(active, currentIndex, seconds, round, positionInRound);
     }
 
     @NonNull
@@ -69,7 +81,7 @@ public final class GameTurnState {
         if (!active) {
             return idleWithSeconds(remainingSeconds);
         }
-        return new GameTurnState(true, normalizeIndex(currentIndex, participantCount), remainingSeconds);
+        return new GameTurnState(true, normalizeIndex(currentIndex, participantCount), remainingSeconds, round, positionInRound);
     }
 
     @NonNull
@@ -78,9 +90,9 @@ public final class GameTurnState {
             return idleWithSeconds(remainingSeconds);
         }
         if (!active) {
-            return new GameTurnState(true, 0, remainingSeconds);
+            return new GameTurnState(true, 0, remainingSeconds, 0, 0); // Assuming round and position start at 0 for a new active state
         }
-        return new GameTurnState(true, normalizeIndex(currentIndex, participantCount), remainingSeconds);
+        return new GameTurnState(true, normalizeIndex(currentIndex, participantCount), remainingSeconds, round, positionInRound);
     }
 
     @NonNull
@@ -89,10 +101,21 @@ public final class GameTurnState {
             return idleWithSeconds(remainingSeconds);
         }
         if (!active) {
-            return new GameTurnState(true, 0, remainingSeconds);
+            return new GameTurnState(true, 0, remainingSeconds, 0, 0); // Assuming round and position start at 0 for a new active state
         }
         int nextIndex = normalizeIndex(currentIndex + 1, participantCount);
-        return new GameTurnState(true, nextIndex, remainingSeconds);
+        int nextPositionInRound = positionInRound + 1;
+        int nextRound = round;
+
+        // If the position in round wraps around, increment the round
+        // This assumes that a full cycle of participants completes a round.
+        if (nextIndex == 0 && participantCount > 0 && currentIndex == participantCount -1) { // Check if we just wrapped from the last player to the first
+             nextRound++;
+             nextPositionInRound = 0; // Reset position in round for the new round
+        }
+
+
+        return new GameTurnState(true, nextIndex, remainingSeconds, nextRound, nextPositionInRound);
     }
 
     @Override
@@ -106,12 +129,14 @@ public final class GameTurnState {
         GameTurnState that = (GameTurnState) o;
         return active == that.active
                 && currentIndex == that.currentIndex
-                && remainingSeconds == that.remainingSeconds;
+                && remainingSeconds == that.remainingSeconds
+                && round == that.round
+                && positionInRound == that.positionInRound;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(active, currentIndex, remainingSeconds);
+        return Objects.hash(active, currentIndex, remainingSeconds, round, positionInRound);
     }
 
     @Override
@@ -120,6 +145,8 @@ public final class GameTurnState {
                 + "active=" + active
                 + ", currentIndex=" + currentIndex
                 + ", remainingSeconds=" + remainingSeconds
+                + ", round=" + round
+                + ", positionInRound=" + positionInRound
                 + '}';
     }
 

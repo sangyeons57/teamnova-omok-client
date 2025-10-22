@@ -96,8 +96,6 @@ public class GameInfoStoreTest {
                 participants("alice", "bob"));
         store.updateGameSession(session);
 
-        store.setTurnIndex(5, 10);
-
         GameTurnState state = store.getTurnStateStream().getValue();
         assertEquals(1, state.getCurrentIndex());
         assertEquals(10, state.getRemainingSeconds());

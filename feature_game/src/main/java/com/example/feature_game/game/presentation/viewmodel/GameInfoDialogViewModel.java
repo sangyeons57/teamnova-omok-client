@@ -13,6 +13,9 @@ import com.example.application.session.GameTurnState;
 import com.example.application.session.OmokBoardState;
 import com.example.application.session.OmokBoardStore;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Supplies overlay state for the game info dialog.
  */
@@ -24,6 +27,7 @@ public class GameInfoDialogViewModel extends ViewModel {
     private final MutableLiveData<GameTurnState> turnState = new MutableLiveData<>(GameTurnState.idle());
     private final MutableLiveData<OmokBoardState> boardState = new MutableLiveData<>(OmokBoardState.empty());
     private final MutableLiveData<GameParticipantInfo> activeParticipant = new MutableLiveData<>();
+    private final MutableLiveData<List<Integer>> activeRuleIds = new MutableLiveData<>(Arrays.asList(1, 2, 3));
 
     private final Observer<GameTurnState> turnObserver = this::onTurnUpdated;
     private final Observer<OmokBoardState> boardObserver = this::onBoardUpdated;
@@ -56,6 +60,11 @@ public class GameInfoDialogViewModel extends ViewModel {
 
         gameInfoStore.getTurnStateStream().observeForever(turnObserver);
         omokBoardStore.getBoardStateStream().observeForever(boardObserver);
+    }
+
+    @NonNull
+    public LiveData<List<Integer>> getActiveRuleIds() {
+        return activeRuleIds;
     }
 
     @NonNull

@@ -32,12 +32,12 @@ public final class PlaceStoneMessageCodec {
                 : "";
         ParsedPayload parsed = parsePayload(payloadText);
         if (parsed.status == PlaceStoneResponse.Status.SUCCESS) {
-            return PlaceStoneResponse.success(parsed.turnNumber, payloadText);
+            return PlaceStoneResponse.success(payloadText);
         }
         if (parsed.status == PlaceStoneResponse.Status.UNKNOWN) {
-            return new PlaceStoneResponse(PlaceStoneResponse.Status.UNKNOWN, parsed.turnNumber, payloadText);
+            return new PlaceStoneResponse(PlaceStoneResponse.Status.UNKNOWN, payloadText);
         }
-        return PlaceStoneResponse.failure(parsed.status, parsed.turnNumber, payloadText);
+        return PlaceStoneResponse.failure(parsed.status, payloadText);
     }
 
     @NonNull
@@ -51,9 +51,7 @@ public final class PlaceStoneMessageCodec {
                 JSONObject root = new JSONObject(trimmed);
                 String statusLabel = root.optString("status", "");
                 PlaceStoneResponse.Status status = PlaceStoneResponse.parseStatus(statusLabel);
-                JSONObject turnJson = root.optJSONObject("turn");
-                int turnNumber = turnJson != null ? turnJson.optInt("number", -1) : -1;
-                return new ParsedPayload(status, turnNumber);
+                return new ParsedPayload(status);
             } catch (JSONException ignored) {
                 // Fall back to token parsing when payload isn't strict JSON.
             }
@@ -64,7 +62,6 @@ public final class PlaceStoneMessageCodec {
     @NonNull
     private static ParsedPayload parseFromTokens(String text) {
         PlaceStoneResponse.Status status = PlaceStoneResponse.Status.UNKNOWN;
-        int turnNumber = -1;
         String[] tokens = text.split("[,\\n]");
         for (String token : tokens) {
             String segment = token.trim();
@@ -83,15 +80,9 @@ public final class PlaceStoneMessageCodec {
             String value = stripQuotes(segment.substring(colonIndex + 1));
             if ("status".equals(key)) {
                 status = PlaceStoneResponse.parseStatus(value);
-            } else if ("turn".equals(key) || "number".equals(key)) {
-                try {
-                    turnNumber = Integer.parseInt(value);
-                } catch (NumberFormatException ignored) {
-                    // Ignore malformed turn values.
-                }
             }
         }
-        return new ParsedPayload(status, turnNumber);
+        return new ParsedPayload(status);
     }
 
     @NonNull
@@ -103,9 +94,9 @@ public final class PlaceStoneMessageCodec {
         return trimmed;
     }
 
-    private record ParsedPayload(PlaceStoneResponse.Status status, int turnNumber) {
+    private record ParsedPayload(PlaceStoneResponse.Status status) {
         static ParsedPayload unknown() {
-            return new ParsedPayload(PlaceStoneResponse.Status.UNKNOWN, -1);
+            return new ParsedPayload(PlaceStoneResponse.Status.UNKNOWN);
         }
     }
 }

@@ -36,8 +36,5 @@ public final class ReadyInGameSessionHandler extends AbstractJsonFrameHandler {
                 + ", ready=" + ready
                 + ", allReady=" + allReady
                 + ", gameStarted=" + gameStarted);
-
-        JSONObject turnJson = root.optJSONObject("turn");
-        TurnPayloadProcessor.applyTurn(gameInfoStore, turnJson, TAG);
     }
 }

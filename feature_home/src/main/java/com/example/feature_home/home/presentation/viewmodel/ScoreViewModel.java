@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel;
 import com.example.application.session.UserSessionStore;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.value.UserScore;
-import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.model.ScoreMilestone;
 
 import java.util.ArrayList;
@@ -85,8 +84,21 @@ public class ScoreViewModel extends ViewModel {
     private List<ScoreMilestone> createMilestones() {
         List<ScoreMilestone> items = new ArrayList<>();
         for (float score = MAX_SCORE; score >= MIN_SCORE; score -= WINDOW) {
-            items.add(new ScoreMilestone(score, R.drawable.ic_home_trophy));
+            items.add(new ScoreMilestone(score, determineRulesForScore(score)));
         }
         return Collections.unmodifiableList(items);
+    }
+
+    @NonNull
+    private List<Integer> determineRulesForScore(float score) {
+        if (score >= 2400f) {
+            return List.of(1, 2, 3);
+        } else if (score >= 1500f) {
+            return List.of(1, 2);
+        } else if (score >= 0f) {
+            return Collections.singletonList(1);
+        } else {
+            return Collections.emptyList();
+        }
     }
 }

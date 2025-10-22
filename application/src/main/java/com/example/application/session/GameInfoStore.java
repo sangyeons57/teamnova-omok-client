@@ -163,13 +163,13 @@ public class GameInfoStore {
         setTurnIndex(index, remaining);
     }
 
-    public void setTurnIndex(int index, int remainingSeconds) {
+    public void setTurnIndex(int index, int remainingSeconds, int round, int position) {
         GameSessionInfo session = currentGameSession.get();
         if (session == null || !session.hasParticipants()) {
             clearTurnState();
             return;
         }
-        GameTurnState next = GameTurnState.active(index, remainingSeconds)
+        GameTurnState next = GameTurnState.active(index, remainingSeconds, round, position)
                 .normalize(session.getParticipantCount());
         currentTurnState.set(next);
         turnStateStream.postValue(next);

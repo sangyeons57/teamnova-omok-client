@@ -16,7 +16,9 @@ import com.example.feature_home.R;
 import com.google.android.material.color.MaterialColors;
 
 /**
- * Simple vertical gauge that highlights the player's score across the total range.
+ * 이거 기능에 이상한 문제있음
+ * configure할떄 max - value를 해야지 정상적으로 보이는 문제인데 이거 코드 더 단순하게 만들면서
+ * 수정 작업필요함 (만약 재사용 하려고 하는 경우)
  */
 public class WindowedGuageView extends View {
 
@@ -222,10 +224,6 @@ public class WindowedGuageView extends View {
 
     public float getWorldSize() {
         return scoreRange;
-    }
-
-    public float getWindowExtent() {
-        return getEffectiveWindowRange();
     }
 
     private void recalculateRatios() {

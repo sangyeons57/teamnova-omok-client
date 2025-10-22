@@ -17,8 +17,8 @@ import com.example.core_di.tcp.GameSessionPlayerDisconnectedHandler;
 import com.example.core_di.tcp.GameSessionTerminatedHandler;
 import com.example.core_di.tcp.JoinInGameSessionHandler;
 import com.example.core_di.tcp.ReadyInGameSessionHandler;
-import com.example.core_di.tcp.StonePlacedHandler;
-import com.example.core_di.tcp.TurnTimeoutHandler;
+import com.example.core_di.tcp.TurnEndedHandler;
+import com.example.core_di.tcp.TurnStartedHandler;
 import com.example.infra.tcp.provider.FramedTcpClientProvider;
 
 /**
@@ -71,12 +71,12 @@ public final class TcpClientContainer {
                 () -> new ReadyInGameSessionHandler(gameInfoStore));
         dispatcher.register(FrameType.GAME_SESSION_STARTED,
                 () -> new GameSessionStartedHandler(gameInfoStore));
-        dispatcher.register(FrameType.STONE_PLACED,
-                () -> new StonePlacedHandler(gameInfoStore, soundManager));
+        dispatcher.register(FrameType.TURN_STARTED,
+                () -> new TurnStartedHandler(gameInfoStore));
+        dispatcher.register(FrameType.TURN_ENDED,
+                () -> new TurnEndedHandler(gameInfoStore, soundManager));
         dispatcher.register(FrameType.BOARD_UPDATED,
                 () -> new BoardUpdatedHandler(gameInfoStore));
-        dispatcher.register(FrameType.TURN_TIMEOUT,
-                () -> new TurnTimeoutHandler(gameInfoStore));
         dispatcher.register(FrameType.GAME_SESSION_COMPLETED,
                 () -> new GameSessionCompletedHandler(postGameSessionStore));
         dispatcher.register(FrameType.GAME_POST_DECISION_PROMPT,

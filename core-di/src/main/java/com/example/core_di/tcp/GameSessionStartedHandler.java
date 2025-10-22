@@ -49,8 +49,5 @@ public final class GameSessionStartedHandler extends AbstractJsonFrameHandler {
                 Log.w(TAG, "Board dimensions missing or invalid in GAME_SESSION_STARTED payload");
             }
         }
-
-        JSONObject turnJson = root.optJSONObject("turn");
-        TurnPayloadProcessor.applyTurn(gameInfoStore, turnJson, TAG);
     }
 }

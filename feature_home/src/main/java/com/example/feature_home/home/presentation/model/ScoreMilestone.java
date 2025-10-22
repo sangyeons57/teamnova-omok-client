@@ -1,23 +1,27 @@
 package com.example.feature_home.home.presentation.model;
 
-import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class ScoreMilestone {
 
     private final float score;
-    private final int iconRes;
+    private final List<Integer> ruleIds;
 
-    public ScoreMilestone(float score, @DrawableRes int iconRes) {
+    public ScoreMilestone(float score, @NonNull List<Integer> ruleIds) {
         this.score = score;
-        this.iconRes = iconRes;
+        this.ruleIds = Collections.unmodifiableList(new ArrayList<>(ruleIds));
     }
 
     public float getScore() {
         return score;
     }
 
-    @DrawableRes
-    public int getIconRes() {
-        return iconRes;
+    @NonNull
+    public List<Integer> getRuleIds() {
+        return ruleIds;
     }
 }

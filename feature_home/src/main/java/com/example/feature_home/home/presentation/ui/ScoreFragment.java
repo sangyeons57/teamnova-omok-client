@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.designsystem.rule.RuleExplainDialog;
 import com.example.core.navigation.AppNavigationKey;
 import com.example.core.navigation.FragmentNavigationHost;
 import com.example.core.navigation.FragmentNavigationHostOwner;
@@ -70,9 +71,9 @@ public class ScoreFragment extends Fragment {
 
         currentScoreValue = viewModel.getCurrentScoreValue();
         scoreTitle.setText(getString(R.string.score_screen_current_score_format, currentScoreValue));
-        gaugeView.configure(viewModel.getMinScore(), viewModel.getMaxScore(), viewModel.getWindowSize(), currentScoreValue);
+        gaugeView.configure(viewModel.getMinScore(), viewModel.getMaxScore(), viewModel.getWindowSize(), viewModel.getMaxScore() - currentScoreValue);
 
-        adapter = new ScoreMilestoneAdapter();
+        adapter = new ScoreMilestoneAdapter(this::onRuleIconClicked);
         layoutManager = new LinearLayoutManager(requireContext());
         layoutManager.setStackFromEnd(true);
         scoreList.setLayoutManager(layoutManager);
@@ -112,11 +113,11 @@ public class ScoreFragment extends Fragment {
         });
 
         viewModel.getCurrentScore().observe(getViewLifecycleOwner(), score -> {
-            int value = score != null ? score : 0;
-            currentScoreValue = value;
+            currentScoreValue = score != null ? score : 0;
             scoreTitle.setText(getString(R.string.score_screen_current_score_format, currentScoreValue));
-            gaugeView.configure(viewModel.getMinScore(), viewModel.getMaxScore(), viewModel.getWindowSize(), currentScoreValue);
+            gaugeView.configure(viewModel.getMinScore(), viewModel.getMaxScore(), viewModel.getWindowSize(), viewModel.getMaxScore() -  currentScoreValue);
         });
+
 
         setClickWithSound(backButton, this::navigateHome);
         setClickWithSound(banner, this::navigateHome);
@@ -136,6 +137,11 @@ public class ScoreFragment extends Fragment {
         if (!popped) {
             fragmentNavigationHost.navigateTo(AppNavigationKey.HOME, false);
         }
+    }
+
+    private void onRuleIconClicked(int ruleId) {
+        SoundEffects.playButtonClick();
+        RuleExplainDialog.show(getParentFragmentManager(), ruleId);
     }
 
     private void setClickWithSound(@NonNull View view, @NonNull Runnable action) {

@@ -164,9 +164,7 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
         if (decoded.isSuccess()) {
             Log.d(TAG, operation + " success: " + decoded.rawMessage());
         } else {
-            Log.w(TAG, operation + " rejected → status=" + decoded.status()
-                    + " turn=" + decoded.turnNumber()
-                    + " payload=" + decoded.rawMessage());
+            Log.w(TAG, operation + " rejected → status=" + decoded.status() + " payload=" + decoded.rawMessage());
         }
         return decoded;
     }

@@ -74,7 +74,7 @@ public final class TcpClientContainer {
         dispatcher.register(FrameType.TURN_STARTED,
                 () -> new TurnStartedHandler(gameInfoStore));
         dispatcher.register(FrameType.TURN_ENDED,
-                () -> new TurnEndedHandler(gameInfoStore, soundManager));
+                () -> new TurnEndedHandler(gameInfoStore));
         dispatcher.register(FrameType.BOARD_UPDATED,
                 () -> new BoardUpdatedHandler(gameInfoStore));
         dispatcher.register(FrameType.GAME_SESSION_COMPLETED,

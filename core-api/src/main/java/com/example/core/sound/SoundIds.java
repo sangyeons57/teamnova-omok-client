@@ -12,6 +12,7 @@ public final class SoundIds {
      */
     @NonNull
     public static final String UI_BUTTON_CLICK = "ui_button_click";
+    public static final String SOUND_ID_PLACE_STONE = "game_place_stone";
 
     private SoundIds() {
         // No instances.

@@ -1,10 +1,17 @@
 package com.example.application.session;
 
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -14,14 +21,14 @@ public final class GameSessionInfo {
 
     private final String sessionId;
     private final long createdAt;
-    private final List<GameParticipantInfo> participants;
+    private final Map<String, GameParticipantInfo> participants;
 
     public GameSessionInfo(@NonNull String sessionId,
                            long createdAt,
-                           @NonNull List<GameParticipantInfo> participants) {
+                           @NonNull Map<String, GameParticipantInfo> participantsMap) {
         this.sessionId = Objects.requireNonNull(sessionId, "sessionId");
         this.createdAt = createdAt;
-        this.participants = List.copyOf(Objects.requireNonNull(participants, "participants"));
+        this.participants = Collections.unmodifiableMap(participantsMap);
     }
 
     @NonNull
@@ -35,7 +42,19 @@ public final class GameSessionInfo {
 
     @NonNull
     public List<GameParticipantInfo> getParticipants() {
-        return Collections.unmodifiableList(participants);
+        List<GameParticipantInfo> participantInfos = new ArrayList<>();
+        for (Map.Entry<String, GameParticipantInfo> entry : participants.entrySet()) {
+            participantInfos.add(entry.getValue());
+        }
+        return participantInfos;
+    }
+
+    public List<String> getUids() {
+        List<String> uids = new ArrayList<>();
+        for (Map.Entry<String, GameParticipantInfo> entry : participants.entrySet()) {
+            uids.add(entry.getKey());
+        }
+        return uids;
     }
 
     public int getParticipantCount() {
@@ -46,32 +65,9 @@ public final class GameSessionInfo {
         return !participants.isEmpty();
     }
 
-    @NonNull
-    public GameParticipantInfo getParticipantAt(int index) {
-        if (index < 0 || index >= participants.size()) {
-            throw new IndexOutOfBoundsException("index=" + index + " size=" + participants.size());
-        }
-        return participants.get(index);
-    }
-
     @Nullable
-    public GameParticipantInfo getParticipantOrNull(int index) {
-        if (index < 0 || index >= participants.size()) {
-            return null;
-        }
-        return participants.get(index);
-    }
-
-    @Nullable
-    public GameParticipantInfo getParticipantWrapped(int index) {
-        if (participants.isEmpty()) {
-            return null;
-        }
-        int normalized = index % participants.size();
-        if (normalized < 0) {
-            normalized += participants.size();
-        }
-        return participants.get(normalized);
+    public GameParticipantInfo getParticipantById(@NonNull String userId) {
+        return participants.get(userId);
     }
 
     @Override

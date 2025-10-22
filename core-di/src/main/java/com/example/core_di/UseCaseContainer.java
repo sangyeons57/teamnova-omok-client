@@ -30,6 +30,7 @@ import com.example.application.usecase.TcpAuthUseCase;
 import com.example.core.event.AppEventBus;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.UserSessionStore;
+import com.example.core.sound.SoundManager;
 import com.example.core.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.datasource.DefaultTcpServerDataSource;
@@ -61,6 +62,7 @@ public final class UseCaseContainer {
     public final UserRepository userRepository = new UserRepositoryImpl(phpServerDataSource, userResponseMapper);
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);
     public final RealtimeRepository realtimeRepository = new RealtimeRepositoryImpl(tcpServerDataSource);
+    public final SoundManager soundManager = SoundManagerContainer.getInstance().getSoundManager();
 
     public final TokenStore token = TokenContainer.getInstance();
     public final UserSessionStore userSessionStore = UserSessionContainer.getInstance().getStore();
@@ -103,7 +105,7 @@ public final class UseCaseContainer {
         registry.register(ReadyInGameSessionUseCase.class,
                 UseCaseProviders.singleton(() -> new ReadyInGameSessionUseCase(defaultConfig, realtimeRepository)));
         registry.register(PlaceStoneUseCase.class,
-                UseCaseProviders.singleton(() -> new PlaceStoneUseCase(defaultConfig, realtimeRepository)));
+                UseCaseProviders.singleton(() -> new PlaceStoneUseCase(defaultConfig, realtimeRepository, soundManager)));
         registry.register(PostGameDecisionUseCase.class,
                 UseCaseProviders.singleton(() -> new PostGameDecisionUseCase(defaultConfig, realtimeRepository)));
     }

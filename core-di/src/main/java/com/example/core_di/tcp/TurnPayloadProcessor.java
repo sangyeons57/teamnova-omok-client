@@ -37,31 +37,19 @@ final class TurnPayloadProcessor {
             gameInfoStore.clearTurnState();
             return;
         }
-        int turnNumber = turnJson.optInt("number", -1);
-        int round = turnJson.optInt("round", -1);
-        int position = turnJson.optInt("position", -1);
-        int playerIndex = turnJson.optInt("playerIndex", -1);
         String currentPlayerId = turnJson.optString("currentPlayerId", null);
-        long startAt = turnJson.optLong("startAt", 0L);
         long endAt = turnJson.optLong("endAt", 0L);
         int remainingSeconds = computeRemainingSeconds(endAt, nowSupplier);
 
-        Log.d(tag, "Turn update #" + turnNumber
+        Log.d(tag, "Turn update "
                 + " currentPlayerId=" + currentPlayerId
-                + " round=" + round
-                + " position=" + position
-                + " playerIndex=" + playerIndex
                 + " remainingSeconds=" + remainingSeconds
-                + " startAt=" + startAt
                 + " endAt=" + endAt);
 
-        if (playerIndex >= 0) {
-            gameInfoStore.setTurnIndex(playerIndex, remainingSeconds, round, position);
-        } else if (currentPlayerId == null) {
-            Log.d(tag, "Turn payload omitted current player. Clearing turn state.");
-            gameInfoStore.clearTurnState();
+        if (currentPlayerId != null) {
+            gameInfoStore.setTurnState(currentPlayerId, remainingSeconds);
         } else {
-            Log.w(tag, "Unable to resolve participant index for currentPlayerId=" + currentPlayerId);
+            Log.w(tag, "Turn payload omitted current player. Clearing turn state.");
             gameInfoStore.clearTurnState();
         }
     }
@@ -77,19 +65,5 @@ final class TurnPayloadProcessor {
             return 0;
         }
         return (int) ((remainingMillis + 999L) / 1_000L);
-    }
-
-    private static int resolveParticipantIndex(@Nullable GameSessionInfo session,
-                                               @Nullable String userId) {
-        if (session == null || userId == null || userId.trim().isEmpty()) {
-            return -1;
-        }
-        for (int i = 0; i < session.getParticipantCount(); i++) {
-            GameParticipantInfo participant = session.getParticipantOrNull(i);
-            if (participant != null && userId.equals(participant.getUserId())) {
-                return i;
-            }
-        }
-        return -1;
     }
 }

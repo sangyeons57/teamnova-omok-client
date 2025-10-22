@@ -174,16 +174,6 @@ public class GameViewModel extends ViewModel {
     }
 
     @NonNull
-    public LiveData<GameMode> getCurrentMode() {
-        return currentMode;
-    }
-
-    @NonNull
-    public LiveData<MatchState> getMatchState() {
-        return matchState;
-    }
-
-    @NonNull
     public LiveData<OmokBoardState> getBoardState() {
         return boardState;
     }
@@ -225,26 +215,18 @@ public class GameViewModel extends ViewModel {
         viewEvents.setValue(GameViewEvent.OPEN_GAME_INFO_DIALOG);
     }
 
-    public void onShowResultClicked() {
-        viewEvents.setValue(GameViewEvent.OPEN_GAME_RESULT_DIALOG);
-    }
 
-    public void onBoardTapped() {
-        gameInfoStore.advanceTurn();
-    }
 
     public void onBoardCellTapped(int x, int y) {
         OmokBoardState currentBoard = boardStore.getCurrentBoardState();
-        if (currentBoard == null
-                || currentBoard.getWidth() <= 0
-                || currentBoard.getHeight() <= 0) {
+        if (currentBoard.getWidth() <= 0 || currentBoard.getHeight() <= 0) {
             return;
         }
         if (x < 0 || y < 0 || x >= currentBoard.getWidth() || y >= currentBoard.getHeight()) {
             return;
         }
         OmokStoneType existingStone = currentBoard.getStone(x, y);
-        if (existingStone != null && existingStone.isPlaced()) {
+        if (existingStone.isPlaced()) {
             Log.w(TAG, "Ignoring tap on occupied cell (" + x + "," + y + ")");
             return;
         }
@@ -297,7 +279,7 @@ public class GameViewModel extends ViewModel {
 
     private void rollbackPlacement(int x, int y, @NonNull OmokStoneType expectedStone) {
         OmokBoardState current = boardStore.getCurrentBoardState();
-        if (current == null || current.getWidth() <= 0 || current.getHeight() <= 0) {
+        if (current.getWidth() <= 0 || current.getHeight() <= 0) {
             return;
         }
         try {
@@ -315,47 +297,11 @@ public class GameViewModel extends ViewModel {
         if (turnState == null || !turnState.isActive()) {
             return false;
         }
-        int selfIndex = resolveSelfParticipantIndex();
-        return selfIndex >= 0 && turnState.getCurrentIndex() == selfIndex;
+        String selfPlayerId = selfUserId; // Use selfUserId directly
+        return selfPlayerId != null && selfPlayerId.equals(turnState.getCurrentPlayerId());
     }
 
-    private int resolveSelfParticipantIndex() {
-        if (latestSessionInfo == null) {
-            return -1;
-        }
-        if (selfUserId == null || selfUserId.isEmpty()) {
-            return -1;
-        }
-        List<GameParticipantInfo> participants = latestSessionInfo.getParticipants();
-        for (int i = 0; i < participants.size(); i++) {
-            GameParticipantInfo participant = participants.get(i);
-            if (participant != null && selfUserId.equals(participant.getUserId())) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public void placeStoneExplicit(int x, int y, @NonNull OmokStoneType stoneType, boolean advanceTurn) {
-        OmokBoardState currentBoard = boardStore.getCurrentBoardState();
-        if (currentBoard == null
-                || currentBoard.getWidth() <= 0
-                || currentBoard.getHeight() <= 0) {
-            return;
-        }
-        if (x < 0 || y < 0 || x >= currentBoard.getWidth() || y >= currentBoard.getHeight()) {
-            return;
-        }
-        if (stoneType == null || stoneType == OmokStoneType.EMPTY || stoneType == OmokStoneType.UNKNOWN) {
-            return;
-        }
-        boardStore.applyStone(new OmokStonePlacement(x, y, stoneType));
-        if (advanceTurn) {
-            gameInfoStore.advanceTurn();
-        }
-    }
-
-    public void onEventHandled() {
+     public void onEventHandled() {
         viewEvents.setValue(null);
     }
 
@@ -369,9 +315,8 @@ public class GameViewModel extends ViewModel {
         }
         currentMode.postValue(mode);
         rebuildSlots(mode);
-        gameInfoStore.setTurnIndex(0);
         activePlayerIndex.postValue(0);
-        lastTurnParticipantIndex = -1;
+        // lastTurnParticipantIndex = -1; // No longer needed
     }
 
     private void onMatchStateChanged(@Nullable MatchState state) {
@@ -388,7 +333,7 @@ public class GameViewModel extends ViewModel {
                     rebuildSlots(currentMode.getValue());
                 }
             }
-            lastTurnParticipantIndex = -1;
+            // lastTurnParticipantIndex = -1; // No longer needed
         }
     }
 
@@ -402,7 +347,7 @@ public class GameViewModel extends ViewModel {
             synchronized (disconnectedPlayers) {
                 disconnectedPlayers.clear();
             }
-            lastTurnParticipantIndex = -1;
+            // lastTurnParticipantIndex = -1; // No longer needed
         }
         GameMode mode = currentMode.getValue();
         if (mode == null) {
@@ -432,20 +377,28 @@ public class GameViewModel extends ViewModel {
     private void onTurnChanged(@Nullable GameTurnState state) {
         if (state == null || !state.isActive()) {
             activePlayerIndex.postValue(0);
-            lastTurnParticipantIndex = -1;
+            // lastTurnParticipantIndex = -1; // No longer needed
             startTurnCountdown(0);
             return;
         }
-        int currentIndex = state.getCurrentIndex();
-        activePlayerIndex.postValue(currentIndex);
-        int reportedSeconds = clampTurnSeconds(state.getRemainingSeconds());
-        boolean isNewTurn = currentIndex != lastTurnParticipantIndex;
-        if (!isNewTurn && reportedSeconds > currentTurnRemainingSeconds) {
-            isNewTurn = true;
+        // currentIndex is no longer available in GameTurnState
+        // We need to find the index of the current player based on their ID
+        GameSessionInfo session = latestSessionInfo;
+        if (session == null || state.getCurrentPlayerId() == null) {
+            activePlayerIndex.postValue(0);
+            startTurnCountdown(0);
+            return;
         }
-        int startingSeconds = isNewTurn ? TURN_TOTAL_SECONDS : reportedSeconds;
+
+        int currentParticipantIndex = -1;
+        currentParticipantIndex = session.getUids().indexOf(state.getCurrentPlayerId());
+
+        activePlayerIndex.postValue(currentParticipantIndex);
+        // lastTurnParticipantIndex is no longer used for isNewTurn logic
+        // The server is the source of truth for new turns.
+        int startingSeconds = clampTurnSeconds(state.getRemainingSeconds());
         startTurnCountdown(startingSeconds);
-        lastTurnParticipantIndex = currentIndex;
+        // lastTurnParticipantIndex = currentParticipantIndex; // No longer needed
     }
 
     private void onPostGameStateChanged(@Nullable PostGameSessionState state) {
@@ -480,17 +433,19 @@ public class GameViewModel extends ViewModel {
 
     private OmokStoneType resolveStoneForActiveTurn() {
         GameTurnState turnState = gameInfoStore.getCurrentTurnState();
-        if (turnState == null || !turnState.isActive()) {
-            GameSessionInfo session = latestSessionInfo;
-            if (session != null && session.hasParticipants()) {
-                gameInfoStore.setTurnIndex(0);
-                turnState = gameInfoStore.getCurrentTurnState();
-            }
-        }
-        if (turnState == null || !turnState.isActive()) {
+        if (!turnState.isActive() || turnState.getCurrentPlayerId() == null) {
+            // If no active turn or current player, we cannot resolve a stone type.
+            // The server should initiate the turn.
             return OmokStoneType.BLACK;
         }
-        return mapStoneTypeForIndex(turnState.getCurrentIndex());
+        // We need to map the currentPlayerId to an index to get the stone type.
+        GameSessionInfo session = latestSessionInfo;
+        if (session == null) {
+            return OmokStoneType.BLACK;
+        }
+        int currentParticipantIndex = session.getParticipants().indexOf(turnState.getCurrentPlayerId());
+
+        return mapStoneTypeForIndex(currentParticipantIndex);
     }
 
     private OmokStoneType mapStoneTypeForIndex(int participantIndex) {
@@ -504,24 +459,10 @@ public class GameViewModel extends ViewModel {
         GameMode safeMode = mode != null ? mode : GameMode.TWO_PLAYER;
         int participantCount = resolveParticipantCount(safeMode);
 
+        // Get participants from the session info's map values
         List<GameParticipantInfo> participants = latestSessionInfo != null
                 ? new ArrayList<>(latestSessionInfo.getParticipants())
                 : new ArrayList<>();
-
-        /** 재정렬 필요 없어서 주석처리
-        if (!participants.isEmpty() && selfUserId != null && !selfUserId.isEmpty()) {
-            for (int i = 0; i < participants.size(); i++) {
-                GameParticipantInfo info = participants.get(i);
-                if (selfUserId.equals(info.getUserId())) {
-                    if (i != 0) {
-                        participants.remove(i);
-                        participants.add(0, info);
-                    }
-                    break;
-                }
-            }
-        }
-         **/
 
         if (participants.size() > participantCount) {
             participants = new ArrayList<>(participants.subList(0, participantCount));

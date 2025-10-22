@@ -34,24 +34,15 @@ public final class OmokBoardStore {
     }
 
     public void updateBoardSnapshot(int width, int height, @NonNull OmokStoneType[] cells) {
-        if (cells == null) {
-            throw new IllegalArgumentException("cells == null");
-        }
         updateBoardState(OmokBoardState.fromCells(width, height, cells));
     }
 
     private void updateBoardState(@NonNull OmokBoardState boardState) {
-        if (boardState == null) {
-            throw new IllegalArgumentException("boardState == null");
-        }
         currentBoardState.set(boardState);
         boardStateStream.postValue(boardState);
     }
 
     public void applyStone(@NonNull OmokStonePlacement placement) {
-        if (placement == null) {
-            throw new IllegalArgumentException("placement == null");
-        }
         OmokBoardState next = getCurrentBoardState().withStone(placement);
         updateBoardState(next);
     }

@@ -22,7 +22,6 @@ public class MyApp extends Application {
         PostGameSessionContainer.init();
         UserSessionContainer.init();
         SoundManagerContainer.init(this);
-        registerSoundEffects();
         TcpClientContainer.init(
                 new TcpClientConfig(BuildConfig.TCP_HOST, BuildConfig.TCP_PORT),
                 GameInfoContainer.getInstance().getStore(),
@@ -30,15 +29,4 @@ public class MyApp extends Application {
         );
     }
 
-    private void registerSoundEffects() {
-        SoundManager soundManager = SoundManagerContainer.getInstance().getSoundManager();
-        if (!soundManager.isRegistered(SoundIds.UI_BUTTON_CLICK)) {
-            soundManager.register(new SoundManager.SoundRegistration(
-                    SoundIds.UI_BUTTON_CLICK,
-                    R.raw.button_click_sound_effect,
-                    1f,
-                    false
-            ));
-        }
-    }
 }

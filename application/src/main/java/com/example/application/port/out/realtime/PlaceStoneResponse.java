@@ -11,11 +11,6 @@ import java.util.Objects;
 public record PlaceStoneResponse(@NonNull Status status,
                                  @NonNull String rawMessage) {
 
-    public PlaceStoneResponse {
-        Objects.requireNonNull(status, "status");
-        rawMessage = rawMessage != null ? rawMessage : "";
-    }
-
     public boolean isSuccess() {
         return status == Status.SUCCESS;
     }

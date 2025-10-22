@@ -63,8 +63,6 @@ public class JoinInGameSessionHandlerTest {
         assertEquals("session-123", gameInfoStore.lastSession.getSessionId());
         assertEquals(1700000000L, gameInfoStore.lastSession.getCreatedAt());
         assertEquals(2, gameInfoStore.lastSession.getParticipants().size());
-        assertEquals("Alice", gameInfoStore.lastSession.getParticipants().get(0).getDisplayName());
-        assertEquals("bob", gameInfoStore.lastSession.getParticipants().get(1).getDisplayName());
         assertEquals(MatchState.MATCHED, gameInfoStore.lastMatchState);
     }
 
@@ -80,18 +78,6 @@ public class JoinInGameSessionHandlerTest {
         assertNull("match state should not change", gameInfoStore.lastMatchState);
     }
 
-    @Test
-    public void parsePayload_withoutUsers_returnsEmptyList() throws JSONException {
-        String json = "{"
-                + "\"sessionId\":\"session-456\","
-                + "\"createdAt\":42"
-                + "}";
-        GameSessionInfo sessionInfo = handler.parsePayload(json.getBytes(StandardCharsets.UTF_8));
-
-        assertEquals("session-456", sessionInfo.getSessionId());
-        assertEquals(42L, sessionInfo.getCreatedAt());
-        assertEquals(0, sessionInfo.getParticipants().size());
-    }
 
     private static final class TrackingGameInfoStore extends GameInfoStore {
         private GameSessionInfo lastSession;

@@ -10,7 +10,6 @@ import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
 import com.example.core.network.tcp.protocol.FrameType;
 import com.example.core.sound.SoundManager;
-import com.example.core_di.R;
 
 import org.json.JSONObject;
 
@@ -18,23 +17,19 @@ import java.util.Objects;
 
 public class TurnEndedHandler extends AbstractJsonFrameHandler{
     private static final String TAG = "TurnEndedHandler";
-    private static final String SOUND_ID_PLACE_STONE = "game_place_stone";
 
     private final GameInfoStore gameInfoStore;
     private final OmokBoardStore boardStore;
-    private final SoundManager soundManager;
-    private volatile boolean soundRegistered = false;
 
-    public TurnEndedHandler( @NonNull GameInfoStore gameInfoStore, @NonNull SoundManager soundManager) {
-        this(gameInfoStore, gameInfoStore.getBoardStore() , soundManager);
+    public TurnEndedHandler( @NonNull GameInfoStore gameInfoStore) {
+        this(gameInfoStore, gameInfoStore.getBoardStore());
     }
 
-    private TurnEndedHandler (GameInfoStore gameInfoStore, OmokBoardStore omokBoardStore, SoundManager soundManager) {
+    private TurnEndedHandler (GameInfoStore gameInfoStore, OmokBoardStore omokBoardStore) {
         super(TAG, FrameType.TURN_ENDED.name());
 
         this.gameInfoStore = Objects.requireNonNull(gameInfoStore, "gameInfoStore");
         this.boardStore = Objects.requireNonNull(omokBoardStore, "boardStore");
-        this.soundManager = Objects.requireNonNull(soundManager, "soundManager");
     }
 
 
@@ -46,17 +41,17 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
         TurnEndStatus status = TurnEndStatus.lookup(root.optString("status", ""));
         boolean timedOut = root.optBoolean("timedOut", false);
         JSONObject moveJson = root.optJSONObject("move");
-        Move move = null;
+        PlacementedStone placementedStone = null;
         if (moveJson != null) {
             int x = moveJson.optInt("x", -1);
             int y = moveJson.optInt("y", -1);
             String stoneLabel = moveJson.optString("stone", "");
             OmokStoneType stoneType = StoneTypeMapper.fromNetworkLabel(stoneLabel);
-            move = new Move(x, y, stoneType);
+            placementedStone = new PlacementedStone(x, y, stoneType);
         }
 
-        if (cause == TurnEndCause.MOVE && move != null) {
-            moveStone(move);
+        if (cause == TurnEndCause.MOVE && placementedStone != null) {
+            moveStone(placementedStone);
         } else if (cause == TurnEndCause.TIMEOUT) {
             timeoutProcess(sessionId);
         } else {
@@ -64,12 +59,11 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
         }
     }
 
-    protected void moveStone(Move move) {
-        ensureSoundRegistered();
-        int x = move.x;
-        int y = move.y;
+    protected void moveStone(PlacementedStone placementedStone) {
+        int x = placementedStone.x;
+        int y = placementedStone.y;
 
-        OmokStoneType stoneType = move.omokStoneType;
+        OmokStoneType stoneType = placementedStone.omokStoneType;
         Log.i(TAG, "Stone placed → "
                 + ", stone=" + stoneType
                 + ", coord=(" + x + "," + y + ")");
@@ -77,7 +71,6 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
         if (stoneType.isPlaced() && x >= 0 && y >= 0) {
             try {
                 boardStore.applyStone(new OmokStonePlacement(x, y, stoneType));
-                soundManager.play(SOUND_ID_PLACE_STONE);
             } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
                 Log.e(TAG, "Stone coordinate outside board bounds (" + x + "," + y + ")", e);
             }
@@ -86,36 +79,17 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
         }
     }
 
-    private void ensureSoundRegistered() {
-        if (soundRegistered) {
-            return;
-        }
-        synchronized (this) {
-            if (soundRegistered) {
-                return;
-            }
-            if (!soundManager.isRegistered(SOUND_ID_PLACE_STONE)) {
-                soundManager.register(new SoundManager.SoundRegistration(
-                        SOUND_ID_PLACE_STONE,
-                        R.raw.placing_stone_sound_effect,
-                        1f,
-                        false
-                ));
-            }
-            soundRegistered = true;
-        }
-    }
 
     protected void timeoutProcess(String sessionId) {
         Log.i(TAG, "Turn timeout → sessionId=" + sessionId);
 
     }
 
-    public static class Move {
+    public static class PlacementedStone {
         public final int x;
         public final int y;
         public final OmokStoneType omokStoneType;
-        public Move(int x, int y, OmokStoneType omokStoneType) {
+        public PlacementedStone(int x, int y, OmokStoneType omokStoneType) {
             this.x = x;
             this.y = y;
             this.omokStoneType = omokStoneType;

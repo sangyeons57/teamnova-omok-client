@@ -20,7 +20,9 @@ import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -47,7 +49,7 @@ public final class JoinInGameSessionHandler extends AbstractJsonFrameHandler {
         String sessionId = root.optString("sessionId", "");
         long createdAt = root.optLong("createdAt", 0L);
         JSONArray usersArray = root.optJSONArray("users");
-        List<GameParticipantInfo> participants = new ArrayList<>();
+        Map<String, GameParticipantInfo> participants = new HashMap<>();
         if (usersArray != null) {
             for (int i = 0; i < usersArray.length(); i++) {
                 JSONObject userObject = usersArray.optJSONObject(i);
@@ -63,7 +65,7 @@ public final class JoinInGameSessionHandler extends AbstractJsonFrameHandler {
                 Log.d(TAG, "User joined session → userId=" + userId
                         + ", displayName=" + displayName
                         + ", profileIconCode");
-                participants.add(new GameParticipantInfo(userId, displayName, profileIconCode));
+                participants.put(userId, new GameParticipantInfo(userId, displayName, profileIconCode));
             }
         }
 

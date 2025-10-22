@@ -5,6 +5,8 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -99,7 +101,7 @@ public class GameInfoStore {
         gameSessionStream.postValue(session);
         GameTurnState current = currentTurnState.get();
         GameTurnState aligned = (current != null ? current : GameTurnState.idle())
-                .ensureActive(session.getParticipantCount());
+                .ensureActive(); // No participantCount needed here anymore
         currentTurnState.set(aligned);
         turnStateStream.postValue(aligned);
     }
@@ -129,10 +131,7 @@ public class GameInfoStore {
         if (turnState == null) {
             throw new IllegalArgumentException("turnState == null");
         }
-        GameSessionInfo session = currentGameSession.get();
-        GameTurnState adjusted = session == null
-                ? turnState.deactivate()
-                : turnState.normalize(session.getParticipantCount());
+        GameTurnState adjusted = turnState.normalize(); // No participantCount needed here anymore
         currentTurnState.set(adjusted);
         turnStateStream.postValue(adjusted);
     }
@@ -143,10 +142,7 @@ public class GameInfoStore {
             base = GameTurnState.idle();
         }
         GameTurnState updated = base.withRemainingSeconds(seconds);
-        GameSessionInfo session = currentGameSession.get();
-        GameTurnState normalized = session == null
-                ? updated.deactivate()
-                : updated.normalize(session.getParticipantCount());
+        GameTurnState normalized = updated.normalize(); // No participantCount needed here anymore
         currentTurnState.set(normalized);
         turnStateStream.postValue(normalized);
     }
@@ -157,20 +153,14 @@ public class GameInfoStore {
         turnStateStream.postValue(idle);
     }
 
-    public void setTurnIndex(int index) {
-        GameTurnState current = currentTurnState.get();
-        int remaining = current != null ? current.getRemainingSeconds() : 0;
-        setTurnIndex(index, remaining);
-    }
-
-    public void setTurnIndex(int index, int remainingSeconds, int round, int position) {
+    public void setTurnState(@NonNull String currentPlayerId, int remainingSeconds) {
         GameSessionInfo session = currentGameSession.get();
         if (session == null || !session.hasParticipants()) {
             clearTurnState();
             return;
         }
-        GameTurnState next = GameTurnState.active(index, remainingSeconds, round, position)
-                .normalize(session.getParticipantCount());
+        GameTurnState next = GameTurnState.active(currentPlayerId, remainingSeconds)
+                .normalize(); // No participantCount needed here anymore
         currentTurnState.set(next);
         turnStateStream.postValue(next);
     }
@@ -182,22 +172,37 @@ public class GameInfoStore {
             return;
         }
         GameTurnState existing = currentTurnState.get();
-        if (existing == null) {
-            existing = GameTurnState.idle();
+        if (existing == null || !existing.isActive() || existing.getCurrentPlayerId() == null) {
+            // If no active turn or current player, start with the first participant
+            String firstPlayerId = session.getParticipants().iterator().next().getUserId();
+            setTurnState(firstPlayerId, 0); // Assuming 0 remaining seconds for a new turn
+            return;
         }
-        GameTurnState next = existing.advance(session.getParticipantCount());
-        currentTurnState.set(next);
-        turnStateStream.postValue(next);
+
+        String currentPlayerId = existing.getCurrentPlayerId();
+        List<String> participantIds = new ArrayList<String>(session.getUids());
+        int currentIndex = participantIds.indexOf(currentPlayerId);
+
+        if (currentIndex == -1) {
+            // Current player not found, reset turn state
+            clearTurnState();
+            return;
+        }
+
+        int nextIndex = (currentIndex + 1) % participantIds.size();
+        String nextPlayerId = participantIds.get(nextIndex);
+
+        setTurnState(nextPlayerId, existing.getRemainingSeconds()); // Keep remaining seconds or reset as needed
     }
 
     @Nullable
     public GameParticipantInfo getCurrentTurnParticipant() {
         GameTurnState turn = currentTurnState.get();
         GameSessionInfo session = currentGameSession.get();
-        if (turn == null || session == null || !turn.isActive()) {
+        if (turn == null || session == null || !turn.isActive() || turn.getCurrentPlayerId() == null) {
             return null;
         }
-        return session.getParticipantOrNull(turn.getCurrentIndex());
+        return session.getParticipantById(turn.getCurrentPlayerId());
     }
 
     @NonNull

@@ -4,6 +4,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.example.core.sound.SoundIds;
 import com.example.core.sound.SoundManager;
 import com.example.infra.sound.AndroidSoundManager;
 
@@ -17,7 +18,9 @@ public final class SoundManagerContainer {
 
     private SoundManagerContainer(@NonNull Context context) {
         this.soundManager = new AndroidSoundManager(context);
+        soundEffectRegister();
     }
+
 
     public static void init(@NonNull Context context) {
         if (instance != null) {
@@ -42,5 +45,22 @@ public final class SoundManagerContainer {
     @NonNull
     public SoundManager getSoundManager() {
         return soundManager;
+    }
+
+    private void soundEffectRegister() {
+        soundManager.register(new SoundManager.SoundRegistration(
+                SoundIds.UI_BUTTON_CLICK,
+                R.raw.button_click_sound_effect,
+                1f,
+                false
+        ));
+
+
+        soundManager.register(new SoundManager.SoundRegistration(
+                SoundIds.SOUND_ID_PLACE_STONE,
+                R.raw.placing_stone_sound_effect,
+                1f,
+                false
+        ));
     }
 }

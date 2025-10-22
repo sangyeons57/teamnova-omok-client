@@ -6,7 +6,7 @@ import com.example.application.session.OmokStoneType;
 
 import org.junit.Test;
 
-public class StoneTypeMapperTest {
+public class PlacementedStoneTypeMapperTest {
 
     @Test
     public void fromNetworkLabel_mapsKnownValues() {

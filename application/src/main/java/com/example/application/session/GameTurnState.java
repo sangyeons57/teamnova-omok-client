@@ -1,6 +1,7 @@
 package com.example.application.session;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Objects;
 
@@ -10,62 +11,43 @@ import java.util.Objects;
 public final class GameTurnState {
 
     private final boolean active;
-    private final int currentIndex;
+    private final String currentPlayerId;
     private final int remainingSeconds;
-    private final int round;
-    private final int positionInRound;
 
-    private GameTurnState(boolean active, int currentIndex, int remainingSeconds, int round, int positionInRound) {
+    private GameTurnState(boolean active, @Nullable String currentPlayerId, int remainingSeconds) {
         this.active = active;
-        this.currentIndex = active ? Math.max(currentIndex, 0) : -1;
+        this.currentPlayerId = currentPlayerId;
         this.remainingSeconds = Math.max(remainingSeconds, 0);
-        this.round = Math.max(round, 0);
-        this.positionInRound = Math.max(positionInRound, 0);
     }
 
     public static GameTurnState idle() {
-        return new GameTurnState(false, -1, 0, 0, 0);
+        return new GameTurnState(false, null, 0);
     }
 
-    public static GameTurnState active(int currentIndex, int remainingSeconds, int round, int positionInRound) {
-        return new GameTurnState(true, currentIndex, remainingSeconds, round, positionInRound);
+    public static GameTurnState active(@NonNull String currentPlayerId, int remainingSeconds) {
+        return new GameTurnState(true, Objects.requireNonNull(currentPlayerId, "currentPlayerId"), remainingSeconds);
     }
 
     private static GameTurnState idleWithSeconds(int seconds) {
-        return new GameTurnState(false, -1, seconds, 0, 0);
+        return new GameTurnState(false, null, seconds);
     }
 
     public boolean isActive() {
         return active;
     }
 
-    public int getCurrentIndex() {
-        return currentIndex;
+    @Nullable
+    public String getCurrentPlayerId() {
+        return currentPlayerId;
     }
 
     public int getRemainingSeconds() {
         return remainingSeconds;
     }
 
-    public int getRound() {
-        return round;
-    }
-
-    public int getPositionInRound() {
-        return positionInRound;
-    }
-
-    @NonNull
-    public GameTurnState withCurrentIndex(int index, int participantCount) {
-        if (participantCount <= 0) {
-            return idleWithSeconds(remainingSeconds);
-        }
-        return new GameTurnState(true, normalizeIndex(index, participantCount), remainingSeconds, round, positionInRound);
-    }
-
     @NonNull
     public GameTurnState withRemainingSeconds(int seconds) {
-        return new GameTurnState(active, currentIndex, seconds, round, positionInRound);
+        return new GameTurnState(active, currentPlayerId, seconds);
     }
 
     @NonNull
@@ -73,49 +55,33 @@ public final class GameTurnState {
         return idleWithSeconds(remainingSeconds);
     }
 
+    // normalize and ensureActive will need to be re-evaluated in GameInfoStore
+    // as they relied on participantCount and currentIndex.
+    // For now, they will return the current state or an idle state.
     @NonNull
-    public GameTurnState normalize(int participantCount) {
-        if (participantCount <= 0) {
-            return idleWithSeconds(remainingSeconds);
-        }
+    public GameTurnState normalize() {
         if (!active) {
             return idleWithSeconds(remainingSeconds);
         }
-        return new GameTurnState(true, normalizeIndex(currentIndex, participantCount), remainingSeconds, round, positionInRound);
+        return this; // No normalization needed without participantCount
     }
 
     @NonNull
-    public GameTurnState ensureActive(int participantCount) {
-        if (participantCount <= 0) {
-            return idleWithSeconds(remainingSeconds);
-        }
+    public GameTurnState ensureActive() {
         if (!active) {
-            return new GameTurnState(true, 0, remainingSeconds, 0, 0); // Assuming round and position start at 0 for a new active state
+            // If it's not active, and we need to ensure it's active, we need a player ID.
+            // This logic should ideally be handled by GameInfoStore with actual player data.
+            // For now, returning an idle state or throwing an error.
+            throw new IllegalStateException("Cannot ensure active without a player ID. This should be handled by GameInfoStore.");
         }
-        return new GameTurnState(true, normalizeIndex(currentIndex, participantCount), remainingSeconds, round, positionInRound);
+        return this;
     }
 
     @NonNull
-    public GameTurnState advance(int participantCount) {
-        if (participantCount <= 0) {
-            return idleWithSeconds(remainingSeconds);
-        }
-        if (!active) {
-            return new GameTurnState(true, 0, remainingSeconds, 0, 0); // Assuming round and position start at 0 for a new active state
-        }
-        int nextIndex = normalizeIndex(currentIndex + 1, participantCount);
-        int nextPositionInRound = positionInRound + 1;
-        int nextRound = round;
-
-        // If the position in round wraps around, increment the round
-        // This assumes that a full cycle of participants completes a round.
-        if (nextIndex == 0 && participantCount > 0 && currentIndex == participantCount -1) { // Check if we just wrapped from the last player to the first
-             nextRound++;
-             nextPositionInRound = 0; // Reset position in round for the new round
-        }
-
-
-        return new GameTurnState(true, nextIndex, remainingSeconds, nextRound, nextPositionInRound);
+    public GameTurnState advance() {
+        // The logic for advancing a turn (determining the next player) should be handled by GameInfoStore
+        // as it requires knowledge of all participants. GameTurnState no longer holds this information.
+        return idle(); // For now, return idle, GameInfoStore will determine the next active state.
     }
 
     @Override
@@ -128,36 +94,22 @@ public final class GameTurnState {
         }
         GameTurnState that = (GameTurnState) o;
         return active == that.active
-                && currentIndex == that.currentIndex
                 && remainingSeconds == that.remainingSeconds
-                && round == that.round
-                && positionInRound == that.positionInRound;
+                && Objects.equals(currentPlayerId, that.currentPlayerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(active, currentIndex, remainingSeconds, round, positionInRound);
+        return Objects.hash(active, currentPlayerId, remainingSeconds);
     }
 
     @Override
     public String toString() {
         return "GameTurnState{"
                 + "active=" + active
-                + ", currentIndex=" + currentIndex
+                + ", currentPlayerId='" + currentPlayerId + '\''
                 + ", remainingSeconds=" + remainingSeconds
-                + ", round=" + round
-                + ", positionInRound=" + positionInRound
                 + '}';
     }
-
-    private static int normalizeIndex(int index, int participantCount) {
-        if (participantCount <= 0) {
-            return -1;
-        }
-        int mod = index % participantCount;
-        if (mod < 0) {
-            mod += participantCount;
-        }
-        return mod;
-    }
 }
+

@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public final class ReadyInGameSessionHandler extends AbstractJsonFrameHandler {
 
-    private static final String TAG = "ReadyInGameSessionHdl";
+    private static final String TAG = "ReadyInGameSessionHandle";
 
     private final GameInfoStore gameInfoStore;
 

@@ -94,16 +94,9 @@ public class GameInfoStore {
     }
 
     public void updateGameSession(@NonNull GameSessionInfo session) {
-        if (session == null) {
-            throw new IllegalArgumentException("session == null");
-        }
         currentGameSession.set(session);
         gameSessionStream.postValue(session);
-        GameTurnState current = currentTurnState.get();
-        GameTurnState aligned = (current != null ? current : GameTurnState.idle())
-                .ensureActive(); // No participantCount needed here anymore
-        currentTurnState.set(aligned);
-        turnStateStream.postValue(aligned);
+        clearTurnState(); // Reset turn state to idle when a new session is updated
     }
 
     public void clearGameSession() {

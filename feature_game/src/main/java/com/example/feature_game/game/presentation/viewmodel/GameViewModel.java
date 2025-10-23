@@ -30,6 +30,8 @@ import com.example.application.session.UserSessionStore;
 import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.application.usecase.PlaceStoneUseCase;
 import com.example.application.port.out.realtime.PlaceStoneResponse;
+import com.example.core.sound.SoundIds;
+import com.example.core.sound.SoundManager;
 import com.example.domain.user.entity.User;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
@@ -91,7 +93,7 @@ public class GameViewModel extends ViewModel {
     private GameSessionInfo latestSessionInfo;
     private Runnable turnCountdownRunnable;
     private int currentTurnRemainingSeconds = TURN_TOTAL_SECONDS;
-    private int lastTurnParticipantIndex = -1;
+
 
     public GameViewModel(@NonNull GameInfoStore gameInfoStore,
                          @NonNull UserSessionStore userSessionStore,
@@ -238,7 +240,6 @@ public class GameViewModel extends ViewModel {
         if (nextType == OmokStoneType.UNKNOWN || nextType == OmokStoneType.EMPTY) {
             return;
         }
-        boardStore.applyStone(new OmokStonePlacement(x, y, nextType));
         dispatchPlaceStone(x, y, nextType);
     }
 
@@ -247,54 +248,27 @@ public class GameViewModel extends ViewModel {
                 .whenComplete((result, throwable) -> {
                     if (throwable != null) {
                         Log.e(TAG, "PLACE_STONE request failed for (" + x + "," + y + ")", throwable);
-                        rollbackPlacement(x, y, expectedStone);
                         placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
-                        return;
                     }
                     if (result instanceof UResult.Err<?> err) {
                         Log.w(TAG, "PLACE_STONE rejected (" + x + "," + y + "): " + err.message());
-                        rollbackPlacement(x, y, expectedStone);
                         placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
                     } else {
                         Log.d(TAG, "PLACE_STONE dispatched for (" + x + "," + y + ")");
                         if (result instanceof UResult.Ok<PlaceStoneResponse> ok && ok.value() != null) {
-                            handlePlaceStoneResponse(x, y, expectedStone, ok.value());
+                            PlaceStoneResponse response = ok.value();
+                            if (!response.isSuccess()) placementErrors.postValue(response.status());
                             return;
                         }
-                        rollbackPlacement(x, y, expectedStone);
                         placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
                     }
                 });
     }
 
-    private void handlePlaceStoneResponse(int x, int y, @NonNull OmokStoneType expectedStone, @NonNull PlaceStoneResponse response) {
-        if (response.isSuccess()) {
-            return;
-        }
-        Log.w(TAG, "PLACE_STONE outcome for (" + x + "," + y + ") rejected → status="
-                + response.status() + ", message='" + response.rawMessage() + "'");
-        rollbackPlacement(x, y, expectedStone);
-        placementErrors.postValue(response.status());
-    }
-
-    private void rollbackPlacement(int x, int y, @NonNull OmokStoneType expectedStone) {
-        OmokBoardState current = boardStore.getCurrentBoardState();
-        if (current.getWidth() <= 0 || current.getHeight() <= 0) {
-            return;
-        }
-        try {
-            OmokStoneType stone = current.getStone(x, y);
-            if (stone == expectedStone) {
-                boardStore.applyStone(new OmokStonePlacement(x, y, OmokStoneType.EMPTY));
-            }
-        } catch (IndexOutOfBoundsException e) {
-            Log.w(TAG, "Cannot rollback placement outside board bounds (" + x + "," + y + ")", e);
-        }
-    }
 
     private boolean isSelfTurn() {
         GameTurnState turnState = gameInfoStore.getCurrentTurnState();
-        if (turnState == null || !turnState.isActive()) {
+        if (!turnState.isActive()) {
             return false;
         }
         String selfPlayerId = selfUserId; // Use selfUserId directly

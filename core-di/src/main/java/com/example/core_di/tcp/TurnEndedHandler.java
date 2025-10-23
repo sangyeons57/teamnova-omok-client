@@ -9,10 +9,7 @@ import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
 import com.example.core.network.tcp.protocol.FrameType;
-import com.example.core.sound.SoundManager;
-
 import org.json.JSONObject;
-
 import java.util.Objects;
 
 public class TurnEndedHandler extends AbstractJsonFrameHandler{

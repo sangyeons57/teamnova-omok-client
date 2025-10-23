@@ -55,6 +55,8 @@ public final class PostGameDialogController implements DialogController<MainDial
         PostGameViewModel viewModel = new ViewModelProvider(activity, factory)
                 .get(PostGameViewModel.class);
 
+        viewModel.onDialogShown();
+
         ViewHolder holder = new ViewHolder(contentView);
         bind(activity, dialog, viewModel, holder);
 

@@ -63,11 +63,10 @@ public final class GameInfoDialogController implements DialogController<MainDial
         LinearLayout ruleContainer = root.findViewById(R.id.layoutGameRuleIcons);
 
         viewModel.getDismissEvent().observe(activity, dismiss -> {
-            if (dismiss == null || !dismiss) {
-                return;
+            if (dismiss) {
+                dialog.dismiss();
+                viewModel.onEventHandled();
             }
-            dialog.dismiss();
-            viewModel.onEventHandled();
         });
 
         viewModel.getActiveRuleIds().observe(activity, ruleIds ->

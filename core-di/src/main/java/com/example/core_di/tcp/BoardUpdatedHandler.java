@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.OmokBoardStore;
+import com.example.core.sound.SoundManager;
+import com.example.core.sound.SoundIds;
 
 import org.json.JSONObject;
 
@@ -19,15 +21,18 @@ public final class BoardUpdatedHandler extends AbstractJsonFrameHandler {
     private static final String TAG = "BoardUpdatedHandler";
 
     private final OmokBoardStore boardStore;
+    private final SoundManager soundManager;
 
-    public BoardUpdatedHandler(@NonNull GameInfoStore gameInfoStore) {
-        this(gameInfoStore, gameInfoStore.getBoardStore());
+    public BoardUpdatedHandler(@NonNull GameInfoStore gameInfoStore, @NonNull SoundManager soundManager) {
+        this(gameInfoStore, gameInfoStore.getBoardStore(), soundManager);
     }
 
     BoardUpdatedHandler(@NonNull GameInfoStore gameInfoStore,
-                        @NonNull OmokBoardStore boardStore) {
+                        @NonNull OmokBoardStore boardStore,
+                        @NonNull SoundManager soundManager) {
         super(TAG, "BOARD_UPDATED");
         this.boardStore = Objects.requireNonNull(boardStore, "boardStore");
+        this.soundManager = Objects.requireNonNull(soundManager, "soundManager");
     }
 
     @Override
@@ -39,6 +44,7 @@ public final class BoardUpdatedHandler extends AbstractJsonFrameHandler {
             Log.w(TAG, "Ignored BOARD_UPDATED payload for sessionId=" + sessionId + " due to invalid board data.");
         } else {
             Log.d(TAG, "Board snapshot synchronized for sessionId=" + sessionId);
+            soundManager.play(SoundIds.SOUND_ID_PLACE_STONE);
         }
     }
 

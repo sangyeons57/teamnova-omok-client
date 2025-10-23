@@ -118,6 +118,13 @@ public final class PostGameViewModel extends ViewModel {
         return viewEvents;
     }
 
+    public void onDialogShown() {
+        exitDispatched.set(false);
+        rematchEventEmitted = false;
+        terminatedEventEmitted = false;
+        rebuildUiState();
+    }
+
     public void onRematchClicked() {
         sendDecision(PostGameDecisionOption.REMATCH);
     }

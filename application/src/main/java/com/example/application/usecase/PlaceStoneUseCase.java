@@ -29,7 +29,6 @@ public final class PlaceStoneUseCase extends UseCase<PlaceStoneUseCase.Params, P
 
     @Override
     protected PlaceStoneResponse run(Params input) throws UseCaseException {
-        soundManager.play(SOUND_ID_PLACE_STONE);
         if (input == null) {
             throw UseCaseException.of("INVALID_INPUT", "params == null");
         }

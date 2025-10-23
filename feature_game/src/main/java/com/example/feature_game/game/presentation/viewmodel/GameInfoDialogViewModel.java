@@ -23,7 +23,7 @@ public class GameInfoDialogViewModel extends ViewModel {
 
     private final GameInfoStore gameInfoStore;
     private final OmokBoardStore omokBoardStore;
-    private final MutableLiveData<Boolean> dismissEvent = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> dismissEvent = new MutableLiveData<>(false);
     private final MutableLiveData<GameTurnState> turnState = new MutableLiveData<>(GameTurnState.idle());
     private final MutableLiveData<OmokBoardState> boardState = new MutableLiveData<>(OmokBoardState.empty());
     private final MutableLiveData<GameParticipantInfo> activeParticipant = new MutableLiveData<>();
@@ -92,7 +92,7 @@ public class GameInfoDialogViewModel extends ViewModel {
     }
 
     public void onEventHandled() {
-        dismissEvent.setValue(null);
+        dismissEvent.setValue(false);
     }
 
     private void onTurnUpdated(@Nullable GameTurnState state) {

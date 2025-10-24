@@ -11,12 +11,11 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.GameSessionInfo;
 import com.example.application.session.MatchState;
-import com.example.core.network.tcp.dispatcher.ClientDispatchResult;
-import com.example.core.network.tcp.protocol.Frame;
-import com.example.core.network.tcp.protocol.FrameType;
+import com.example.core_api.network.tcp.dispatcher.ClientDispatchResult;
+import com.example.core_api.network.tcp.protocol.Frame;
+import com.example.core_api.network.tcp.protocol.FrameType;
 import com.example.core_di.tcp.JoinInGameSessionHandler.Logger;
 
-import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

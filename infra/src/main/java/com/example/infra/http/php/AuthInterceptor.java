@@ -2,12 +2,11 @@ package com.example.infra.http.php;
 
 import androidx.annotation.NonNull;
 
-import com.example.core.token.TokenStore;
+import com.example.core_api.token.TokenStore;
 
 import java.io.IOException;
 import java.util.Set;
 
-import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;

@@ -6,7 +6,7 @@ import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.application.session.UserSessionStore;
 import com.example.application.wrapper.UserSession;
-import com.example.core.exception.UseCaseException;
+import com.example.core_api.exception.UseCaseException;
 
 /**
  * Links the current session with a Google provider account using the supplied ID token.

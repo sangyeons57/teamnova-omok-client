@@ -5,11 +5,10 @@ import android.util.Log;
 import com.example.application.dto.response.LoginResponse;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
-import com.example.application.port.in.UResult;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.application.session.UserSessionStore;
 import com.example.application.wrapper.UserSession;
-import com.example.core.exception.UseCaseException;
+import com.example.core_api.exception.UseCaseException;
 
 /**
  *  엑세스 토큰을 제공해서 자동으로 로그인하고

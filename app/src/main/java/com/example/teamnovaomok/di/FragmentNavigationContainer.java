@@ -2,11 +2,10 @@ package com.example.teamnovaomok.di;
 
 import androidx.annotation.NonNull;
 
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationProvider;
-import com.example.core.navigation.FragmentNavigationRegistry;
-import com.example.core.navigation.FragmentNavigator;
-import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core_api.navigation.AppNavigationKey;
+import com.example.core_api.navigation.FragmentNavigationRegistry;
+import com.example.core_api.navigation.FragmentNavigator;
+import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.feature_auth.login.navigation.LoginNavigationProvider;
 import com.example.feature_home.home.navigation.HomeNavigationProvider;
 import com.example.feature_home.home.navigation.MatchingNavigationProvider;

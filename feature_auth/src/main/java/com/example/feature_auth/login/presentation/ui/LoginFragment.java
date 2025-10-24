@@ -22,11 +22,11 @@ import androidx.credentials.exceptions.GetCredentialException;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.core.dialog.DialogHost;
-import com.example.core.dialog.DialogHostOwner;
-import com.example.core.dialog.MainDialogType;
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core_api.dialog.DialogHost;
+import com.example.core_api.dialog.DialogHostOwner;
+import com.example.core_api.dialog.MainDialogType;
+import com.example.core_api.navigation.AppNavigationKey;
+import com.example.core_api.navigation.FragmentNavigationHostOwner;
 import com.example.domain.common.value.AuthProvider;
 import com.example.feature_auth.R;
 import com.example.feature_auth.login.di.LoginViewModelFactory;

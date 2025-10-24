@@ -5,7 +5,7 @@ import com.example.application.dto.response.UserDataResponse;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.user.UserRepository;
-import com.example.core.exception.UseCaseException;
+import com.example.core_api.exception.UseCaseException;
 import com.example.domain.user.value.UserId;
 
 public class UserDataUseCase extends UseCase<UserDataCommand, UserDataResponse> {

@@ -1,7 +1,7 @@
 package com.example.application.port.in;
 
-import com.example.core.exception.UseCaseException;
-import com.example.core.retry.Retrier;
+import com.example.core_api.exception.UseCaseException;
+import com.example.core_api.retry.Retrier;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;

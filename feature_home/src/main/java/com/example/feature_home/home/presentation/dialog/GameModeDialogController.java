@@ -11,9 +11,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.core.dialog.DialogController;
-import com.example.core.dialog.DialogRequest;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogRequest;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.application.session.GameMode;
 import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.home.presentation.viewmodel.GameModeDialogViewModel;

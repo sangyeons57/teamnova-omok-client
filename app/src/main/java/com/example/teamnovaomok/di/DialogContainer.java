@@ -2,9 +2,9 @@ package com.example.teamnovaomok.di;
 
 import androidx.annotation.NonNull;
 
-import com.example.core.dialog.DialogHost;
-import com.example.core.dialog.DialogRegistry;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogHost;
+import com.example.core_api.dialog.DialogRegistry;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.feature_auth.login.di.GeneralInfoDialogProvider;
 import com.example.feature_auth.login.di.TermsAgreementDialogProvider;
 import com.example.feature_home.home.di.DeleteAccountDialogProvider;

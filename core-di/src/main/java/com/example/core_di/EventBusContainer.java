@@ -1,7 +1,7 @@
 package com.example.core_di;
 
-import com.example.core.event.AppEventBus;
-import com.example.core.event.DefaultAppEventBus;
+import com.example.core_api.event.AppEventBus;
+import com.example.core_api.event.DefaultAppEventBus;
 
 public final class EventBusContainer {
     private static volatile AppEventBus instance;

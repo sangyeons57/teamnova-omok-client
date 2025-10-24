@@ -16,9 +16,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.designsystem.rule.RuleExplainDialog;
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationHost;
-import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core_api.navigation.AppNavigationKey;
+import com.example.core_api.navigation.FragmentNavigationHost;
+import com.example.core_api.navigation.FragmentNavigationHostOwner;
 import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.ScoreViewModelFactory;

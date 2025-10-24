@@ -5,7 +5,7 @@ import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.user.UserRepository;
 import com.example.application.session.UserSessionStore;
-import com.example.core.exception.UseCaseException;
+import com.example.core_api.exception.UseCaseException;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.factory.UserFactory;
 import com.example.domain.user.value.UserProfileIcon;

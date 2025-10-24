@@ -2,7 +2,6 @@ package com.example.feature_home.home.presentation.dialog;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,16 +21,15 @@ import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.core.dialog.DialogArgumentKeys;
-import com.example.core.dialog.DialogController;
-import com.example.core.dialog.DialogHost;
-import com.example.core.dialog.DialogHostOwner;
-import com.example.core.dialog.DialogRequest;
-import com.example.core.dialog.GeneralInfoContentType;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogArgumentKeys;
+import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogHost;
+import com.example.core_api.dialog.DialogHostOwner;
+import com.example.core_api.dialog.DialogRequest;
+import com.example.core_api.dialog.GeneralInfoContentType;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.domain.common.value.AuthProvider;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.SettingDialogViewModelFactory;
@@ -43,7 +41,6 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

@@ -6,7 +6,7 @@ import com.example.application.port.out.realtime.PlaceStoneResponse;
 import com.example.application.port.out.realtime.PostGameDecisionAck;
 import com.example.application.port.out.realtime.PostGameDecisionOption;
 import com.example.application.port.out.realtime.RealtimeRepository;
-import com.example.core.network.tcp.protocol.FrameType;
+import com.example.core_api.network.tcp.protocol.FrameType;
 import com.example.data.datasource.DefaultTcpServerDataSource;
 import com.example.data.exception.TcpRemoteException;
 import com.example.data.model.tcp.TcpRequest;

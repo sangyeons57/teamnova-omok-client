@@ -2,16 +2,13 @@ package com.example.teamnovaomok;
 
 import android.app.Application;
 
-import com.example.core.network.tcp.TcpClientConfig;
+import com.example.core_api.network.tcp.TcpClientConfig;
 import com.example.core_di.GameInfoContainer;
 import com.example.core_di.PostGameSessionContainer;
 import com.example.core_di.SoundManagerContainer;
 import com.example.core_di.TcpClientContainer;
 import com.example.core_di.TokenContainer;
 import com.example.core_di.UserSessionContainer;
-import com.example.core.sound.SoundIds;
-import com.example.core.sound.SoundManager;
-import com.example.core_di.R;
 
 public class MyApp extends Application {
     @Override

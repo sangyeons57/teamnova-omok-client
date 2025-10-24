@@ -16,9 +16,9 @@ import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.TcpAuthUseCase;
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationHost;
-import com.example.core.token.TokenStore;
+import com.example.core_api.navigation.AppNavigationKey;
+import com.example.core_api.navigation.FragmentNavigationHost;
+import com.example.core_api.token.TokenStore;
 import com.example.domain.common.value.AuthProvider;
 import com.example.domain.user.entity.Identity;
 

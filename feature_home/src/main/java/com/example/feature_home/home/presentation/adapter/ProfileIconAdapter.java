@@ -10,9 +10,9 @@ import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.core.sprite.SpriteSheet;
-import com.example.core.sprite.SpriteView;
-import com.example.core.sprite.provider.CircleClip;
+import com.example.core_api.sprite.SpriteSheet;
+import com.example.core_api.sprite.SpriteView;
+import com.example.core_api.sprite.provider.CircleClip;
 import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.designsystem.ProfileSpriteSheetProvider;

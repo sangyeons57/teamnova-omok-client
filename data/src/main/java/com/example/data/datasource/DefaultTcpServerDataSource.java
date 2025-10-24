@@ -2,8 +2,8 @@ package com.example.data.datasource;
 
 import android.util.Log;
 
-import com.example.core.network.tcp.TcpClient;
-import com.example.core.network.tcp.protocol.Frame;
+import com.example.core_api.network.tcp.TcpClient;
+import com.example.core_api.network.tcp.protocol.Frame;
 import com.example.data.exception.TcpRemoteException;
 import com.example.data.model.tcp.TcpRequest;
 import com.example.data.model.tcp.TcpResponse;

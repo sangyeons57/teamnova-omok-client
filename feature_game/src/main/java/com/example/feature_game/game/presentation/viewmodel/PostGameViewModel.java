@@ -94,7 +94,6 @@ public final class PostGameViewModel extends ViewModel {
         PostGameSessionState initialState = postGameSessionStore.getCurrentState();
         if (initialState != null) {
             latestPostGameState = initialState;
-            rebuildUiState();
         }
 
         GameSessionInfo initialSession = gameInfoStore.getCurrentGameSession();
@@ -106,6 +105,7 @@ public final class PostGameViewModel extends ViewModel {
         if (initialUser != null) {
             onUserChanged(initialUser);
         }
+        rebuildUiState(); // Call rebuildUiState once after all initial states are set
     }
 
     @NonNull
@@ -169,6 +169,7 @@ public final class PostGameViewModel extends ViewModel {
     }
 
     private void rebuildUiState() {
+        Log.d(TAG, "rebuildUiState: latestPostGameState=" + latestPostGameState + ", latestSessionInfo=" + latestSessionInfo + ", selfUserId=" + selfUserId);
         PostGameSessionState state = latestPostGameState != null ? latestPostGameState : PostGameSessionState.empty();
         String sessionId = state.getSessionId();
         if (sessionId == null) {

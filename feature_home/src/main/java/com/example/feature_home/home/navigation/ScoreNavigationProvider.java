@@ -3,8 +3,8 @@ package com.example.feature_home.home.navigation;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationProvider;
+import com.example.core_api.navigation.AppNavigationKey;
+import com.example.core_api.navigation.FragmentNavigationProvider;
 import com.example.feature_home.home.presentation.ui.ScoreFragment;
 
 import java.util.function.Supplier;

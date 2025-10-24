@@ -1,5 +1,7 @@
 package com.example.data.repository.realtime.codec;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.example.application.port.out.realtime.PlaceStoneResponse;
@@ -30,6 +32,7 @@ public final class PlaceStoneMessageCodec {
         String payloadText = payloadBytes != null
                 ? new String(payloadBytes, StandardCharsets.UTF_8).trim()
                 : "";
+        Log.d("PlaceStoneMessageCodec", "Decoding payload: " + payloadText);
         ParsedPayload parsed = parsePayload(payloadText);
         if (parsed.status == PlaceStoneResponse.Status.SUCCESS) {
             return PlaceStoneResponse.success(payloadText);

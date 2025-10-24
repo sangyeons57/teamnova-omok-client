@@ -8,7 +8,11 @@ import com.example.application.session.GameInfoStore;
 import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
-import com.example.core.network.tcp.protocol.FrameType;
+import com.example.application.session.TurnEndEvent;
+import com.example.core_api.network.model.TurnEndCause;
+import com.example.core_api.network.model.TurnEndStatus;
+import com.example.core_api.network.tcp.protocol.FrameType;
+
 import org.json.JSONObject;
 import java.util.Objects;
 
@@ -46,6 +50,9 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
             OmokStoneType stoneType = StoneTypeMapper.fromNetworkLabel(stoneLabel);
             placementedStone = new PlacementedStone(x, y, stoneType);
         }
+
+        // Post TurnEndEvent to GameInfoStore
+        gameInfoStore.postTurnEndEvent(new TurnEndEvent(sessionId, cause, status, timedOut));
 
         if (cause == TurnEndCause.MOVE && placementedStone != null) {
             moveStone(placementedStone);
@@ -90,83 +97,6 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
             this.x = x;
             this.y = y;
             this.omokStoneType = omokStoneType;
-        }
-    }
-
-    public static enum TurnEndStatus {
-        UNKNOWN("UNKNOWN"),
-
-        TIMEOUT("TIMEOUT"),
-
-        SUCCESS("SUCCESS"),
-        INVALID_PLAYER("INVALID_PLAYER"),
-        INVALID_TURN("INVALID_TURN"),
-        GAME_NOT_STARTED("GAME_NOT_STARTED"),
-        GAME_NOT_FOUND("GAME_NOT_FOUND"),
-        OUT_OF_TURN("OUT_OF_TURN"),
-        OUT_OF_BOUNDS("OUT_OF_BOUNDS"),
-        INVALID_MOVE("INVALID_MOVE"),
-        CELL_OCCUPIED("CELL_OCCUPIED"),
-        GAME_FINISHED("GAME_FINISHED"),
-        RESTRICTED_ZONE("RESTRICTED_ZONE");
-
-        public final String name;
-
-        TurnEndStatus(String name) {
-            this.name = name;
-        }
-        public static TurnEndStatus lookup(String name) {
-            switch (name) {
-                case "TIMEOUT":
-                    return TIMEOUT;
-                case "SUCCESS":
-                    return SUCCESS;
-                case "INVALID_PLAYER":
-                    return INVALID_PLAYER;
-                case "INVALID_TURN":
-                    return INVALID_TURN;
-                case "GAME_NOT_STARTED":
-                    return GAME_NOT_STARTED;
-                case "GAME_NOT_FOUND":
-                    return GAME_NOT_FOUND;
-                case "OUT_OF_TURN":
-                    return OUT_OF_TURN;
-                case "OUT_OF_BOUNDS":
-                    return OUT_OF_BOUNDS;
-                case "INVALID_MOVE":
-                    return INVALID_MOVE;
-                case "CELL_OCCUPIED":
-                    return CELL_OCCUPIED;
-                case "GAME_FINISHED":
-                    return GAME_FINISHED;
-                case "RESTRICTED_ZONE":
-                    return RESTRICTED_ZONE;
-                default:
-                    return UNKNOWN;
-            }
-        }
-    }
-
-
-    public static enum TurnEndCause {
-        MOVE("MOVE"),
-        TIMEOUT("TIMEOUT"),
-        UNKNOWN("UNKNOWN");
-
-        public final String name;
-
-        TurnEndCause(String name) {
-            this.name = name;
-        }
-        public static TurnEndCause lookup(String name) {
-            switch (name) {
-                case "MOVE":
-                    return MOVE;
-                case "TIMEOUT":
-                    return TIMEOUT;
-                default:
-                    return UNKNOWN;
-            }
         }
     }
 }

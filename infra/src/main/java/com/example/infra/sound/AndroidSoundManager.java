@@ -8,7 +8,7 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.core.sound.SoundManager;
+import com.example.core_api.sound.SoundManager;
 
 import java.util.Collections;
 import java.util.Map;

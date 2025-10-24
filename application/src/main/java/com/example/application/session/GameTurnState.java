@@ -13,23 +13,27 @@ public final class GameTurnState {
     private final boolean active;
     private final String currentPlayerId;
     private final int remainingSeconds;
+    private final long startAt;
+    private final long endAt;
 
-    private GameTurnState(boolean active, @Nullable String currentPlayerId, int remainingSeconds) {
+    private GameTurnState(boolean active, @Nullable String currentPlayerId, int remainingSeconds, long startAt, long endAt) {
         this.active = active;
         this.currentPlayerId = currentPlayerId;
         this.remainingSeconds = Math.max(remainingSeconds, 0);
+        this.startAt = startAt;
+        this.endAt = endAt;
     }
 
     public static GameTurnState idle() {
-        return new GameTurnState(false, null, 0);
+        return new GameTurnState(false, null, 0, 0L, 0L);
     }
 
-    public static GameTurnState active(@NonNull String currentPlayerId, int remainingSeconds) {
-        return new GameTurnState(true, Objects.requireNonNull(currentPlayerId, "currentPlayerId"), remainingSeconds);
+    public static GameTurnState active(@NonNull String currentPlayerId, int remainingSeconds, long startAt, long endAt) {
+        return new GameTurnState(true, Objects.requireNonNull(currentPlayerId, "currentPlayerId"), remainingSeconds, startAt, endAt);
     }
 
     private static GameTurnState idleWithSeconds(int seconds) {
-        return new GameTurnState(false, null, seconds);
+        return new GameTurnState(false, null, seconds, 0L, 0L);
     }
 
     public boolean isActive() {
@@ -45,9 +49,17 @@ public final class GameTurnState {
         return remainingSeconds;
     }
 
+    public long getStartAt() {
+        return startAt;
+    }
+
+    public long getEndAt() {
+        return endAt;
+    }
+
     @NonNull
     public GameTurnState withRemainingSeconds(int seconds) {
-        return new GameTurnState(active, currentPlayerId, seconds);
+        return new GameTurnState(active, currentPlayerId, seconds, startAt, endAt);
     }
 
     @NonNull
@@ -95,12 +107,14 @@ public final class GameTurnState {
         GameTurnState that = (GameTurnState) o;
         return active == that.active
                 && remainingSeconds == that.remainingSeconds
+                && startAt == that.startAt
+                && endAt == that.endAt
                 && Objects.equals(currentPlayerId, that.currentPlayerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(active, currentPlayerId, remainingSeconds);
+        return Objects.hash(active, currentPlayerId, remainingSeconds, startAt, endAt);
     }
 
     @Override
@@ -109,6 +123,8 @@ public final class GameTurnState {
                 + "active=" + active
                 + ", currentPlayerId='" + currentPlayerId + '\''
                 + ", remainingSeconds=" + remainingSeconds
+                + ", startAt=" + startAt
+                + ", endAt=" + endAt
                 + '}';
     }
 }

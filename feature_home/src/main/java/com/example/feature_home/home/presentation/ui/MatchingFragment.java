@@ -12,9 +12,9 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.application.session.MatchState;
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationHostOwner;
-import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core_api.navigation.AppNavigationKey;
+import com.example.core_api.navigation.FragmentNavigationHostOwner;
+import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.MatchingViewModelFactory;

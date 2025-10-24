@@ -21,17 +21,15 @@ import com.example.application.session.GameTurnState;
 import com.example.application.session.MatchState;
 import com.example.application.session.OmokBoardState;
 import com.example.application.session.OmokBoardStore;
-import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
 import com.example.application.session.postgame.PlayerDisconnectReason;
 import com.example.application.session.postgame.PostGameSessionState;
 import com.example.application.session.postgame.PostGameSessionStore;
+import com.example.application.session.TurnEndEvent;
 import com.example.application.session.UserSessionStore;
 import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.application.usecase.PlaceStoneUseCase;
 import com.example.application.port.out.realtime.PlaceStoneResponse;
-import com.example.core.sound.SoundIds;
-import com.example.core.sound.SoundManager;
 import com.example.domain.user.entity.User;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
@@ -66,7 +64,6 @@ public class GameViewModel extends ViewModel {
     private final PlaceStoneUseCase placeStoneUseCase;
     private final PostGameSessionStore postGameSessionStore;
     private final OmokBoardStore boardStore;
-    private final Handler handler = new Handler(Looper.getMainLooper());
     private final ExecutorService realtimeExecutor = Executors.newSingleThreadExecutor();
     private final MutableLiveData<List<GamePlayerSlot>> playerSlots = new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<Integer> activePlayerIndex = new MutableLiveData<>(0);
@@ -83,6 +80,7 @@ public class GameViewModel extends ViewModel {
     private final Observer<OmokBoardState> boardObserver = this::onBoardStateChanged;
     private final Observer<GameTurnState> turnObserver = this::onTurnChanged;
     private final Observer<PostGameSessionState> postGameObserver = this::onPostGameStateChanged;
+    private final Observer<TurnEndEvent> turnEndEventObserver = this::onTurnEndEvent;
 
     private final List<GamePlayerSlot> cachedSlots = new ArrayList<>(4);
     private final Map<String, PlayerDisconnectReason> disconnectedPlayers = new HashMap<>();
@@ -91,8 +89,8 @@ public class GameViewModel extends ViewModel {
     private String selfDisplayName = "";
     private String selfUserId = "";
     private GameSessionInfo latestSessionInfo;
-    private Runnable turnCountdownRunnable;
-    private int currentTurnRemainingSeconds = TURN_TOTAL_SECONDS;
+    private final Handler uiCountdownHandler = new Handler(Looper.getMainLooper());
+    private Runnable uiCountdownRunnable;
 
 
     public GameViewModel(@NonNull GameInfoStore gameInfoStore,
@@ -114,6 +112,7 @@ public class GameViewModel extends ViewModel {
         boardStore.getBoardStateStream().observeForever(boardObserver);
         userSessionStore.getUserStream().observeForever(userObserver);
         postGameSessionStore.getStateStream().observeForever(postGameObserver);
+        gameInfoStore.getTurnEndEventStream().observeForever(turnEndEventObserver);
 
         GameMode initialMode = gameInfoStore.getModeStream().getValue();
         if (initialMode == null) {
@@ -249,17 +248,22 @@ public class GameViewModel extends ViewModel {
                     if (throwable != null) {
                         Log.e(TAG, "PLACE_STONE request failed for (" + x + "," + y + ")", throwable);
                         placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
+                        return;
                     }
                     if (result instanceof UResult.Err<?> err) {
                         Log.w(TAG, "PLACE_STONE rejected (" + x + "," + y + "): " + err.message());
                         placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
-                    } else {
-                        Log.d(TAG, "PLACE_STONE dispatched for (" + x + "," + y + ")");
-                        if (result instanceof UResult.Ok<PlaceStoneResponse> ok && ok.value() != null) {
-                            PlaceStoneResponse response = ok.value();
-                            if (!response.isSuccess()) placementErrors.postValue(response.status());
-                            return;
+                        return;
+                    }
+                    if (result instanceof UResult.Ok<PlaceStoneResponse> ok && ok.value() != null) {
+                        PlaceStoneResponse response = ok.value();
+                        if (!response.isSuccess()) {
+                            placementErrors.postValue(response.status());
                         }
+                        // No error to post if successful
+                    } else {
+                        // This case handles null result or non-PlaceStoneResponse types, which is unexpected.
+                        Log.e(TAG, "Unexpected result from PLACE_STONE: " + result);
                         placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
                     }
                 });
@@ -352,7 +356,6 @@ public class GameViewModel extends ViewModel {
         if (state == null || !state.isActive()) {
             activePlayerIndex.postValue(0);
             // lastTurnParticipantIndex = -1; // No longer needed
-            startTurnCountdown(0);
             return;
         }
         // currentIndex is no longer available in GameTurnState
@@ -360,7 +363,6 @@ public class GameViewModel extends ViewModel {
         GameSessionInfo session = latestSessionInfo;
         if (session == null || state.getCurrentPlayerId() == null) {
             activePlayerIndex.postValue(0);
-            startTurnCountdown(0);
             return;
         }
 
@@ -370,8 +372,8 @@ public class GameViewModel extends ViewModel {
         activePlayerIndex.postValue(currentParticipantIndex);
         // lastTurnParticipantIndex is no longer used for isNewTurn logic
         // The server is the source of truth for new turns.
-        int startingSeconds = clampTurnSeconds(state.getRemainingSeconds());
-        startTurnCountdown(startingSeconds);
+        remainingSeconds.postValue(state.getRemainingSeconds());
+        startUiCountdown(state.getEndAt());
         // lastTurnParticipantIndex = currentParticipantIndex; // No longer needed
     }
 
@@ -402,6 +404,15 @@ public class GameViewModel extends ViewModel {
         }
         if (postGameNavigationDispatched.compareAndSet(false, true)) {
             viewEvents.postValue(GameViewEvent.OPEN_POST_GAME_SCREEN);
+        }
+    }
+
+    private void onTurnEndEvent(@Nullable TurnEndEvent event) {
+        if (event == null) {
+            return;
+        }
+        if (event.isTimedOut()) {
+            viewEvents.postValue(GameViewEvent.SHOW_TURN_TIMEOUT_MESSAGE);
         }
     }
 
@@ -522,42 +533,36 @@ public class GameViewModel extends ViewModel {
         }
     }
 
-    public void startTurnCountdown(int seconds) {
-        Log.d("GameViewModel", "Starting turn countdown with " + seconds + " seconds");
-        cancelTurnCountdown();
-        int clamped = clampTurnSeconds(seconds);
-        remainingSeconds.setValue(clamped);
-        currentTurnRemainingSeconds = clamped;
-        if (clamped <= 0) {
+    private void startUiCountdown(long endAtMillis) {
+        cancelUiCountdown();
+        if (endAtMillis <= 0) {
+            remainingSeconds.postValue(0);
             return;
         }
-        turnCountdownRunnable = new Runnable() {
+
+        uiCountdownRunnable = new Runnable() {
             @Override
             public void run() {
-                currentTurnRemainingSeconds = Math.max(0, currentTurnRemainingSeconds - 1);
-                remainingSeconds.setValue(currentTurnRemainingSeconds);
-                if (currentTurnRemainingSeconds > 0) {
-                    handler.postDelayed(this, 1_000L);
+                long now = System.currentTimeMillis();
+                long remainingMillis = endAtMillis - now;
+                int seconds = (int) Math.max(0, remainingMillis / 1000);
+                remainingSeconds.postValue(seconds);
+
+                if (seconds > 0) {
+                    uiCountdownHandler.postDelayed(this, 1000);
                 } else {
-                    turnCountdownRunnable = null;
+                    uiCountdownRunnable = null;
                 }
             }
         };
-        handler.postDelayed(turnCountdownRunnable, 1_000L);
+        uiCountdownHandler.post(uiCountdownRunnable);
     }
 
-    private void cancelTurnCountdown() {
-        if (turnCountdownRunnable != null) {
-            handler.removeCallbacks(turnCountdownRunnable);
-            turnCountdownRunnable = null;
+    private void cancelUiCountdown() {
+        if (uiCountdownRunnable != null) {
+            uiCountdownHandler.removeCallbacks(uiCountdownRunnable);
+            uiCountdownRunnable = null;
         }
-    }
-
-    private int clampTurnSeconds(int seconds) {
-        if (seconds < 0) {
-            return 0;
-        }
-        return Math.min(TURN_TOTAL_SECONDS, seconds);
     }
 
     private int resolveParticipantCount(@NonNull GameMode mode) {
@@ -577,7 +582,6 @@ public class GameViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
-        cancelTurnCountdown();
         gameInfoStore.getModeStream().removeObserver(modeObserver);
         gameInfoStore.getMatchStateStream().removeObserver(matchObserver);
         gameInfoStore.getGameSessionStream().removeObserver(sessionObserver);
@@ -585,6 +589,8 @@ public class GameViewModel extends ViewModel {
         boardStore.getBoardStateStream().removeObserver(boardObserver);
         userSessionStore.getUserStream().removeObserver(userObserver);
         postGameSessionStore.getStateStream().removeObserver(postGameObserver);
+        gameInfoStore.getTurnEndEventStream().removeObserver(turnEndEventObserver);
+        cancelUiCountdown();
         realtimeExecutor.shutdownNow();
         super.onCleared();
     }

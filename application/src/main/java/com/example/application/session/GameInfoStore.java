@@ -5,6 +5,8 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.application.session.TurnEndEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,8 +26,11 @@ public class GameInfoStore {
     private final AtomicReference<GameSessionInfo> currentGameSession = new AtomicReference<>();
     private final MutableLiveData<GameSessionInfo> gameSessionStream = new MutableLiveData<>();
 
+    // TurnStartState
     private final AtomicReference<GameTurnState> currentTurnState = new AtomicReference<>(GameTurnState.idle());
     private final MutableLiveData<GameTurnState> turnStateStream = new MutableLiveData<>(GameTurnState.idle());
+
+    private final MutableLiveData<TurnEndEvent> turnEndEventStream = new MutableLiveData<>();
 
     private final OmokBoardStore boardStore;
 
@@ -120,6 +125,11 @@ public class GameInfoStore {
         return turnStateStream;
     }
 
+    @NonNull
+    public LiveData<TurnEndEvent> getTurnEndEventStream() {
+        return turnEndEventStream;
+    }
+
     public void updateTurnState(@NonNull GameTurnState turnState) {
         if (turnState == null) {
             throw new IllegalArgumentException("turnState == null");
@@ -140,52 +150,29 @@ public class GameInfoStore {
         turnStateStream.postValue(normalized);
     }
 
+    public void postTurnEndEvent(@NonNull TurnEndEvent event) {
+        if (event == null) {
+            throw new IllegalArgumentException("event == null");
+        }
+        turnEndEventStream.postValue(event);
+    }
+
     public void clearTurnState() {
         GameTurnState idle = GameTurnState.idle();
         currentTurnState.set(idle);
         turnStateStream.postValue(idle);
     }
 
-    public void setTurnState(@NonNull String currentPlayerId, int remainingSeconds) {
+    public void setTurnState(@NonNull String currentPlayerId, int remainingSeconds, long startAt, long endAt) {
         GameSessionInfo session = currentGameSession.get();
         if (session == null || !session.hasParticipants()) {
             clearTurnState();
             return;
         }
-        GameTurnState next = GameTurnState.active(currentPlayerId, remainingSeconds)
-                .normalize(); // No participantCount needed here anymore
+        GameTurnState next = GameTurnState.active(currentPlayerId, remainingSeconds, startAt, endAt)
+                .normalize();
         currentTurnState.set(next);
         turnStateStream.postValue(next);
-    }
-
-    public void advanceTurn() {
-        GameSessionInfo session = currentGameSession.get();
-        if (session == null || !session.hasParticipants()) {
-            clearTurnState();
-            return;
-        }
-        GameTurnState existing = currentTurnState.get();
-        if (existing == null || !existing.isActive() || existing.getCurrentPlayerId() == null) {
-            // If no active turn or current player, start with the first participant
-            String firstPlayerId = session.getParticipants().iterator().next().getUserId();
-            setTurnState(firstPlayerId, 0); // Assuming 0 remaining seconds for a new turn
-            return;
-        }
-
-        String currentPlayerId = existing.getCurrentPlayerId();
-        List<String> participantIds = new ArrayList<String>(session.getUids());
-        int currentIndex = participantIds.indexOf(currentPlayerId);
-
-        if (currentIndex == -1) {
-            // Current player not found, reset turn state
-            clearTurnState();
-            return;
-        }
-
-        int nextIndex = (currentIndex + 1) % participantIds.size();
-        String nextPlayerId = participantIds.get(nextIndex);
-
-        setTurnState(nextPlayerId, existing.getRemainingSeconds()); // Keep remaining seconds or reset as needed
     }
 
     @Nullable

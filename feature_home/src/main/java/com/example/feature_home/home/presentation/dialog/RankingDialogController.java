@@ -15,9 +15,9 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.core.dialog.DialogController;
-import com.example.core.dialog.DialogRequest;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogRequest;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.core_di.sound.SoundEffects;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.adapter.RankingDialogAdapter;

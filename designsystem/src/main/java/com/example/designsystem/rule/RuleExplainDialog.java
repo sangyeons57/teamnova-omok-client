@@ -13,8 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.example.core.rules.RuleCatalog;
-import com.example.core.rules.RuleInfo;
+import com.example.core_api.rules.RuleCatalog;
+import com.example.core_api.rules.RuleInfo;
 import com.example.designsystem.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;

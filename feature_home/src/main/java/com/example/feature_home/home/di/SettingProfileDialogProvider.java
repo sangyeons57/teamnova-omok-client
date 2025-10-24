@@ -2,9 +2,9 @@ package com.example.feature_home.home.di;
 
 import androidx.annotation.NonNull;
 
-import com.example.core.dialog.DialogController;
-import com.example.core.dialog.DialogProvider;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogProvider;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.feature_home.home.presentation.dialog.SettingProfileDialogController;
 
 /**

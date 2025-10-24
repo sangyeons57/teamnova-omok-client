@@ -2,14 +2,12 @@ package com.example.feature_game.game.presentation.ui;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,21 +19,16 @@ import com.example.application.session.OmokBoardState;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
 import com.example.application.port.out.realtime.PlaceStoneResponse;
-import com.example.application.session.postgame.PlayerDisconnectReason;
-import com.example.core.dialog.DialogHost;
-import com.example.core.dialog.DialogHostOwner;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogHost;
+import com.example.core_api.dialog.DialogHostOwner;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.core_di.sound.SoundEffects;
 import com.example.feature_game.R;
 import com.example.feature_game.game.di.GameViewModelFactory;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
-import com.example.feature_game.game.presentation.ui.OmokBoardView;
-import com.example.feature_game.game.presentation.util.ProfileIconResolver;
 import com.example.feature_game.game.presentation.viewmodel.GameViewModel;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.color.MaterialColors;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.util.ArrayList;
@@ -190,7 +183,6 @@ public class GameFragment extends Fragment {
     }
 
     private void updateRemainingTime(int seconds) {
-        Log.d("GameFragment", "updateRemainingTime:" + seconds);
         if (remainingTimeText == null) {
             return;
         }
@@ -264,7 +256,6 @@ public class GameFragment extends Fragment {
             dismissDialog(type);
             pendingAutoDismiss = null;
             viewModel.notifyGameReady();
-            viewModel.startTurnCountdown(15);
         };
         handler.postDelayed(pendingAutoDismiss, INFO_AUTO_DISMISS_DELAY_MS);
     }
@@ -325,6 +316,9 @@ public class GameFragment extends Fragment {
                 break;
             case OPEN_POST_GAME_SCREEN:
                 enqueueDialog(MainDialogType.POST_GAME);
+                break;
+            case SHOW_TURN_TIMEOUT_MESSAGE:
+                Toast.makeText(requireContext(), R.string.game_turn_timeout_message, Toast.LENGTH_SHORT).show();
                 break;
             default:
                 break;

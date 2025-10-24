@@ -7,7 +7,7 @@ import com.example.application.port.out.user.UserRepository;
 import com.example.application.session.UserSessionStore;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.factory.UserFactory;
-import com.example.core.exception.UseCaseException;
+import com.example.core_api.exception.UseCaseException;
 
 public class SelfDataUseCase extends UseCase<UseCase.None, SelfDataResponse> {
 

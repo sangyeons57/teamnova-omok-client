@@ -1,6 +1,6 @@
 package com.example.application.port.in;
 
-import com.example.core.retry.RetryPolicy;
+import com.example.core_api.retry.RetryPolicy;
 
 import java.util.concurrent.ScheduledExecutorService;
 

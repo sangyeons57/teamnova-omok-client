@@ -13,9 +13,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.core.dialog.DialogController;
-import com.example.core.dialog.DialogRequest;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogRequest;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.designsystem.rule.RuleExplainDialog;
 import com.example.designsystem.rule.RuleIconRenderer;
 import com.example.feature_game.R;

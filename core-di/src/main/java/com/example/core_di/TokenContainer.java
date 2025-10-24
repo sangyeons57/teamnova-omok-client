@@ -2,7 +2,7 @@ package com.example.core_di;
 
 import android.app.Application;
 
-import com.example.core.token.TokenStore;
+import com.example.core_api.token.TokenStore;
 import com.example.infra.http.prefs.PrefsTokenStore;
 
 /**

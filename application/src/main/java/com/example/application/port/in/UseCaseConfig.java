@@ -1,7 +1,7 @@
 package com.example.application.port.in;
 
-import com.example.core.retry.ExponentialJitterBackoffPolicy;
-import com.example.core.retry.RetryPolicy;
+import com.example.core_api.retry.ExponentialJitterBackoffPolicy;
+import com.example.core_api.retry.RetryPolicy;
 
 import java.time.Duration;
 import java.util.concurrent.Executors;

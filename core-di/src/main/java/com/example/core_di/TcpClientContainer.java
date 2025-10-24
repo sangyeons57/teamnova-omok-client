@@ -2,11 +2,11 @@ package com.example.core_di;
 
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.postgame.PostGameSessionStore;
-import com.example.core.network.tcp.TcpClient;
-import com.example.core.network.tcp.TcpClientConfig;
-import com.example.core.network.tcp.dispatcher.ClientDispatcher;
-import com.example.core.network.tcp.protocol.FrameType;
-import com.example.core.sound.SoundManager;
+import com.example.core_api.network.tcp.TcpClient;
+import com.example.core_api.network.tcp.TcpClientConfig;
+import com.example.core_api.network.tcp.dispatcher.ClientDispatcher;
+import com.example.core_api.network.tcp.protocol.FrameType;
+import com.example.core_api.sound.SoundManager;
 import com.example.core_di.tcp.BoardUpdatedHandler;
 import com.example.core_di.tcp.GamePostDecisionPromptHandler;
 import com.example.core_di.tcp.GamePostDecisionUpdateHandler;

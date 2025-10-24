@@ -18,12 +18,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.application.port.out.realtime.PostGameDecisionAck;
 import com.example.application.port.out.realtime.PostGameDecisionOption;
-import com.example.core.dialog.DialogController;
-import com.example.core.dialog.DialogRequest;
-import com.example.core.dialog.MainDialogType;
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationHost;
-import com.example.core.navigation.FragmentNavigationHostOwner;
+import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogRequest;
+import com.example.core_api.dialog.MainDialogType;
+import com.example.core_api.navigation.AppNavigationKey;
+import com.example.core_api.navigation.FragmentNavigationHost;
+import com.example.core_api.navigation.FragmentNavigationHostOwner;
 import com.example.feature_game.R;
 import com.example.feature_game.game.di.PostGameViewModelFactory;
 import com.example.feature_game.game.presentation.model.PostGameUiState;

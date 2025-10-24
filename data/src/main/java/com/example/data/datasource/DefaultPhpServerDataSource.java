@@ -2,10 +2,10 @@ package com.example.data.datasource;
 
 import android.util.Log;
 
-import com.example.core.network.http.HttpClient;
-import com.example.core.network.http.HttpRequest;
-import com.example.core.network.http.HttpResponse;
-import com.example.core.util.JsonMaps;
+import com.example.core_api.network.http.HttpClient;
+import com.example.core_api.network.http.HttpRequest;
+import com.example.core_api.network.http.HttpResponse;
+import com.example.core_api.util.JsonMaps;
 import com.example.data.model.http.request.Request;
 import com.example.data.model.http.response.Response;
 

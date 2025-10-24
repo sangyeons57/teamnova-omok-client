@@ -4,7 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.example.core.token.TokenStore;
+import com.example.core_api.token.TokenStore;
 
 public class PrefsTokenStore implements TokenStore {
 

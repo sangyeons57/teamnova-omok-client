@@ -1,6 +1,6 @@
 package com.example.core_di;
 
-import com.example.core.network.http.HttpClient;
+import com.example.core_api.network.http.HttpClient;
 import com.example.infra.http.php.HttpClientManager;
 
 public class HttpClientContainer {

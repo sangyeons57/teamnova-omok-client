@@ -1,6 +1,6 @@
 package com.example.data.model.tcp;
 
-import com.example.core.network.tcp.protocol.FrameType;
+import com.example.core_api.network.tcp.protocol.FrameType;
 
 import java.time.Duration;
 import java.util.Objects;

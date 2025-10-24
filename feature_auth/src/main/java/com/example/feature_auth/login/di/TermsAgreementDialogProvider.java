@@ -2,10 +2,9 @@ package com.example.feature_auth.login.di;
 
 import androidx.annotation.NonNull;
 
-import com.example.core.dialog.DialogConfig;
-import com.example.core.dialog.DialogController;
-import com.example.core.dialog.DialogProvider;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogProvider;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.feature_auth.login.presentation.dialog.TermsAgreementDialogController;
 
 /**

@@ -1,11 +1,9 @@
 package com.example.application.usecase;
 
-import android.util.Log;
-
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.realtime.RealtimeRepository;
-import com.example.core.exception.UseCaseException;
+import com.example.core_api.exception.UseCaseException;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;

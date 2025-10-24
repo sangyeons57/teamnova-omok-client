@@ -1,8 +1,6 @@
 package com.example.core_di;
 
-import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
-import com.example.application.port.in.UseCaseProvider;
 import com.example.application.port.in.UseCaseProviders;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.port.out.realtime.RealtimeRepository;
@@ -27,11 +25,11 @@ import com.example.application.usecase.PostGameDecisionUseCase;
 import com.example.application.usecase.SelfDataUseCase;
 import com.example.application.usecase.UserDataUseCase;
 import com.example.application.usecase.TcpAuthUseCase;
-import com.example.core.event.AppEventBus;
+import com.example.core_api.event.AppEventBus;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.UserSessionStore;
-import com.example.core.sound.SoundManager;
-import com.example.core.token.TokenStore;
+import com.example.core_api.sound.SoundManager;
+import com.example.core_api.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.datasource.DefaultTcpServerDataSource;
 import com.example.data.mapper.IdentityMapper;

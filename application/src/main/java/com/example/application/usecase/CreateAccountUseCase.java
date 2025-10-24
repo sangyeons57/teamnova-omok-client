@@ -4,7 +4,7 @@ import com.example.application.dto.response.CreateAccountResponse;
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.wrapper.GetOrCreateResult;
-import com.example.core.exception.UseCaseException;
+import com.example.core_api.exception.UseCaseException;
 import com.example.application.dto.command.CreateAccountCommand;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.domain.user.entity.User;

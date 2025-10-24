@@ -10,11 +10,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
-import com.example.core.dialog.DialogArgumentKeys;
-import com.example.core.dialog.DialogController;
-import com.example.core.dialog.DialogRequest;
-import com.example.core.dialog.GeneralInfoContentType;
-import com.example.core.dialog.MainDialogType;
+import com.example.core_api.dialog.DialogArgumentKeys;
+import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogRequest;
+import com.example.core_api.dialog.GeneralInfoContentType;
+import com.example.core_api.dialog.MainDialogType;
 import com.example.feature_auth.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;

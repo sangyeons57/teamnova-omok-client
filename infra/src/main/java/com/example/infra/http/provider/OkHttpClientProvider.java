@@ -1,7 +1,7 @@
 package com.example.infra.http.provider;
 
-import com.example.core.event.AppEventBus;
-import com.example.core.token.TokenStore;
+import com.example.core_api.event.AppEventBus;
+import com.example.core_api.token.TokenStore;
 import com.example.infra.http.php.AuthInterceptor;
 import com.example.infra.http.php.LoggingInterceptor;
 import com.example.infra.http.php.TokenAuthenticator;

@@ -1,19 +1,14 @@
 package com.example.feature_game.game.presentation.ui;
 
-import android.content.Context;
-import android.widget.ImageView;
-
 import androidx.annotation.NonNull;
 
 import com.example.application.session.postgame.PlayerDisconnectReason;
-import com.example.core.sprite.SpriteLayout;
-import com.example.core.sprite.SpriteSheet;
-import com.example.core.sprite.SpriteView;
-import com.example.core.sprite.provider.CircleClip;
+import com.example.core_api.sprite.SpriteSheet;
+import com.example.core_api.sprite.SpriteView;
+import com.example.core_api.sprite.provider.CircleClip;
 import com.example.designsystem.ProfileSpriteSheetProvider;
 import com.example.feature_game.R;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
-import com.example.feature_game.game.presentation.util.ProfileIconResolver;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.textview.MaterialTextView;

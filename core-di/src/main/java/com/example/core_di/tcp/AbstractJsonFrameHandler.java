@@ -4,10 +4,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.example.core.network.tcp.TcpClient;
-import com.example.core.network.tcp.dispatcher.ClientDispatchResult;
-import com.example.core.network.tcp.handler.ClientFrameHandler;
-import com.example.core.network.tcp.protocol.Frame;
+import com.example.core_api.network.tcp.TcpClient;
+import com.example.core_api.network.tcp.dispatcher.ClientDispatchResult;
+import com.example.core_api.network.tcp.handler.ClientFrameHandler;
+import com.example.core_api.network.tcp.protocol.Frame;
 
 import org.json.JSONException;
 import org.json.JSONObject;

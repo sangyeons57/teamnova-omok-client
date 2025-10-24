@@ -4,7 +4,7 @@ import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.realtime.RealtimeRepository;
 import com.example.application.session.GameInfoStore;
-import com.example.core.exception.UseCaseException;
+import com.example.core_api.exception.UseCaseException;
 
 public class JoinMatchUseCase extends UseCase<UseCase.None, UseCase.None> {
     private final RealtimeRepository realtimeRepository;

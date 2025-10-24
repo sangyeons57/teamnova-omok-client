@@ -1,7 +1,7 @@
 package com.example.data.model.tcp;
 
-import com.example.core.network.tcp.protocol.Frame;
-import com.example.core.network.tcp.protocol.FrameType;
+import com.example.core_api.network.tcp.protocol.Frame;
+import com.example.core_api.network.tcp.protocol.FrameType;
 
 import java.util.Objects;
 

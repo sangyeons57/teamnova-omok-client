@@ -47,6 +47,7 @@
     <string name="game_place_stone_error_invalid">잘못된 위치입니다.</string>
     <string name="game_place_stone_error_game_not_started">아직 게임이 시작되지 않았습니다.</string>
     <string name="game_place_stone_error_unknown">돌을 둘 수 없습니다. 잠시 후 다시 시도하세요.</string>
+    <string name="game_turn_timeout_message">턴 시간이 초과되었습니다!</string>
     <string name="post_game_button_rematch">다시하기</string>
     <string name="post_game_button_leave">나가기</string>
     <string name="post_game_rematch_count">다시하기 선택: %1$d명</string>

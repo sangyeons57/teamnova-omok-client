@@ -6,10 +6,10 @@ import android.graphics.BitmapFactory;
 
 import androidx.annotation.NonNull;
 
-import com.example.core.session.CellAdjust;
-import com.example.core.sprite.SpriteLayout;
-import com.example.core.sprite.SpriteLayoutBuilder;
-import com.example.core.sprite.SpriteSheet;
+import com.example.core_api.session.CellAdjust;
+import com.example.core_api.sprite.SpriteLayout;
+import com.example.core_api.sprite.SpriteLayoutBuilder;
+import com.example.core_api.sprite.SpriteSheet;
 
 /**
  * Lazily provides the sprite sheet that contains the selectable profile icons.

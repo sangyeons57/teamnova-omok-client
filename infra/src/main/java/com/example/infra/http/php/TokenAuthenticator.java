@@ -5,11 +5,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.core.event.AppEventBus;
-import com.example.core.event.SessionInvalidatedEvent;
-import com.example.core.token.TokenStore;
+import com.example.core_api.event.AppEventBus;
+import com.example.core_api.event.SessionInvalidatedEvent;
+import com.example.core_api.token.TokenStore;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;

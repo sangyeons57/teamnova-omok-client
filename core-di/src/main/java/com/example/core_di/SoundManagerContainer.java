@@ -4,8 +4,8 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import com.example.core.sound.SoundIds;
-import com.example.core.sound.SoundManager;
+import com.example.core_api.sound.SoundIds;
+import com.example.core_api.sound.SoundManager;
 import com.example.infra.sound.AndroidSoundManager;
 
 /**

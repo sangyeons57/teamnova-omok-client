@@ -9,8 +9,8 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.core.rules.RuleCatalog;
-import com.example.core.rules.RuleInfo;
+import com.example.core_api.rules.RuleCatalog;
+import com.example.core_api.rules.RuleInfo;
 import com.example.designsystem.R;
 
 /**

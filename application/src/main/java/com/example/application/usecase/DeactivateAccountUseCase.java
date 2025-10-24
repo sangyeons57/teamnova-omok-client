@@ -4,10 +4,10 @@ import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.application.session.UserSessionStore;
-import com.example.core.event.AppEventBus;
-import com.example.core.event.SessionInvalidatedEvent;
-import com.example.core.exception.UseCaseException;
-import com.example.core.token.TokenStore;
+import com.example.core_api.event.AppEventBus;
+import com.example.core_api.event.SessionInvalidatedEvent;
+import com.example.core_api.exception.UseCaseException;
+import com.example.core_api.token.TokenStore;
 
 public class DeactivateAccountUseCase extends UseCase<UseCase.None, UseCase.None> {
     private final IdentifyRepository identifyRepository;

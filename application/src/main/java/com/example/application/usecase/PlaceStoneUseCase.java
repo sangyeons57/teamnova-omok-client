@@ -1,15 +1,13 @@
 package com.example.application.usecase;
 
-import static com.example.core.sound.SoundIds.SOUND_ID_PLACE_STONE;
-
 import androidx.annotation.NonNull;
 
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.realtime.PlaceStoneResponse;
 import com.example.application.port.out.realtime.RealtimeRepository;
-import com.example.core.exception.UseCaseException;
-import com.example.core.sound.SoundManager;
+import com.example.core_api.exception.UseCaseException;
+import com.example.core_api.sound.SoundManager;
 
 /**
  * Sends a PLACE_STONE frame to the realtime server for the provided coordinates.

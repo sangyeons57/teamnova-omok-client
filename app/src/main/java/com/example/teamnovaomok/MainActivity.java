@@ -1,40 +1,24 @@
 package com.example.teamnovaomok;
 
-import android.os.Build;
 import android.os.Bundle;
-import android.os.CancellationSignal;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
-import androidx.credentials.Credential;
-import androidx.credentials.CredentialManager;
-import androidx.credentials.CredentialManagerCallback;
-import androidx.credentials.CustomCredential;
-import androidx.credentials.GetCredentialRequest;
-import androidx.credentials.GetCredentialResponse;
-import androidx.credentials.exceptions.GetCredentialException;
 
-import com.example.core.dialog.DialogHost;
-import com.example.core.dialog.DialogHostOwner;
-import com.example.core.dialog.MainDialogType;
-import com.example.core.event.AppEvent;
-import com.example.core.event.SessionInvalidatedEvent;
-import com.example.core.navigation.AppNavigationKey;
-import com.example.core.navigation.FragmentNavigationHostOwner;
-import com.example.core.navigation.FragmentNavigator;
-import com.example.core.navigation.FragmentNavigationHost;
+import com.example.core_api.dialog.DialogHost;
+import com.example.core_api.dialog.DialogHostOwner;
+import com.example.core_api.dialog.MainDialogType;
+import com.example.core_api.event.AppEvent;
+import com.example.core_api.event.SessionInvalidatedEvent;
+import com.example.core_api.navigation.AppNavigationKey;
+import com.example.core_api.navigation.FragmentNavigationHostOwner;
+import com.example.core_api.navigation.FragmentNavigator;
+import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.core_di.EventBusContainer;
 import com.example.teamnovaomok.di.DialogContainer;
 import com.example.teamnovaomok.di.FragmentNavigationContainer;
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements
         DialogHostOwner<MainDialogType>,

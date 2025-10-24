@@ -16,7 +16,7 @@
         app:strokeColor="@android:color/transparent"
         app:strokeWidth="@dimen/profile_icon_item_stroke_width">
 
-        <com.example.core.sprite.SpriteView
+        <com.example.core_api.sprite.SpriteView
             android:id="@+id/imageProfileIcon"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

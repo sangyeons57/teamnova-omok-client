@@ -31,7 +31,7 @@
             android:paddingBottom="8dp">
 
 
-            <com.example.core.sprite.SpriteView
+            <com.example.core_api.sprite.SpriteView
                 android:id="@+id/imagePlayerTopLeft"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
@@ -124,7 +124,7 @@
                 android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                 android:textColor="?attr/colorOnSurface" />
 
-            <com.example.core.sprite.SpriteView
+            <com.example.core_api.sprite.SpriteView
                 android:id="@+id/imagePlayerTopRight"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
@@ -159,7 +159,7 @@
             android:paddingEnd="12dp"
             android:paddingBottom="8dp">
 
-            <com.example.core.sprite.SpriteView
+            <com.example.core_api.sprite.SpriteView
                 android:id="@+id/imagePlayerBottomLeft"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
@@ -217,7 +217,7 @@
                 android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                 android:textColor="?attr/colorOnSurface" />
 
-            <com.example.core.sprite.SpriteView
+            <com.example.core_api.sprite.SpriteView
                 android:id="@+id/imagePlayerBottomRight"
                 android:layout_width="28dp"
                 android:layout_height="28dp"

@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.core"
+    namespace = "com.example.core_api"
     compileSdk = 36
 
     defaultConfig {

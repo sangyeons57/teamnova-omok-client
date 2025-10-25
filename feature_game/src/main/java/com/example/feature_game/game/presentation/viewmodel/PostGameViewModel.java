@@ -57,7 +57,7 @@ public final class PostGameViewModel extends ViewModel {
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final Handler countdownHandler = new Handler(Looper.getMainLooper());
 
-    private final MutableLiveData<PostGameUiState> uiState = new MutableLiveData<>(PostGameUiState.empty());
+    private final MutableLiveData<PostGameUiState> uiState = new MutableLiveData<>(null);
     private final MutableLiveData<PostGameViewEvent> viewEvents = new MutableLiveData<>();
 
     private final Observer<PostGameSessionState> postGameObserver = this::onPostGameStateChanged;
@@ -171,6 +171,9 @@ public final class PostGameViewModel extends ViewModel {
     private void rebuildUiState() {
         Log.d(TAG, "rebuildUiState: latestPostGameState=" + latestPostGameState + ", latestSessionInfo=" + latestSessionInfo + ", selfUserId=" + selfUserId);
         PostGameSessionState state = latestPostGameState != null ? latestPostGameState : PostGameSessionState.empty();
+        if (state.getOutcomes().isEmpty()) {
+            return;
+        }
         String sessionId = state.getSessionId();
         if (sessionId == null) {
             sessionId = "";

@@ -16,6 +16,6 @@ public interface RulesDao {
     @Query("SELECT * FROM rules WHERE rule_id = :ruleId LIMIT 1")
     RuleEntity findById(int ruleId);
 
-    @Query("SELECT * FROM rules WHERE rule_code = :ruleCode LIMIT 1")
+    @Query("SELECT * FROM rules WHERE TRIM(rule_code) = :ruleCode LIMIT 1")
     RuleEntity findByCode(@NonNull String ruleCode);
 }

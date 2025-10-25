@@ -84,15 +84,11 @@ public class ScoreViewModel extends ViewModel {
     private List<ScoreMilestone> createMilestones() {
         List<ScoreMilestone> items = new ArrayList<>();
         RuleCode[] codes = RuleCode.values();
-        int codeIndex = 0;
-        for (float score = MAX_SCORE; score >= MIN_SCORE; score -= WINDOW) {
-            List<String> assignedCode;
-            if (codeIndex < codes.length) {
-                assignedCode = Collections.singletonList(codes[codeIndex].getValue());
-                codeIndex++;
-            } else {
-                assignedCode = Collections.emptyList();
-            }
+        int codeCount = codes.length;
+        int index = 0;
+        for (float score = MAX_SCORE; score >= MIN_SCORE; score -= WINDOW, index++) {
+            RuleCode code = codes[index % codeCount];
+            List<String> assignedCode = Collections.singletonList(code.getValue());
             items.add(new ScoreMilestone(score, assignedCode));
         }
         return Collections.unmodifiableList(items);

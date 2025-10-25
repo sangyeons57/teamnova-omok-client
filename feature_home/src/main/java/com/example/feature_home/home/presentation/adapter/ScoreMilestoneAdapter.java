@@ -1,4 +1,4 @@
-package com.example.feature_home.home.presentation.ui.adapter;
+package com.example.feature_home.home.presentation.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -104,7 +104,14 @@ public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMile
                 String ruleCode = ruleCodes.get(i);
                 Rule item = ruleCatalog.get(ruleCode);
                 RuleIconSource iconSource = iconSources.get(ruleCode);
-                View iconView = RuleIconRenderer.createIconView(itemView.getContext(), ruleCode, item, iconSource, ruleIcons);
+                View iconView = RuleIconRenderer.createIconView(
+                        itemView.getContext(),
+                        ruleCode,
+                        item,
+                        iconSource,
+                        ruleIcons,
+                        false
+                );
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT

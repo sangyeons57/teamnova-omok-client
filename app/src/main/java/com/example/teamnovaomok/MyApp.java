@@ -23,7 +23,6 @@ public class MyApp extends Application {
         TokenContainer.init(this);
         GameInfoContainer.init();
         PostGameSessionContainer.init();
-        UserSessionContainer.init();
         SoundManagerContainer.init(this);
         RulesDataSourceContainer.init();
         TcpClientContainer.init(
@@ -31,6 +30,8 @@ public class MyApp extends Application {
                 GameInfoContainer.getInstance().getStore(),
                 PostGameSessionContainer.getInstance().getStore()
         );
+
+        UserSessionContainer.init();
     }
 
 }

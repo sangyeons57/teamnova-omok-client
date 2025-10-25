@@ -51,10 +51,50 @@ public final class RulesLocalDataSource implements RulesReadableDataSource {
     @Override
     @Nullable
     public RuleDto findByCode(@NonNull String ruleCode) {
-        RuleEntity entity = rulesDao.findByCode(Objects.requireNonNull(ruleCode, "ruleCode == null"));
+        String normalizedCode = normalizeKey(Objects.requireNonNull(ruleCode, "ruleCode == null"));
+        RuleEntity entity = rulesDao.findByCode(normalizedCode);
         if (entity == null) {
-            return null;
+            List<RuleEntity> all = rulesDao.getAll();
+            String fallbackKey = normalizeKey(ruleCode);
+            for (RuleEntity candidate : all) {
+                if (matchesCode(fallbackKey, candidate.getCode())) {
+                    entity = candidate;
+                    break;
+                }
+            }
+            if (entity == null) {
+                return null;
+            }
         }
         return RuleDto.fromEntity(entity);
+    }
+
+    @NonNull
+    private static String normalizeKey(@NonNull String rawCode) {
+        String trimmed = rawCode.trim();
+        if (trimmed.isEmpty()) {
+            return trimmed;
+        }
+        String replaced = trimmed.replace('-', '_').replace(' ', '_');
+        StringBuilder buffer = new StringBuilder(replaced.length());
+        for (int i = 0; i < replaced.length(); i++) {
+            char ch = replaced.charAt(i);
+            if (ch == '_') {
+                buffer.append('_');
+                continue;
+            }
+            if (Character.isLetterOrDigit(ch)) {
+                buffer.append(Character.toUpperCase(ch));
+            }
+        }
+        return buffer.toString();
+    }
+
+    private static boolean matchesCode(@NonNull String expectedKey, @Nullable String candidateCode) {
+        if (candidateCode == null) {
+            return false;
+        }
+        String candidateKey = normalizeKey(candidateCode);
+        return candidateKey.equals(expectedKey) || candidateKey.startsWith(expectedKey);
     }
 }

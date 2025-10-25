@@ -58,8 +58,18 @@ public final class RuleIconRenderer {
                                       @Nullable Rule rule,
                                       @Nullable RuleIconSource iconSource,
                                       @Nullable ViewGroup parent) {
+        return createIconView(context, ruleCode, rule, iconSource, parent, true);
+    }
+
+    @NonNull
+    public static View createIconView(@NonNull Context context,
+                                      @NonNull String ruleCode,
+                                      @Nullable Rule rule,
+                                      @Nullable RuleIconSource iconSource,
+                                      @Nullable ViewGroup parent,
+                                      boolean allowAsyncFetch) {
         View iconView = inflateIconView(context, parent);
-        bindIconView(iconView, ruleCode, rule, iconSource);
+        bindIconView(iconView, ruleCode, rule, iconSource, allowAsyncFetch);
         return iconView;
     }
 
@@ -67,6 +77,14 @@ public final class RuleIconRenderer {
                                     @NonNull String ruleCode,
                                     @Nullable Rule rule,
                                     @Nullable RuleIconSource iconSource) {
+        bindIconView(iconView, ruleCode, rule, iconSource, true);
+    }
+
+    public static void bindIconView(@NonNull View iconView,
+                                    @NonNull String ruleCode,
+                                    @Nullable Rule rule,
+                                    @Nullable RuleIconSource iconSource,
+                                    boolean allowAsyncFetch) {
         Objects.requireNonNull(iconView, "iconView == null");
         ImageView imageView = resolveImageView(iconView);
         iconView.setTag(R.id.designsystem_tag_rule_code, ruleCode);
@@ -87,7 +105,7 @@ public final class RuleIconRenderer {
 
         boolean needsDetails = rule == null;
         boolean needsIcon = iconSource == null;
-        if (needsDetails || needsIcon) {
+        if (allowAsyncFetch && (needsDetails || needsIcon)) {
             loadRuleInfoAsync(iconView, ruleCode, needsDetails, needsIcon);
         }
     }

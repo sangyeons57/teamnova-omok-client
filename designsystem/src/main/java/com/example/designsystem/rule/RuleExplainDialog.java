@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -114,47 +115,52 @@ public class RuleExplainDialog extends DialogFragment {
             return;
         }
         executor.execute(() -> {
-            Rule item = null;
-            RuleIconSource iconSource = null;
+            Rule rule = null;
+            RuleIconSource iconSource = RuleIconSource.none();
+
             if (findRuleByCodeUseCase != null) {
                 UResult<Rule> result = findRuleByCodeUseCase.execute(ruleCode);
-                if (result instanceof UResult.Ok) {
-                    @SuppressWarnings("unchecked")
-                    UResult.Ok<Rule> ok = (UResult.Ok<Rule>) result;
-                    item = ok.value();
+                if (result instanceof UResult.Ok<Rule> ok) {
+                    rule = ok.value();
+                } else if (result instanceof UResult.Err) {
+                    Log.w(TAG, "Rule lookup failed for code=" + ruleCode);
                 }
             }
+
             if (resolveRuleIconSourceUseCase != null) {
                 UResult<RuleIconSource> iconResult = resolveRuleIconSourceUseCase.execute(ruleCode);
-                if (iconResult instanceof UResult.Ok) {
-                    @SuppressWarnings("unchecked")
-                    UResult.Ok<RuleIconSource> ok = (UResult.Ok<RuleIconSource>) iconResult;
+                if (iconResult instanceof UResult.Ok<RuleIconSource> ok) {
                     iconSource = ok.value();
+                } else if (iconResult instanceof UResult.Err) {
+                    Log.w(TAG, "Icon lookup failed for code=" + ruleCode);
                 }
             }
-            Rule finalItem = item;
+
+            Rule finalRule = rule;
             RuleIconSource finalIconSource = iconSource;
-            mainHandler.post(() -> applyRuleDetails(view, ruleCode, finalItem, finalIconSource));
+            mainHandler.post(() -> applyRuleDetails(view, ruleCode, finalRule, finalIconSource));
         });
     }
 
     private void applyRuleDetails(@NonNull View view,
                                   @NonNull String ruleCode,
-                                  @Nullable Rule item,
+                                  @Nullable Rule rule,
                                   @Nullable RuleIconSource iconSource) {
         if (!isAdded()) {
             return;
         }
         TextView nameView = view.findViewById(R.id.textRuleName);
         TextView descriptionView = view.findViewById(R.id.textRuleDescription);
-        if (item != null) {
-            nameView.setText(item.getName());
-            descriptionView.setText(item.getDescription());
+
+        if (rule != null) {
+            nameView.setText(rule.getName());
+            descriptionView.setText(rule.getDescription());
         } else {
             nameView.setText(R.string.designsystem_rule_dialog_unknown_title);
             descriptionView.setText(R.string.designsystem_rule_dialog_unknown_description);
         }
+
         View iconContainer = view.findViewById(R.id.imageRuleIcon);
-        RuleIconRenderer.bindIconView(iconContainer, ruleCode, item, iconSource);
+        RuleIconRenderer.bindIconView(iconContainer, ruleCode, rule, iconSource);
     }
 }

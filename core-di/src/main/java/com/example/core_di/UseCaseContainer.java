@@ -59,6 +59,7 @@ public final class UseCaseContainer {
 
     public final DefaultPhpServerDataSource phpServerDataSource = new DefaultPhpServerDataSource(HttpClientContainer.getInstance().get());
     public final DefaultTcpServerDataSource tcpServerDataSource = new DefaultTcpServerDataSource(TcpClientContainer.getInstance().getClient());
+    public final RulesReadableDataSource rulesDataSource = RulesDataSourceContainer.getLocalDataSource();
 
     public final UserResponseMapper userResponseMapper = new UserResponseMapper();
     public final UseCaseConfig defaultConfig = UseCaseConfig.defaultConfig();
@@ -67,23 +68,13 @@ public final class UseCaseContainer {
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);
     public final RealtimeRepository realtimeRepository = new RealtimeRepositoryImpl(tcpServerDataSource);
     public final SoundManager soundManager = SoundManagerContainer.getInstance().getSoundManager();
-    public final RulesRepository rulesRepository;
-    public final LoadRulesCatalogUseCase loadRulesCatalogUseCase;
-    public final FindRuleByCodeUseCase findRuleByCodeUseCase;
-    public final ResolveRuleIconSourceUseCase resolveRuleIconSourceUseCase;
-
+    public final RulesRepository rulesRepository = new RulesRepositoryImpl(rulesDataSource);
     public final TokenStore token = TokenContainer.getInstance();
     public final UserSessionStore userSessionStore = UserSessionContainer.getInstance().getStore();
     public final GameInfoStore gameInfoStore = GameInfoContainer.getInstance().getStore();
     public final AppEventBus eventBus = EventBusContainer.getInstance();
 
     public UseCaseContainer() {
-        RulesDataSourceContainer.init();
-        RulesReadableDataSource rulesDataSource = RulesDataSourceContainer.getLocalDataSource();
-        rulesRepository = new RulesRepositoryImpl(rulesDataSource);
-        loadRulesCatalogUseCase = new LoadRulesCatalogUseCase(rulesRepository);
-        findRuleByCodeUseCase = new FindRuleByCodeUseCase(defaultConfig, rulesRepository);
-        resolveRuleIconSourceUseCase = new ResolveRuleIconSourceUseCase(defaultConfig, rulesRepository);
         registry.register(CreateAccountUseCase.class,
                 UseCaseProviders.singleton(() -> new CreateAccountUseCase(defaultConfig, identifyRepository)));
         registry.register(AllTermsAcceptancesUseCase.class,
@@ -123,11 +114,11 @@ public final class UseCaseContainer {
         registry.register(PostGameDecisionUseCase.class,
                 UseCaseProviders.singleton(() -> new PostGameDecisionUseCase(defaultConfig, realtimeRepository)));
         registry.register(LoadRulesCatalogUseCase.class,
-                UseCaseProviders.singleton(() -> loadRulesCatalogUseCase));
+                UseCaseProviders.singleton(() -> new LoadRulesCatalogUseCase(rulesRepository)));
         registry.register(FindRuleByCodeUseCase.class,
-                UseCaseProviders.singleton(() -> findRuleByCodeUseCase));
+                UseCaseProviders.singleton(() -> new FindRuleByCodeUseCase(defaultConfig, rulesRepository)));
         registry.register(ResolveRuleIconSourceUseCase.class,
-                UseCaseProviders.singleton(() -> resolveRuleIconSourceUseCase));
+                UseCaseProviders.singleton(() -> new ResolveRuleIconSourceUseCase(defaultConfig, rulesRepository)));
     }
 
     public <T> T get(Class<T> key) {

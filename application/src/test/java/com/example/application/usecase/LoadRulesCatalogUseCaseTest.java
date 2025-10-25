@@ -51,6 +51,19 @@ public final class LoadRulesCatalogUseCaseTest {
         assertNull(item);
     }
 
+    @Test
+    public void findByCode_returnsProjectedItem() {
+        Rule item = useCase.findByCode("SPEED_GAME");
+        assertNotNull(item);
+        assertEquals("Rule B", item.getName());
+    }
+
+    @Test
+    public void findByCode_returnsNullWhenMissing() {
+        Rule item = useCase.findByCode("UNKNOWN_CODE");
+        assertNull(item);
+    }
+
     private static final class FakeRulesRepository implements RulesRepository {
 
         private final List<Rule> rules = Collections.unmodifiableList(Arrays.asList(

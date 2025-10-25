@@ -27,14 +27,43 @@ public final class RuleMapper {
 
     @NonNull
     public static Rule toDomain(@NonNull RuleDto dto) {
+        String normalizedCode = normalizeCode(dto.getCode());
+        String normalizedIcon = dto.getIconPath();
+        if (normalizedIcon != null) {
+            normalizedIcon = normalizedIcon.trim();
+            if (normalizedIcon.isEmpty()) {
+                normalizedIcon = null;
+            }
+        }
         return Rule.create(
                 RuleId.of(dto.getId()),
-                RuleCode.of(dto.getCode()),
+                RuleCode.of(normalizedCode),
                 dto.getName(),
-                dto.getIconPath(),
+                normalizedIcon,
                 dto.getDescription(),
                 parseInstant(dto.getCreatedAt())
         );
+    }
+
+    @NonNull
+    private static String normalizeCode(@NonNull String rawCode) {
+        String trimmed = rawCode.trim();
+        if (trimmed.isEmpty()) {
+            return trimmed;
+        }
+        String replaced = trimmed.replace('-', '_').replace(' ', '_');
+        StringBuilder buffer = new StringBuilder(replaced.length());
+        for (int i = 0; i < replaced.length(); i++) {
+            char ch = replaced.charAt(i);
+            if (ch == '_') {
+                buffer.append('_');
+                continue;
+            }
+            if (Character.isLetterOrDigit(ch)) {
+                buffer.append(Character.toUpperCase(ch));
+            }
+        }
+        return buffer.toString();
     }
 
     @NonNull

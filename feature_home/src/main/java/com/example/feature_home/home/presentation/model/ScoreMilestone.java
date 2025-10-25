@@ -9,11 +9,11 @@ import java.util.List;
 public final class ScoreMilestone {
 
     private final float score;
-    private final List<Integer> ruleIds;
+    private final List<String> ruleCodes;
 
-    public ScoreMilestone(float score, @NonNull List<Integer> ruleIds) {
+    public ScoreMilestone(float score, @NonNull List<String> ruleCodes) {
         this.score = score;
-        this.ruleIds = Collections.unmodifiableList(new ArrayList<>(ruleIds));
+        this.ruleCodes = Collections.unmodifiableList(new ArrayList<>(ruleCodes));
     }
 
     public float getScore() {
@@ -21,7 +21,7 @@ public final class ScoreMilestone {
     }
 
     @NonNull
-    public List<Integer> getRuleIds() {
-        return ruleIds;
+    public List<String> getRuleCodes() {
+        return ruleCodes;
     }
 }

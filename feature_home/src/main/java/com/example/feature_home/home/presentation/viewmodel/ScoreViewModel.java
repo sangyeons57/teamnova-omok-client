@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.application.session.UserSessionStore;
 import com.example.domain.user.entity.User;
 import com.example.domain.user.value.UserScore;
+import com.example.feature_home.home.presentation.model.RuleCode;
 import com.example.feature_home.home.presentation.model.ScoreMilestone;
 
 import java.util.ArrayList;
@@ -24,7 +25,6 @@ public class ScoreViewModel extends ViewModel {
     private static final int MAX_SCORE = 3000;
     private static final float WINDOW = 100;
     private static final int DEFAULT_SCORE = 0;
-
     private final MutableLiveData<List<ScoreMilestone>> milestones = new MutableLiveData<>(createMilestones());
     private final MediatorLiveData<Integer> currentScore = new MediatorLiveData<>();
 
@@ -83,22 +83,18 @@ public class ScoreViewModel extends ViewModel {
 
     private List<ScoreMilestone> createMilestones() {
         List<ScoreMilestone> items = new ArrayList<>();
+        RuleCode[] codes = RuleCode.values();
+        int codeIndex = 0;
         for (float score = MAX_SCORE; score >= MIN_SCORE; score -= WINDOW) {
-            items.add(new ScoreMilestone(score, determineRulesForScore(score)));
+            List<String> assignedCode;
+            if (codeIndex < codes.length) {
+                assignedCode = Collections.singletonList(codes[codeIndex].getValue());
+                codeIndex++;
+            } else {
+                assignedCode = Collections.emptyList();
+            }
+            items.add(new ScoreMilestone(score, assignedCode));
         }
         return Collections.unmodifiableList(items);
-    }
-
-    @NonNull
-    private List<Integer> determineRulesForScore(float score) {
-        if (score >= 2400f) {
-            return List.of(1, 2, 3);
-        } else if (score >= 1500f) {
-            return List.of(1, 2);
-        } else if (score >= 0f) {
-            return Collections.singletonList(1);
-        } else {
-            return Collections.emptyList();
-        }
     }
 }

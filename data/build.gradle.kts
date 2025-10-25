@@ -31,7 +31,10 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":domain"))
     implementation(project(":application"))
+    implementation(project(":infra"))
     implementation(libs.androidx.annotation.jvm)
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

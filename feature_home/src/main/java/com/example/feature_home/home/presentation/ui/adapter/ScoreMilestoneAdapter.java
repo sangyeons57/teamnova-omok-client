@@ -14,20 +14,38 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.designsystem.rule.RuleIconRenderer;
 import com.example.feature_home.R;
 import com.example.feature_home.home.presentation.model.ScoreMilestone;
+import com.example.application.usecase.RuleIconSource;
+import com.example.domain.rules.Rule;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMilestoneAdapter.ScoreViewHolder> {
 
     public interface OnRuleIconClickListener {
-        void onRuleIconClicked(int ruleId);
+        void onRuleIconClicked(@NonNull String ruleCode);
     }
 
     private final OnRuleIconClickListener ruleClickListener;
+    private Map<String, Rule> ruleCatalog = Collections.emptyMap();
+    private Map<String, RuleIconSource> iconSources = Collections.emptyMap();
 
     public ScoreMilestoneAdapter(@NonNull OnRuleIconClickListener listener) {
         super(DIFF_CALLBACK);
         this.ruleClickListener = listener;
+    }
+
+    public void updateRuleCatalog(@NonNull Map<String, Rule> catalog) {
+        this.ruleCatalog = Collections.unmodifiableMap(new LinkedHashMap<>(Objects.requireNonNull(catalog, "catalog == null")));
+        notifyDataSetChanged();
+    }
+
+    public void updateIconSources(@NonNull Map<String, RuleIconSource> sources) {
+        this.iconSources = Collections.unmodifiableMap(new LinkedHashMap<>(Objects.requireNonNull(sources, "sources == null")));
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -40,7 +58,7 @@ public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMile
 
     @Override
     public void onBindViewHolder(@NonNull ScoreViewHolder holder, int position) {
-        holder.bind(getItem(position));
+        holder.bind(getItem(position), ruleCatalog, iconSources);
     }
 
     private static final DiffUtil.ItemCallback<ScoreMilestone> DIFF_CALLBACK = new DiffUtil.ItemCallback<>() {
@@ -52,7 +70,7 @@ public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMile
         @Override
         public boolean areContentsTheSame(@NonNull ScoreMilestone oldItem, @NonNull ScoreMilestone newItem) {
             return oldItem.getScore() == newItem.getScore()
-                    && oldItem.getRuleIds().equals(newItem.getRuleIds());
+                    && oldItem.getRuleCodes().equals(newItem.getRuleCodes());
         }
     };
 
@@ -69,32 +87,31 @@ public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMile
             this.ruleClickListener = listener;
         }
 
-        void bind(@NonNull ScoreMilestone milestone) {
+        void bind(@NonNull ScoreMilestone milestone,
+                  @NonNull Map<String, Rule> ruleCatalog,
+                  @NonNull Map<String, RuleIconSource> iconSources) {
             int displayScore = Math.round(milestone.getScore());
             scoreText.setText(itemView.getContext().getString(R.string.score_screen_score_format, displayScore));
-            List<Integer> ruleIds = milestone.getRuleIds();
+            List<String> ruleCodes = milestone.getRuleCodes();
             ruleIcons.removeAllViews();
-            if (ruleIds == null || ruleIds.isEmpty()) {
+            if (ruleCodes == null || ruleCodes.isEmpty()) {
                 ruleIcons.setVisibility(View.GONE);
                 return;
             }
             ruleIcons.setVisibility(View.VISIBLE);
-            int count = Math.min(ruleIds.size(), 1);
+            int count = Math.min(ruleCodes.size(), 1);
             for (int i = 0; i < count; i++) {
-                int ruleId = ruleIds.get(i);
-                View iconView = RuleIconRenderer.createIconView(itemView.getContext(), ruleId, ruleIcons);
+                String ruleCode = ruleCodes.get(i);
+                Rule item = ruleCatalog.get(ruleCode);
+                RuleIconSource iconSource = iconSources.get(ruleCode);
+                View iconView = RuleIconRenderer.createIconView(itemView.getContext(), ruleCode, item, iconSource, ruleIcons);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
                 ruleIcons.addView(iconView, params);
-                iconView.setOnClickListener(v -> ruleClickListener.onRuleIconClicked(ruleId));
+                iconView.setOnClickListener(v -> ruleClickListener.onRuleIconClicked(ruleCode));
             }
-        }
-
-        private int dpToPx(int dp) {
-            float density = itemView.getResources().getDisplayMetrics().density;
-            return Math.round(dp * density);
         }
     }
 }

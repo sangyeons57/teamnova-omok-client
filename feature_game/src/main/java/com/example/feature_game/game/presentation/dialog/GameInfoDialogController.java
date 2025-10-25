@@ -69,8 +69,8 @@ public final class GameInfoDialogController implements DialogController<MainDial
             }
         });
 
-        viewModel.getActiveRuleIds().observe(activity, ruleIds ->
-                populateRuleIcons(ruleContainer, activity, ruleIds));
+        viewModel.getActiveRuleCodes().observe(activity, ruleCodes ->
+                populateRuleIcons(ruleContainer, activity, ruleCodes));
 
         closeButton.setOnClickListener(v -> {
             SoundEffects.playButtonClick();
@@ -80,18 +80,18 @@ public final class GameInfoDialogController implements DialogController<MainDial
 
     private void populateRuleIcons(@NonNull LinearLayout container,
                                    @NonNull FragmentActivity activity,
-                                   @Nullable List<Integer> ruleIds) {
+                                   @Nullable List<String> ruleCodes) {
         container.removeAllViews();
-        if (ruleIds == null || ruleIds.isEmpty()) {
+        if (ruleCodes == null || ruleCodes.isEmpty()) {
             container.setVisibility(View.GONE);
             return;
         }
         container.setVisibility(View.VISIBLE);
 
-        int maxCount = Math.min(ruleIds.size(), 4);
+        int maxCount = Math.min(ruleCodes.size(), 4);
         for (int index = 0; index < maxCount; index++) {
-            int ruleId = ruleIds.get(index);
-            View iconView = RuleIconRenderer.createIconView(activity, ruleId, container);
+            String ruleCode = ruleCodes.get(index);
+            View iconView = RuleIconRenderer.createIconView(activity, ruleCode, container);
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -104,7 +104,7 @@ public final class GameInfoDialogController implements DialogController<MainDial
 
             iconView.setOnClickListener(v -> {
                 SoundEffects.playButtonClick();
-                RuleExplainDialog.show(activity.getSupportFragmentManager(), ruleId);
+                RuleExplainDialog.present(activity.getSupportFragmentManager(), ruleCode);
             });
         }
     }

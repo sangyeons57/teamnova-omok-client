@@ -27,5 +27,6 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.annotation.jvm)
     testImplementation(libs.junit)
 }

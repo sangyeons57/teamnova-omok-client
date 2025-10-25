@@ -68,4 +68,5 @@ dependencies {
 
     // AuthorizationClient (권한부여/토큰)
     implementation(libs.play.services.auth)
+    implementation(libs.androidx.room.runtime)
 }

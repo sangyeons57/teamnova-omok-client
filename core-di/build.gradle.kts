@@ -23,17 +23,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
 dependencies {
     api(project(":core-api"))
     implementation(project(":infra"))
-    implementation(project(":application"))
+    api(project(":application"))
     implementation(project(":data"))
-    implementation(project(":designsystem"))
 
     implementation(libs.appcompat)
     implementation(libs.material)

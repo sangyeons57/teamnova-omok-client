@@ -4,6 +4,7 @@ import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.in.UseCaseProviders;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.port.out.realtime.RealtimeRepository;
+import com.example.application.port.out.rules.RulesRepository;
 import com.example.application.port.out.user.IdentifyRepository;
 import com.example.application.port.out.user.TermsRepository;
 import com.example.application.port.out.user.UserRepository;
@@ -12,12 +13,15 @@ import com.example.application.usecase.ChangeNameUseCase;
 import com.example.application.usecase.ChangeProfileIconUseCase;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.DeactivateAccountUseCase;
+import com.example.application.usecase.FindRuleByCodeUseCase;
 import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.JoinMatchUseCase;
 import com.example.application.usecase.LeaveMatchUseCase;
 import com.example.application.usecase.LinkGoogleAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.LogoutUseCase;
+import com.example.application.usecase.LoadRulesCatalogUseCase;
+import com.example.application.usecase.ResolveRuleIconSourceUseCase;
 import com.example.application.usecase.RankingDataUseCase;
 import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.application.usecase.PlaceStoneUseCase;
@@ -32,12 +36,14 @@ import com.example.core_api.sound.SoundManager;
 import com.example.core_api.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.datasource.DefaultTcpServerDataSource;
+import com.example.data.datasource.RulesReadableDataSource;
 import com.example.data.mapper.IdentityMapper;
 import com.example.data.mapper.UserResponseMapper;
 import com.example.data.repository.realtime.RealtimeRepositoryImpl;
 import com.example.data.repository.user.IdentifyRepositoryImpl;
 import com.example.data.repository.user.TermsRepositoryImpl;
 import com.example.data.repository.user.UserRepositoryImpl;
+import com.example.data.repository.rules.RulesRepositoryImpl;
 
 public final class UseCaseContainer {
 
@@ -61,6 +67,10 @@ public final class UseCaseContainer {
     public final TermsRepository termsRepository = new TermsRepositoryImpl(phpServerDataSource);
     public final RealtimeRepository realtimeRepository = new RealtimeRepositoryImpl(tcpServerDataSource);
     public final SoundManager soundManager = SoundManagerContainer.getInstance().getSoundManager();
+    public final RulesRepository rulesRepository;
+    public final LoadRulesCatalogUseCase loadRulesCatalogUseCase;
+    public final FindRuleByCodeUseCase findRuleByCodeUseCase;
+    public final ResolveRuleIconSourceUseCase resolveRuleIconSourceUseCase;
 
     public final TokenStore token = TokenContainer.getInstance();
     public final UserSessionStore userSessionStore = UserSessionContainer.getInstance().getStore();
@@ -68,6 +78,12 @@ public final class UseCaseContainer {
     public final AppEventBus eventBus = EventBusContainer.getInstance();
 
     public UseCaseContainer() {
+        RulesDataSourceContainer.init();
+        RulesReadableDataSource rulesDataSource = RulesDataSourceContainer.getLocalDataSource();
+        rulesRepository = new RulesRepositoryImpl(rulesDataSource);
+        loadRulesCatalogUseCase = new LoadRulesCatalogUseCase(rulesRepository);
+        findRuleByCodeUseCase = new FindRuleByCodeUseCase(defaultConfig, rulesRepository);
+        resolveRuleIconSourceUseCase = new ResolveRuleIconSourceUseCase(defaultConfig, rulesRepository);
         registry.register(CreateAccountUseCase.class,
                 UseCaseProviders.singleton(() -> new CreateAccountUseCase(defaultConfig, identifyRepository)));
         registry.register(AllTermsAcceptancesUseCase.class,
@@ -106,6 +122,12 @@ public final class UseCaseContainer {
                 UseCaseProviders.singleton(() -> new PlaceStoneUseCase(defaultConfig, realtimeRepository, soundManager)));
         registry.register(PostGameDecisionUseCase.class,
                 UseCaseProviders.singleton(() -> new PostGameDecisionUseCase(defaultConfig, realtimeRepository)));
+        registry.register(LoadRulesCatalogUseCase.class,
+                UseCaseProviders.singleton(() -> loadRulesCatalogUseCase));
+        registry.register(FindRuleByCodeUseCase.class,
+                UseCaseProviders.singleton(() -> findRuleByCodeUseCase));
+        registry.register(ResolveRuleIconSourceUseCase.class,
+                UseCaseProviders.singleton(() -> resolveRuleIconSourceUseCase));
     }
 
     public <T> T get(Class<T> key) {

@@ -2,6 +2,8 @@ package com.example.feature_home.home.presentation.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,16 +17,31 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.application.port.in.UResult;
+import com.example.application.usecase.LoadRulesCatalogUseCase;
+import com.example.application.usecase.RuleIconSource;
+import com.example.application.usecase.ResolveRuleIconSourceUseCase;
 import com.example.designsystem.rule.RuleExplainDialog;
 import com.example.core_api.navigation.AppNavigationKey;
 import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.core_api.navigation.FragmentNavigationHostOwner;
 import com.example.core_di.sound.SoundEffects;
+import com.example.core_di.UseCaseContainer;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.ScoreViewModelFactory;
+import com.example.feature_home.home.presentation.model.RuleCode;
 import com.example.feature_home.home.presentation.ui.adapter.ScoreMilestoneAdapter;
 import com.example.feature_home.home.presentation.ui.widget.WindowedGuageView;
 import com.example.feature_home.home.presentation.viewmodel.ScoreViewModel;
+
+import com.example.domain.rules.Rule;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ScoreFragment extends Fragment {
 
@@ -36,6 +53,22 @@ public class ScoreFragment extends Fragment {
     private RecyclerView scoreList;
     private TextView scoreTitle;
     private int currentScoreValue = 0;
+    private ExecutorService rulesExecutor;
+    private Handler mainHandler;
+    private LoadRulesCatalogUseCase loadRulesCatalogUseCase;
+    private ResolveRuleIconSourceUseCase resolveRuleIconSourceUseCase;
+    private final Map<String, Rule> ruleCatalog = new LinkedHashMap<>();
+    private final Map<String, RuleIconSource> iconSources = new LinkedHashMap<>();
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        UseCaseContainer container = UseCaseContainer.getInstance();
+        loadRulesCatalogUseCase = container.loadRulesCatalogUseCase;
+        resolveRuleIconSourceUseCase = container.resolveRuleIconSourceUseCase;
+        rulesExecutor = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
+    }
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -121,12 +154,23 @@ public class ScoreFragment extends Fragment {
 
         setClickWithSound(backButton, this::navigateHome);
         setClickWithSound(banner, this::navigateHome);
+
+        preloadRuleMetadata();
     }
 
     @Override
     public void onDetach() {
         fragmentNavigationHost = null;
         super.onDetach();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (rulesExecutor != null) {
+            rulesExecutor.shutdownNow();
+            rulesExecutor = null;
+        }
+        super.onDestroy();
     }
 
     private void navigateHome() {
@@ -139,15 +183,62 @@ public class ScoreFragment extends Fragment {
         }
     }
 
-    private void onRuleIconClicked(int ruleId) {
+    private void onRuleIconClicked(@NonNull String ruleCode) {
         SoundEffects.playButtonClick();
-        RuleExplainDialog.show(getParentFragmentManager(), ruleId);
+        RuleExplainDialog.present(getParentFragmentManager(), ruleCode);
     }
 
     private void setClickWithSound(@NonNull View view, @NonNull Runnable action) {
         view.setOnClickListener(v -> {
             SoundEffects.playButtonClick();
             action.run();
+        });
+    }
+
+    private void preloadRuleMetadata() {
+        if (rulesExecutor == null) {
+            return;
+        }
+        rulesExecutor.execute(() -> {
+            Map<String, Rule> fetchedRules = new HashMap<>();
+            LinkedHashMap<String, Rule> orderedCatalog = new LinkedHashMap<>();
+            LinkedHashMap<String, RuleIconSource> orderedIcons = new LinkedHashMap<>();
+            List<String> orderedCodes = RuleCode.orderedValues();
+            try {
+                List<Rule> rules = loadRulesCatalogUseCase.execute();
+                for (Rule rule : rules) {
+                    fetchedRules.put(rule.getCode().getValue(), rule);
+                }
+            } catch (Exception ignored) {
+                // Use fallback placeholders if loading fails.
+            }
+            for (String codeValue : orderedCodes) {
+                Rule matchedRule = fetchedRules.get(codeValue);
+                orderedCatalog.put(codeValue, matchedRule);
+                RuleIconSource resolved = RuleIconSource.none();
+                try {
+                    UResult<RuleIconSource> result = resolveRuleIconSourceUseCase.execute(codeValue);
+                    if (result instanceof UResult.Ok) {
+                        @SuppressWarnings("unchecked")
+                        UResult.Ok<RuleIconSource> okResult = (UResult.Ok<RuleIconSource>) result;
+                        resolved = okResult.value();
+                    }
+                } catch (Exception ignored) {
+                    // Leave as none when resolve fails.
+                }
+                orderedIcons.put(codeValue, resolved);
+            }
+            mainHandler.post(() -> {
+                if (!isAdded() || adapter == null) {
+                    return;
+                }
+                ruleCatalog.clear();
+                ruleCatalog.putAll(orderedCatalog);
+                iconSources.clear();
+                iconSources.putAll(orderedIcons);
+                adapter.updateRuleCatalog(ruleCatalog);
+                adapter.updateIconSources(iconSources);
+            });
         });
     }
 }

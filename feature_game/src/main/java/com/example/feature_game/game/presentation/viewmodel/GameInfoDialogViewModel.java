@@ -27,7 +27,11 @@ public class GameInfoDialogViewModel extends ViewModel {
     private final MutableLiveData<GameTurnState> turnState = new MutableLiveData<>(GameTurnState.idle());
     private final MutableLiveData<OmokBoardState> boardState = new MutableLiveData<>(OmokBoardState.empty());
     private final MutableLiveData<GameParticipantInfo> activeParticipant = new MutableLiveData<>();
-    private final MutableLiveData<List<Integer>> activeRuleIds = new MutableLiveData<>(Arrays.asList(1, 2, 3));
+    private final MutableLiveData<List<String>> activeRuleCodes = new MutableLiveData<>(Arrays.asList(
+            "STONE_CONVERSION",
+            "SPEED_GAME",
+            "BLOCKER_SUMMON"
+    ));
 
     private final Observer<GameTurnState> turnObserver = this::onTurnUpdated;
     private final Observer<OmokBoardState> boardObserver = this::onBoardUpdated;
@@ -63,8 +67,8 @@ public class GameInfoDialogViewModel extends ViewModel {
     }
 
     @NonNull
-    public LiveData<List<Integer>> getActiveRuleIds() {
-        return activeRuleIds;
+    public LiveData<List<String>> getActiveRuleCodes() {
+        return activeRuleCodes;
     }
 
     @NonNull

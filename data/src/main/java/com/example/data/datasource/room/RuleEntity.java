@@ -33,20 +33,20 @@ public final class RuleEntity {
 
     @NonNull
     @ColumnInfo(name = "created_at")
-    private final String createdAt;
+    private final long createdAt;
 
     public RuleEntity(int id,
                       @NonNull String code,
                       @NonNull String name,
                       @Nullable String iconPath,
                       @NonNull String description,
-                      @NonNull String createdAt) {
+                      Long createdAt) {
         this.id = id;
         this.code = Objects.requireNonNull(code, "code == null");
         this.name = Objects.requireNonNull(name, "name == null");
         this.iconPath = iconPath;
         this.description = Objects.requireNonNull(description, "description == null");
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt == null");
+        this.createdAt = (createdAt != null) ? createdAt : System.currentTimeMillis();
     }
 
     public int getId() {
@@ -74,7 +74,7 @@ public final class RuleEntity {
     }
 
     @NonNull
-    public String getCreatedAt() {
+    public Long getCreatedAt() {
         return createdAt;
     }
 }

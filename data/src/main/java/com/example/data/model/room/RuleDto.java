@@ -22,14 +22,14 @@ public final class RuleDto {
     @NonNull
     private final String description;
     @NonNull
-    private final String createdAt;
+    private final Long createdAt;
 
     private RuleDto(int id,
                     @NonNull String code,
                     @NonNull String name,
                     @Nullable String iconPath,
                     @NonNull String description,
-                    @NonNull String createdAt) {
+                    @NonNull Long createdAt) {
         this.id = id;
         this.code = Objects.requireNonNull(code, "code == null");
         this.name = Objects.requireNonNull(name, "name == null");
@@ -75,7 +75,7 @@ public final class RuleDto {
     }
 
     @NonNull
-    public String getCreatedAt() {
+    public Long getCreatedAt() {
         return createdAt;
     }
 }

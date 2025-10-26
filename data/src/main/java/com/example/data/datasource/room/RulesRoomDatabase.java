@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase;
         entities = {
                 RuleEntity.class
         },
-        version = 1,
+        version = 5,
         exportSchema = false
 )
 public abstract class RulesRoomDatabase extends RoomDatabase {

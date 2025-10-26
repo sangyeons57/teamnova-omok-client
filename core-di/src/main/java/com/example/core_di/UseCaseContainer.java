@@ -38,6 +38,7 @@ import com.example.core_api.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.datasource.DefaultTcpServerDataSource;
 import com.example.data.datasource.RulesLocalDataSource;
+import com.example.data.datasource.room.RulesDao;
 import com.example.data.datasource.RulesReadableDataSource;
 import com.example.data.mapper.IdentityMapper;
 import com.example.data.mapper.UserResponseMapper;
@@ -61,8 +62,7 @@ public final class UseCaseContainer {
 
     public final DefaultPhpServerDataSource phpServerDataSource = new DefaultPhpServerDataSource(HttpClientContainer.getInstance().get());
     public final DefaultTcpServerDataSource tcpServerDataSource = new DefaultTcpServerDataSource(TcpClientContainer.getInstance().getClient());
-    public final RulesReadableDataSource rulesDataSource = new RulesLocalDataSource(RoomClientContainer.getInstance().get());
-
+    public final RulesReadableDataSource rulesDataSource = new RulesLocalDataSource(RoomClientContainer.getInstance().getDao(RulesDao.class) );
     public final UserResponseMapper userResponseMapper = new UserResponseMapper();
     public final UseCaseConfig defaultConfig = UseCaseConfig.defaultConfig();
     public final IdentifyRepository identifyRepository = new IdentifyRepositoryImpl(phpServerDataSource, new IdentityMapper(), userResponseMapper);

@@ -10,18 +10,14 @@ import com.example.core_di.TcpClientContainer;
 import com.example.core_di.TokenContainer;
 import com.example.core_di.UserSessionContainer;
 import com.example.core_di.RoomClientContainer;
-import com.example.data.datasource.room.RulesDatabaseConfigFactory;
-import com.example.data.datasource.room.RulesRoomDatabase;
-import com.example.infra.room.RoomAssetDatabaseProvider;
 
 public class MyApp extends Application {
+
+
     @Override
     public void onCreate() {
         super.onCreate();
-        RoomAssetDatabaseProvider.configure(RulesDatabaseConfigFactory.provideConfig());
-        RoomAssetDatabaseProvider.initialize(this);
-        RulesRoomDatabase rulesDatabase = RoomAssetDatabaseProvider.get(RulesRoomDatabase.class);
-        RoomClientContainer.getInstance().init(rulesDatabase);
+        RoomClientContainer.init(this);
 
         TokenContainer.init(this);
         GameInfoContainer.init();

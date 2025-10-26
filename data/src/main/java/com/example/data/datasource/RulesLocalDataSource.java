@@ -1,5 +1,7 @@
 package com.example.data.datasource;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -16,6 +18,7 @@ import java.util.Objects;
  * Provides read-only access to the rules table via Room DAO.
  */
 public final class RulesLocalDataSource implements RulesReadableDataSource {
+    private static final String TAG = RulesLocalDataSource.class.getSimpleName();
 
     @NonNull
     private final RulesDao rulesDao;
@@ -27,9 +30,20 @@ public final class RulesLocalDataSource implements RulesReadableDataSource {
     @Override
     @NonNull
     public List<RuleDto> getAll() {
-        List<RuleEntity> entities = rulesDao.getAll();
+        Log.d(TAG, "getAll()");
+        List<RuleEntity> entities;
+        try {
+            entities = rulesDao.getAll();
+        } catch (RuntimeException e) {
+            Log.e(TAG, "getAll(): query failed", e);
+            throw e;
+        }
+        Log.d(TAG, "getAll(): " + entities.size());
+
         List<RuleDto> items = new ArrayList<>(entities.size());
+        Log.d(TAG, "getAll(): " + items.size());
         for (RuleEntity entity : entities) {
+            Log.d(TAG, "getAll(): " + entity);
             items.add(RuleDto.fromEntity(entity));
         }
         return Collections.unmodifiableList(items);

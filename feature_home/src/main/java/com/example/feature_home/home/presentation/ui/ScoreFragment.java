@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +37,8 @@ import com.example.feature_home.home.presentation.ui.widget.WindowedGuageView;
 import com.example.feature_home.home.presentation.viewmodel.ScoreViewModel;
 import com.example.domain.rules.Rule;
 
+import android.util.Log;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,6 +48,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ScoreFragment extends Fragment {
+
+    private static final String TAG = "ScoreFragment";
 
     private FragmentNavigationHost<AppNavigationKey> fragmentNavigationHost;
     private ScoreViewModel viewModel;
@@ -200,17 +205,26 @@ public class ScoreFragment extends Fragment {
     }
 
     private void preloadRuleMetadata() {
+        Log.d("ScoreFragment", "preloadRuleMetadata: ");
         if (catalogExecutor == null) {
             return;
         }
+        Log.d("ScoreFragment", "preloadRuleMetadata: 2");
         if (catalogFuture != null) {
             catalogFuture.cancel(true);
             catalogFuture = null;
         }
+        Log.d("ScoreFragment", "preloadRuleMetadata: 3");
         catalogFuture = loadRulesCatalogUseCase
                 .executeAsync(UseCase.None.INSTANCE, catalogExecutor)
                 .thenApply(result -> {
+                    if (result instanceof UResult.Err<?> err) {
+                        Log.w(TAG, "Failed to load rules catalog: code=" + err.code()
+                                + ", message=" + err.message());
+                        return null;
+                    }
                     if (!(result instanceof UResult.Ok<?> okResult)) {
+                        Log.w(TAG, "Unexpected catalog result type: " + result);
                         return null;
                     }
                     @SuppressWarnings("unchecked")

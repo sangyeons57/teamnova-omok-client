@@ -67,10 +67,9 @@ public final class RuleMapper {
     }
 
     @NonNull
-    private static Instant parseInstant(@NonNull String createdAt) {
+    private static Instant parseInstant(@NonNull Long createdAt) {
         try {
-            LocalDateTime localDateTime = LocalDateTime.parse(createdAt, SQLITE_TIMESTAMP);
-            return localDateTime.toInstant(ZoneOffset.UTC);
+            return Instant.ofEpochMilli(createdAt);
         } catch (DateTimeParseException ignored) {
             return Instant.EPOCH;
         }

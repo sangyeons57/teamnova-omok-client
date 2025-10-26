@@ -8,10 +8,9 @@ import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.example.data.datasource.room.RulesDatabaseConfigFactory;
+import com.example.core_di.RoomClientContainer;
+import com.example.data.datasource.room.RulesDao;
 import com.example.data.datasource.room.RuleEntity;
-import com.example.data.datasource.room.RulesRoomDatabase;
-import com.example.infra.room.RoomAssetDatabaseProvider;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,17 +24,16 @@ public final class RulesDatabaseSmokeTest {
     @Before
     public void setUp() {
         Context context = ApplicationProvider.getApplicationContext();
-        RoomAssetDatabaseProvider.configure(RulesDatabaseConfigFactory.provideConfig());
         context.deleteDatabase("rules.db");
-        RoomAssetDatabaseProvider.initialize(context);
+        RoomClientContainer.init(context);
     }
 
     @Test
     public void databaseFromAsset_containsSeedData() {
-        RulesRoomDatabase database = RoomAssetDatabaseProvider.get(RulesRoomDatabase.class);
-        assertNotNull(database);
+        RulesDao dao = RoomClientContainer.getInstance().getDao(RulesDao.class);
+        assertNotNull(dao);
 
-        List<RuleEntity> entities = database.rulesDao().getAll();
+        List<RuleEntity> entities = dao.getAll();
         assertFalse(entities.isEmpty());
     }
 }

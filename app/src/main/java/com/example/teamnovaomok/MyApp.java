@@ -9,8 +9,9 @@ import com.example.core_di.SoundManagerContainer;
 import com.example.core_di.TcpClientContainer;
 import com.example.core_di.TokenContainer;
 import com.example.core_di.UserSessionContainer;
-import com.example.core_di.RulesDataSourceContainer;
+import com.example.core_di.RoomClientContainer;
 import com.example.data.datasource.room.RulesDatabaseConfigFactory;
+import com.example.data.datasource.room.RulesRoomDatabase;
 import com.example.infra.room.RoomAssetDatabaseProvider;
 
 public class MyApp extends Application {
@@ -19,12 +20,13 @@ public class MyApp extends Application {
         super.onCreate();
         RoomAssetDatabaseProvider.configure(RulesDatabaseConfigFactory.provideConfig());
         RoomAssetDatabaseProvider.initialize(this);
+        RulesRoomDatabase rulesDatabase = RoomAssetDatabaseProvider.get(RulesRoomDatabase.class);
+        RoomClientContainer.getInstance().init(rulesDatabase);
 
         TokenContainer.init(this);
         GameInfoContainer.init();
         PostGameSessionContainer.init();
         SoundManagerContainer.init(this);
-        RulesDataSourceContainer.init();
         TcpClientContainer.init(
                 new TcpClientConfig(BuildConfig.TCP_HOST, BuildConfig.TCP_PORT),
                 GameInfoContainer.getInstance().getStore(),

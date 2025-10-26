@@ -1,5 +1,6 @@
 package com.example.core_di;
 
+import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.in.UseCaseProviders;
 import com.example.application.port.in.UseCaseRegistry;
@@ -36,6 +37,7 @@ import com.example.core_api.sound.SoundManager;
 import com.example.core_api.token.TokenStore;
 import com.example.data.datasource.DefaultPhpServerDataSource;
 import com.example.data.datasource.DefaultTcpServerDataSource;
+import com.example.data.datasource.RulesLocalDataSource;
 import com.example.data.datasource.RulesReadableDataSource;
 import com.example.data.mapper.IdentityMapper;
 import com.example.data.mapper.UserResponseMapper;
@@ -59,7 +61,7 @@ public final class UseCaseContainer {
 
     public final DefaultPhpServerDataSource phpServerDataSource = new DefaultPhpServerDataSource(HttpClientContainer.getInstance().get());
     public final DefaultTcpServerDataSource tcpServerDataSource = new DefaultTcpServerDataSource(TcpClientContainer.getInstance().getClient());
-    public final RulesReadableDataSource rulesDataSource = RulesDataSourceContainer.getLocalDataSource();
+    public final RulesReadableDataSource rulesDataSource = new RulesLocalDataSource(RoomClientContainer.getInstance().get());
 
     public final UserResponseMapper userResponseMapper = new UserResponseMapper();
     public final UseCaseConfig defaultConfig = UseCaseConfig.defaultConfig();
@@ -114,14 +116,14 @@ public final class UseCaseContainer {
         registry.register(PostGameDecisionUseCase.class,
                 UseCaseProviders.singleton(() -> new PostGameDecisionUseCase(defaultConfig, realtimeRepository)));
         registry.register(LoadRulesCatalogUseCase.class,
-                UseCaseProviders.singleton(() -> new LoadRulesCatalogUseCase(rulesRepository)));
+                UseCaseProviders.singleton(() -> new LoadRulesCatalogUseCase(defaultConfig, rulesRepository)));
         registry.register(FindRuleByCodeUseCase.class,
                 UseCaseProviders.singleton(() -> new FindRuleByCodeUseCase(defaultConfig, rulesRepository)));
         registry.register(ResolveRuleIconSourceUseCase.class,
                 UseCaseProviders.singleton(() -> new ResolveRuleIconSourceUseCase(defaultConfig, rulesRepository)));
     }
 
-    public <T> T get(Class<T> key) {
+    public <T extends UseCase<?, ?>> T get(Class<T> key) {
         return registry.get(key);
     }
 }

@@ -1,16 +1,16 @@
 package com.example.application.usecase;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.application.port.in.UResult;
+import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.rules.RulesRepository;
 import com.example.domain.rules.Rule;
 import com.example.domain.rules.RuleCode;
-import com.example.domain.rules.RuleId;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,42 +26,20 @@ public final class LoadRulesCatalogUseCaseTest {
 
     @Before
     public void setUp() {
-        useCase = new LoadRulesCatalogUseCase(new FakeRulesRepository());
+        useCase = new LoadRulesCatalogUseCase(UseCaseConfig.defaultConfig(), new FakeRulesRepository());
     }
 
     @Test
     public void execute_returnsCatalogItems() {
-        List<Rule> items = useCase.execute();
+        UResult<List<Rule>> result = useCase.loadCatalog();
+        assertTrue(result instanceof UResult.Ok);
+        @SuppressWarnings("unchecked")
+        UResult.Ok<List<Rule>> ok = (UResult.Ok<List<Rule>>) result;
+        List<Rule> items = ok.value();
         assertEquals(2, items.size());
         Rule first = items.get(0);
         assertEquals("STONE_CONVERSION", first.getCode().getValue());
         assertEquals("Rule A", first.getName());
-    }
-
-    @Test
-    public void findById_returnsProjectedItem() {
-        Rule item = useCase.findById(RuleId.of(2));
-        assertNotNull(item);
-        assertEquals("Rule B", item.getName());
-    }
-
-    @Test
-    public void findById_returnsNullWhenMissing() {
-        Rule item = useCase.findById(RuleId.of(99));
-        assertNull(item);
-    }
-
-    @Test
-    public void findByCode_returnsProjectedItem() {
-        Rule item = useCase.findByCode("SPEED_GAME");
-        assertNotNull(item);
-        assertEquals("Rule B", item.getName());
-    }
-
-    @Test
-    public void findByCode_returnsNullWhenMissing() {
-        Rule item = useCase.findByCode("UNKNOWN_CODE");
-        assertNull(item);
     }
 
     private static final class FakeRulesRepository implements RulesRepository {

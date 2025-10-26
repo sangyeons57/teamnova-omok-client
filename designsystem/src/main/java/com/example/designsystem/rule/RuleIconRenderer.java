@@ -235,7 +235,7 @@ public final class RuleIconRenderer {
             synchronized (USE_CASE_LOCK) {
                 current = findRuleByCodeUseCase;
                 if (current == null) {
-                    current = UseCaseContainer.getInstance().findRuleByCodeUseCase;
+                    current = UseCaseContainer.getInstance().get(FindRuleByCodeUseCase.class);
                     findRuleByCodeUseCase = current;
                 }
             }
@@ -250,7 +250,7 @@ public final class RuleIconRenderer {
             synchronized (USE_CASE_LOCK) {
                 current = resolveRuleIconSourceUseCase;
                 if (current == null) {
-                    current = UseCaseContainer.getInstance().resolveRuleIconSourceUseCase;
+                    current = UseCaseContainer.getInstance().get(ResolveRuleIconSourceUseCase.class);
                     resolveRuleIconSourceUseCase = current;
                 }
             }

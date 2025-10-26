@@ -26,6 +26,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,6 +42,7 @@ public class RuleExplainDialog extends DialogFragment {
     private Handler mainHandler;
     private FindRuleByCodeUseCase findRuleByCodeUseCase;
     private ResolveRuleIconSourceUseCase resolveRuleIconSourceUseCase;
+    private CompletableFuture<Void> loadTask;
 
     public static RuleExplainDialog newInstance(@NonNull String ruleCode) {
         RuleExplainDialog dialog = new RuleExplainDialog();
@@ -62,8 +64,8 @@ public class RuleExplainDialog extends DialogFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         UseCaseContainer container = UseCaseContainer.getInstance();
-        findRuleByCodeUseCase = container.findRuleByCodeUseCase;
-        resolveRuleIconSourceUseCase = container.resolveRuleIconSourceUseCase;
+        findRuleByCodeUseCase = container.get(FindRuleByCodeUseCase.class);
+        resolveRuleIconSourceUseCase = container.get(ResolveRuleIconSourceUseCase.class);
         executor = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
     }
@@ -93,6 +95,10 @@ public class RuleExplainDialog extends DialogFragment {
 
     @Override
     public void onDestroy() {
+        if (loadTask != null) {
+            loadTask.cancel(true);
+            loadTask = null;
+        }
         if (executor != null) {
             executor.shutdownNow();
             executor = null;
@@ -114,32 +120,44 @@ public class RuleExplainDialog extends DialogFragment {
         if (executor == null) {
             return;
         }
-        executor.execute(() -> {
-            Rule rule = null;
-            RuleIconSource iconSource = RuleIconSource.none();
+        if (findRuleByCodeUseCase == null || resolveRuleIconSourceUseCase == null) {
+            return;
+        }
+        if (loadTask != null) {
+            loadTask.cancel(true);
+            loadTask = null;
+        }
+        CompletableFuture<UResult<Rule>> ruleFuture = findRuleByCodeUseCase.executeAsync(ruleCode, executor);
+        CompletableFuture<UResult<RuleIconSource>> iconFuture = resolveRuleIconSourceUseCase.executeAsync(ruleCode, executor);
+        loadTask = CompletableFuture.allOf(ruleFuture, iconFuture)
+                .whenComplete((ignored, throwable) -> {
+                    if (throwable != null) {
+                        Log.w(TAG, "Rule detail load failed", throwable);
+                        loadTask = null;
+                        return;
+                    }
+                    Rule resolvedRule = null;
+                    RuleIconSource resolvedIcon = RuleIconSource.none();
 
-            if (findRuleByCodeUseCase != null) {
-                UResult<Rule> result = findRuleByCodeUseCase.execute(ruleCode);
-                if (result instanceof UResult.Ok<Rule> ok) {
-                    rule = ok.value();
-                } else if (result instanceof UResult.Err) {
-                    Log.w(TAG, "Rule lookup failed for code=" + ruleCode);
-                }
-            }
+                    UResult<Rule> ruleResult = ruleFuture.join();
+                    if (ruleResult instanceof UResult.Ok<Rule> ok) {
+                        resolvedRule = ok.value();
+                    } else if (ruleResult instanceof UResult.Err err) {
+                        Log.w(TAG, "Rule lookup failed for code=" + ruleCode + " reason=" + err.code());
+                    }
 
-            if (resolveRuleIconSourceUseCase != null) {
-                UResult<RuleIconSource> iconResult = resolveRuleIconSourceUseCase.execute(ruleCode);
-                if (iconResult instanceof UResult.Ok<RuleIconSource> ok) {
-                    iconSource = ok.value();
-                } else if (iconResult instanceof UResult.Err) {
-                    Log.w(TAG, "Icon lookup failed for code=" + ruleCode);
-                }
-            }
+                    UResult<RuleIconSource> iconResult = iconFuture.join();
+                    if (iconResult instanceof UResult.Ok<RuleIconSource> ok) {
+                        resolvedIcon = ok.value();
+                    } else if (iconResult instanceof UResult.Err err) {
+                        Log.w(TAG, "Icon lookup failed for code=" + ruleCode + " reason=" + err.code());
+                    }
 
-            Rule finalRule = rule;
-            RuleIconSource finalIconSource = iconSource;
-            mainHandler.post(() -> applyRuleDetails(view, ruleCode, finalRule, finalIconSource));
-        });
+                    Rule finalRule = resolvedRule;
+                    RuleIconSource finalIconSource = resolvedIcon;
+                    mainHandler.post(() -> applyRuleDetails(view, ruleCode, finalRule, finalIconSource));
+                    loadTask = null;
+                });
     }
 
     private void applyRuleDetails(@NonNull View view,

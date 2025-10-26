@@ -5,9 +5,7 @@ import androidx.annotation.Nullable;
 
 import com.example.data.datasource.room.RuleEntity;
 import com.example.data.datasource.room.RulesDao;
-import com.example.data.datasource.room.RulesRoomDatabase;
 import com.example.data.model.room.RuleDto;
-import com.example.infra.room.RoomAssetDatabaseProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,9 +20,8 @@ public final class RulesLocalDataSource implements RulesReadableDataSource {
     @NonNull
     private final RulesDao rulesDao;
 
-    public RulesLocalDataSource() {
-        RulesRoomDatabase database = RoomAssetDatabaseProvider.get(RulesRoomDatabase.class);
-        this.rulesDao = database.rulesDao();
+    public RulesLocalDataSource(@NonNull RulesDao rulesDao) {
+        this.rulesDao = Objects.requireNonNull(rulesDao, "rulesDao == null");
     }
 
     @Override

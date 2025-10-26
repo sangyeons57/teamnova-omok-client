@@ -36,6 +36,7 @@ dependencies {
 
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.room.runtime)
     testImplementation(libs.junit)
     testImplementation(libs.orgJson)
     testImplementation(libs.archCoreTesting)

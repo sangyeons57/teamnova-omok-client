@@ -17,6 +17,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.application.port.in.UResult;
+import com.example.application.port.in.UseCase;
 import com.example.application.usecase.LoadRulesCatalogUseCase;
 import com.example.application.usecase.RuleIconSource;
 import com.example.application.usecase.RuleIconSourceMapper;
@@ -38,6 +40,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,8 +54,9 @@ public class ScoreFragment extends Fragment {
     private RecyclerView scoreList;
     private TextView scoreTitle;
     private int currentScoreValue = 0;
-    private ExecutorService rulesExecutor;
+    private ExecutorService catalogExecutor;
     private Handler mainHandler;
+    private CompletableFuture<MetadataPayload> catalogFuture;
     private LoadRulesCatalogUseCase loadRulesCatalogUseCase;
     private final Map<String, Rule> ruleCatalog = new LinkedHashMap<>();
     private final Map<String, RuleIconSource> iconSources = new LinkedHashMap<>();
@@ -61,8 +65,8 @@ public class ScoreFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         UseCaseContainer container = UseCaseContainer.getInstance();
-        loadRulesCatalogUseCase = container.loadRulesCatalogUseCase;
-        rulesExecutor = Executors.newSingleThreadExecutor();
+        loadRulesCatalogUseCase = container.get(LoadRulesCatalogUseCase.class);
+        catalogExecutor = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
@@ -162,9 +166,13 @@ public class ScoreFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        if (rulesExecutor != null) {
-            rulesExecutor.shutdownNow();
-            rulesExecutor = null;
+        if (catalogFuture != null) {
+            catalogFuture.cancel(true);
+            catalogFuture = null;
+        }
+        if (catalogExecutor != null) {
+            catalogExecutor.shutdownNow();
+            catalogExecutor = null;
         }
         super.onDestroy();
     }
@@ -192,45 +200,60 @@ public class ScoreFragment extends Fragment {
     }
 
     private void preloadRuleMetadata() {
-        if (rulesExecutor == null) {
+        if (catalogExecutor == null) {
             return;
         }
-        rulesExecutor.execute(() -> {
-            LinkedHashMap<String, Rule> orderedCatalog = new LinkedHashMap<>();
-            LinkedHashMap<String, RuleIconSource> orderedIcons = new LinkedHashMap<>();
-            boolean loaded = false;
-            try {
-                List<Rule> allRules = loadRulesCatalogUseCase.execute();
-                Map<String, Rule> rulesByCode = new HashMap<>(allRules.size());
-                Map<String, RuleIconSource> iconsByCode = new HashMap<>(allRules.size());
-                for (Rule rule : allRules) {
-                    String codeValue = rule.getCode().getValue();
-                    rulesByCode.put(codeValue, rule);
-                    iconsByCode.put(codeValue, RuleIconSourceMapper.fromPath(rule.getIconPath()));
-                }
-                List<String> orderedCodes = RuleCode.orderedValues();
-                for (String codeValue : orderedCodes) {
-                    Rule matchedRule = rulesByCode.get(codeValue);
-                    orderedCatalog.put(codeValue, matchedRule);
-                    RuleIconSource resolved = iconsByCode.getOrDefault(codeValue, RuleIconSource.none());
-                    orderedIcons.put(codeValue, resolved);
-                }
-                loaded = true;
-            } catch (Exception ignored) {
-                // Keep existing maps when loading fails.
-            }
-            final boolean loadSucceeded = loaded;
-            mainHandler.post(() -> {
-                if (!isAdded() || adapter == null || !loadSucceeded) {
-                    return;
-                }
-                ruleCatalog.clear();
-                ruleCatalog.putAll(orderedCatalog);
-                iconSources.clear();
-                iconSources.putAll(orderedIcons);
-                adapter.updateRuleCatalog(ruleCatalog);
-                adapter.updateIconSources(iconSources);
-            });
-        });
+        if (catalogFuture != null) {
+            catalogFuture.cancel(true);
+            catalogFuture = null;
+        }
+        catalogFuture = loadRulesCatalogUseCase
+                .executeAsync(UseCase.None.INSTANCE, catalogExecutor)
+                .thenApply(result -> {
+                    if (!(result instanceof UResult.Ok<?> okResult)) {
+                        return null;
+                    }
+                    @SuppressWarnings("unchecked")
+                    UResult.Ok<List<Rule>> ok = (UResult.Ok<List<Rule>>) okResult;
+                    LinkedHashMap<String, Rule> orderedCatalog = new LinkedHashMap<>();
+                    LinkedHashMap<String, RuleIconSource> orderedIcons = new LinkedHashMap<>();
+                    List<Rule> allRules = ok.value();
+                    Map<String, Rule> rulesByCode = new HashMap<>(allRules.size());
+                    Map<String, RuleIconSource> iconsByCode = new HashMap<>(allRules.size());
+                    for (Rule rule : allRules) {
+                        String codeValue = rule.getCode().getValue();
+                        rulesByCode.put(codeValue, rule);
+                        iconsByCode.put(codeValue, RuleIconSourceMapper.fromPath(rule.getIconPath()));
+                    }
+                    List<String> orderedCodes = RuleCode.orderedValues();
+                    for (String codeValue : orderedCodes) {
+                        Rule matchedRule = rulesByCode.get(codeValue);
+                        orderedCatalog.put(codeValue, matchedRule);
+                        RuleIconSource resolved = iconsByCode.getOrDefault(codeValue, RuleIconSource.none());
+                        orderedIcons.put(codeValue, resolved);
+                    }
+                    return new MetadataPayload(orderedCatalog, orderedIcons);
+                })
+                .whenComplete((payload, throwable) -> {
+                    if (payload == null || throwable != null) {
+                        catalogFuture = null;
+                        return;
+                    }
+                    mainHandler.post(() -> {
+                        if (!isAdded() || adapter == null) {
+                            catalogFuture = null;
+                            return;
+                        }
+                        ruleCatalog.clear();
+                        ruleCatalog.putAll(payload.catalog());
+                        iconSources.clear();
+                        iconSources.putAll(payload.icons());
+                        adapter.updateRuleCatalog(ruleCatalog);
+                        adapter.updateIconSources(iconSources);
+                        catalogFuture = null;
+                    });
+                });
     }
+
+    private record MetadataPayload(Map<String, Rule> catalog, Map<String, RuleIconSource> icons) {}
 }

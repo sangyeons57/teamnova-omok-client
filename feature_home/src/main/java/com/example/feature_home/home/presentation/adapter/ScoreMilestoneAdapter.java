@@ -1,8 +1,11 @@
 package com.example.feature_home.home.presentation.adapter;
 
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -64,7 +67,7 @@ public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMile
     private static final DiffUtil.ItemCallback<ScoreMilestone> DIFF_CALLBACK = new DiffUtil.ItemCallback<>() {
         @Override
         public boolean areItemsTheSame(@NonNull ScoreMilestone oldItem, @NonNull ScoreMilestone newItem) {
-            return oldItem.getScore() == newItem.getScore();
+            return oldItem.getWindowIndex() == newItem.getWindowIndex();
         }
 
         @Override
@@ -75,14 +78,19 @@ public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMile
     };
 
     static final class ScoreViewHolder extends RecyclerView.ViewHolder {
+        private static final String TAG = "ScoreMilestoneAdapter";
 
         private final TextView scoreText;
+        private final View container;
+        private final HorizontalScrollView scrollContainer;
         private final LinearLayout ruleIcons;
         private final OnRuleIconClickListener ruleClickListener;
 
         ScoreViewHolder(@NonNull View itemView, @NonNull OnRuleIconClickListener listener) {
             super(itemView);
             scoreText = itemView.findViewById(R.id.textScoreValue);
+            container = itemView.findViewById(R.id.containerRuleIcons);
+            scrollContainer = itemView.findViewById(R.id.scrollMilestoneIcons);
             ruleIcons = itemView.findViewById(R.id.layoutMilestoneRuleIcons);
             this.ruleClickListener = listener;
         }
@@ -94,16 +102,28 @@ public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMile
             scoreText.setText(itemView.getContext().getString(R.string.score_screen_score_format, displayScore));
             List<String> ruleCodes = milestone.getRuleCodes();
             ruleIcons.removeAllViews();
-            if (ruleCodes == null || ruleCodes.isEmpty()) {
+            if (ruleCodes.isEmpty()) {
                 ruleIcons.setVisibility(View.GONE);
+                scrollContainer.setVisibility(View.GONE);
+                if (container != null) {
+                    container.setVisibility(View.GONE);
+                }
                 return;
             }
             ruleIcons.setVisibility(View.VISIBLE);
-            int count = Math.min(ruleCodes.size(), 1);
-            for (int i = 0; i < count; i++) {
+            scrollContainer.setVisibility(View.VISIBLE);
+            if (container != null) {
+                container.setVisibility(View.VISIBLE);
+            }
+            ruleIcons.setGravity(Gravity.END | Gravity.BOTTOM);
+            int iconSpacing = (int) (itemView.getResources().getDisplayMetrics().density * 4f);
+            for (int i = 0; i < ruleCodes.size(); i++) {
                 String ruleCode = ruleCodes.get(i);
                 Rule item = ruleCatalog.get(ruleCode);
                 RuleIconSource iconSource = iconSources.get(ruleCode);
+                Log.d(TAG, "bind: ruleCode=" + ruleCode
+                        + " hasRule=" + (item != null)
+                        + " iconSource=" + iconSource);
                 View iconView = RuleIconRenderer.createIconView(
                         itemView.getContext(),
                         ruleCode,
@@ -116,6 +136,10 @@ public class ScoreMilestoneAdapter extends ListAdapter<ScoreMilestone, ScoreMile
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
+                params.gravity = Gravity.CENTER_VERTICAL;
+                if (i > 0) {
+                    params.setMarginStart(iconSpacing);
+                }
                 ruleIcons.addView(iconView, params);
                 iconView.setOnClickListener(v -> ruleClickListener.onRuleIconClicked(ruleCode));
             }

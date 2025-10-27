@@ -102,6 +102,6 @@
     <string name="score_screen_title">0점</string>
     <string name="score_screen_back">홈으로 돌아가기</string>
     <string name="score_screen_banner_placeholder">배너 광고 영역</string>
-    <string name="score_screen_score_format">- %1$d점</string>
+    <string name="score_screen_score_format">%1$d점</string>
     <string name="score_screen_current_score_format">%1$d점</string>
 </resources>

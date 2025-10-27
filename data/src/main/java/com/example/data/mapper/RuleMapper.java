@@ -40,6 +40,7 @@ public final class RuleMapper {
                 RuleCode.of(normalizedCode),
                 dto.getName(),
                 normalizedIcon,
+                dto.getLimitScore(),
                 dto.getDescription(),
                 parseInstant(dto.getCreatedAt())
         );

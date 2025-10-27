@@ -19,6 +19,7 @@ public final class RuleDto {
     private final String name;
     @Nullable
     private final String iconPath;
+    private final int limitScore;
     @NonNull
     private final String description;
     @NonNull
@@ -28,12 +29,14 @@ public final class RuleDto {
                     @NonNull String code,
                     @NonNull String name,
                     @Nullable String iconPath,
+                    int limitScore,
                     @NonNull String description,
                     @NonNull Long createdAt) {
         this.id = id;
         this.code = Objects.requireNonNull(code, "code == null");
         this.name = Objects.requireNonNull(name, "name == null");
         this.iconPath = iconPath;
+        this.limitScore = limitScore;
         this.description = Objects.requireNonNull(description, "description == null");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt == null");
     }
@@ -45,6 +48,7 @@ public final class RuleDto {
                 entity.getCode(),
                 entity.getName(),
                 entity.getIconPath(),
+                entity.getLimitScore(),
                 entity.getDescription(),
                 entity.getCreatedAt()
         );
@@ -67,6 +71,10 @@ public final class RuleDto {
     @Nullable
     public String getIconPath() {
         return iconPath;
+    }
+
+    public int getLimitScore() {
+        return limitScore;
     }
 
     @NonNull

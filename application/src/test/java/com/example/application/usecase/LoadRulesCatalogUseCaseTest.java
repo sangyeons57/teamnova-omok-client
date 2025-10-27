@@ -11,6 +11,7 @@ import com.example.application.port.in.UseCaseConfig;
 import com.example.application.port.out.rules.RulesRepository;
 import com.example.domain.rules.Rule;
 import com.example.domain.rules.RuleCode;
+import com.example.domain.rules.RuleId;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,6 +51,7 @@ public final class LoadRulesCatalogUseCaseTest {
                         RuleCode.of("STONE_CONVERSION"),
                         "Rule A",
                         null,
+                        1500,
                         "Desc A",
                         Instant.parse("2025-10-24T07:27:15Z")
                 ),
@@ -58,6 +60,7 @@ public final class LoadRulesCatalogUseCaseTest {
                         RuleCode.of("SPEED_GAME"),
                         "Rule B",
                         null,
+                        2000,
                         "Desc B",
                         Instant.parse("2025-10-24T07:28:55Z")
                 )

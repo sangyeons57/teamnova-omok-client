@@ -32,13 +32,14 @@ import com.example.core_di.UseCaseContainer;
 import com.example.feature_home.R;
 import com.example.feature_home.home.di.ScoreViewModelFactory;
 import com.example.feature_home.home.presentation.adapter.ScoreMilestoneAdapter;
-import com.example.feature_home.home.presentation.model.RuleCode;
 import com.example.feature_home.home.presentation.ui.widget.WindowedGuageView;
 import com.example.feature_home.home.presentation.viewmodel.ScoreViewModel;
 import com.example.domain.rules.Rule;
+import com.example.domain.rules.RuleCode;
 
-import android.util.Log;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -65,6 +66,7 @@ public class ScoreFragment extends Fragment {
     private LoadRulesCatalogUseCase loadRulesCatalogUseCase;
     private final Map<String, Rule> ruleCatalog = new LinkedHashMap<>();
     private final Map<String, RuleIconSource> iconSources = new LinkedHashMap<>();
+    private final Map<Integer, List<String>> milestoneRuleAssignments = new LinkedHashMap<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -232,6 +234,7 @@ public class ScoreFragment extends Fragment {
                     LinkedHashMap<String, Rule> orderedCatalog = new LinkedHashMap<>();
                     LinkedHashMap<String, RuleIconSource> orderedIcons = new LinkedHashMap<>();
                     List<Rule> allRules = ok.value();
+                    Log.d(TAG, "preloadRuleMetadata: catalogSize=" + allRules.size());
                     Map<String, Rule> rulesByCode = new HashMap<>(allRules.size());
                     Map<String, RuleIconSource> iconsByCode = new HashMap<>(allRules.size());
                     for (Rule rule : allRules) {
@@ -245,6 +248,9 @@ public class ScoreFragment extends Fragment {
                         orderedCatalog.put(codeValue, matchedRule);
                         RuleIconSource resolved = iconsByCode.getOrDefault(codeValue, RuleIconSource.none());
                         orderedIcons.put(codeValue, resolved);
+                        Log.d(TAG, "preloadRuleMetadata: code=" + codeValue
+                                + " hasRule=" + (matchedRule != null)
+                                + " iconSource=" + resolved);
                     }
                     return new MetadataPayload(orderedCatalog, orderedIcons);
                 })
@@ -264,9 +270,51 @@ public class ScoreFragment extends Fragment {
                         iconSources.putAll(payload.icons());
                         adapter.updateRuleCatalog(ruleCatalog);
                         adapter.updateIconSources(iconSources);
+                        rebuildMilestoneAssignments();
                         catalogFuture = null;
                     });
                 });
+    }
+
+    private void rebuildMilestoneAssignments() {
+        if (viewModel == null || viewModel.getMilestoneCount() == 0) {
+            return;
+        }
+        Map<Integer, List<Rule>> buckets = new LinkedHashMap<>();
+        for (Rule rule : ruleCatalog.values()) {
+            if (rule == null) {
+                continue;
+            }
+            int bucketIndex = viewModel.resolveMilestoneIndexForLimit(rule.getLimitScore());
+            buckets.computeIfAbsent(bucketIndex, key -> new ArrayList<>()).add(rule);
+        }
+        Map<Integer, List<String>> normalizedAssignments = new LinkedHashMap<>();
+        for (Map.Entry<Integer, List<Rule>> entry : buckets.entrySet()) {
+            List<Rule> bucketRules = entry.getValue();
+            bucketRules.sort(Comparator
+                    .comparingInt(Rule::getLimitScore)
+                    .thenComparing(rule -> rule.getCode().getValue()));
+            List<String> codes = new ArrayList<>(bucketRules.size());
+            for (Rule rule : bucketRules) {
+                codes.add(rule.getCode().getValue());
+            }
+            normalizedAssignments.put(entry.getKey(), Collections.unmodifiableList(codes));
+        }
+        if (normalizedAssignments.isEmpty()) {
+            if (milestoneRuleAssignments.isEmpty()) {
+                viewModel.assignRulesToMilestones(Collections.emptyMap());
+            } else {
+                milestoneRuleAssignments.clear();
+                viewModel.assignRulesToMilestones(Collections.emptyMap());
+            }
+            return;
+        }
+        if (normalizedAssignments.equals(milestoneRuleAssignments)) {
+            return;
+        }
+        milestoneRuleAssignments.clear();
+        milestoneRuleAssignments.putAll(normalizedAssignments);
+        viewModel.assignRulesToMilestones(Collections.unmodifiableMap(new LinkedHashMap<>(normalizedAssignments)));
     }
 
     private record MetadataPayload(Map<String, Rule> catalog, Map<String, RuleIconSource> icons) {}

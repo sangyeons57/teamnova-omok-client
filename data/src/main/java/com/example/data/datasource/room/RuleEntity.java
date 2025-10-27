@@ -28,6 +28,10 @@ public final class RuleEntity {
     private final String iconPath;
 
     @NonNull
+    @ColumnInfo(name = "limit_score", defaultValue = "0")
+    private final int limitScore;
+
+    @NonNull
     @ColumnInfo(name = "rule_desc")
     private final String description;
 
@@ -39,12 +43,14 @@ public final class RuleEntity {
                       @NonNull String code,
                       @NonNull String name,
                       @Nullable String iconPath,
+                      @Nullable Integer limitScore,
                       @NonNull String description,
                       Long createdAt) {
         this.id = id;
         this.code = Objects.requireNonNull(code, "code == null");
         this.name = Objects.requireNonNull(name, "name == null");
         this.iconPath = iconPath;
+        this.limitScore = (limitScore != null) ? limitScore : 0;
         this.description = Objects.requireNonNull(description, "description == null");
         this.createdAt = (createdAt != null) ? createdAt : System.currentTimeMillis();
     }
@@ -61,6 +67,10 @@ public final class RuleEntity {
     @NonNull
     public String getName() {
         return name;
+    }
+
+    public int getLimitScore() {
+        return limitScore;
     }
 
     @Nullable

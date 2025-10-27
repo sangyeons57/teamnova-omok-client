@@ -54,6 +54,7 @@ public final class FindRuleByCodeUseCaseTest {
                         RuleCode.of("STONE_CONVERSION"),
                         "Rule A",
                         "asset://rules/icons/rule_a.png",
+                        500,
                         "Desc",
                         Instant.parse("2025-10-24T07:27:15Z")
                 )

@@ -19,6 +19,7 @@ public final class Rule {
     private final String name;
     @Nullable
     private final String iconPath;
+    private final int limitScore;
     @NonNull
     private final String description;
     @NonNull
@@ -28,12 +29,14 @@ public final class Rule {
                  @NonNull RuleCode code,
                  @NonNull String name,
                  @Nullable String iconPath,
+                 int limitScore,
                  @NonNull String description,
                  @NonNull Instant createdAt) {
         this.id = Objects.requireNonNull(id, "id == null");
         this.code = Objects.requireNonNull(code, "code == null");
         this.name = Objects.requireNonNull(name, "name == null");
         this.iconPath = iconPath;
+        this.limitScore = limitScore;
         this.description = Objects.requireNonNull(description, "description == null");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt == null");
     }
@@ -43,9 +46,10 @@ public final class Rule {
                               @NonNull RuleCode code,
                               @NonNull String name,
                               @Nullable String iconPath,
+                              int limitScore,
                               @NonNull String description,
                               @NonNull Instant createdAt) {
-        return new Rule(id, code, name, iconPath, description, createdAt);
+        return new Rule(id, code, name, iconPath, limitScore, description, createdAt);
     }
 
     @NonNull
@@ -73,6 +77,10 @@ public final class Rule {
         return description;
     }
 
+    public int getLimitScore() {
+        return limitScore;
+    }
+
     @NonNull
     public Instant getCreatedAt() {
         return createdAt;
@@ -91,6 +99,7 @@ public final class Rule {
                 && code.equals(other.code)
                 && name.equals(other.name)
                 && Objects.equals(iconPath, other.iconPath)
+                && limitScore == other.limitScore
                 && description.equals(other.description)
                 && createdAt.equals(other.createdAt);
     }
@@ -101,6 +110,7 @@ public final class Rule {
         result = 31 * result + code.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + (iconPath != null ? iconPath.hashCode() : 0);
+        result = 31 * result + limitScore;
         result = 31 * result + description.hashCode();
         result = 31 * result + createdAt.hashCode();
         return result;
@@ -114,6 +124,7 @@ public final class Rule {
                 + ", code=" + code
                 + ", name='" + name + '\''
                 + ", iconPath='" + iconPath + '\''
+                + ", limitScore=" + limitScore
                 + ", description='" + description + '\''
                 + ", createdAt=" + createdAt
                 + '}';

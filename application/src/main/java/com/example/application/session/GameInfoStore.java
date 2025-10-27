@@ -4,10 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
-import com.example.application.session.TurnEndEvent;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,6 +29,11 @@ public class GameInfoStore {
     private final MutableLiveData<GameTurnState> turnStateStream = new MutableLiveData<>(GameTurnState.idle());
 
     private final MutableLiveData<TurnEndEvent> turnEndEventStream = new MutableLiveData<>();
+
+    private final AtomicReference<List<String>> currentActiveRules =
+            new AtomicReference<>(Collections.emptyList());
+    private final MutableLiveData<List<String>> activeRulesStream =
+            new MutableLiveData<>(Collections.emptyList());
 
     private final OmokBoardStore boardStore;
 
@@ -101,6 +104,7 @@ public class GameInfoStore {
     public void updateGameSession(@NonNull GameSessionInfo session) {
         currentGameSession.set(session);
         gameSessionStream.postValue(session);
+        clearActiveRules();
         clearTurnState(); // Reset turn state to idle when a new session is updated
     }
 
@@ -108,6 +112,7 @@ public class GameInfoStore {
         currentGameSession.set(null);
         gameSessionStream.postValue(null);
         clearTurnState();
+        clearActiveRules();
         boardStore.clearBoard();
     }
 
@@ -188,5 +193,37 @@ public class GameInfoStore {
     @NonNull
     public OmokBoardStore getBoardStore() {
         return boardStore;
+    }
+
+    @NonNull
+    public LiveData<List<String>> getActiveRulesStream() {
+        List<String> existing = currentActiveRules.get();
+        if (existing != null && activeRulesStream.getValue() == null) {
+            activeRulesStream.setValue(existing);
+        }
+        return activeRulesStream;
+    }
+
+    @NonNull
+    public List<String> getCurrentRules() {
+        List<String> rules = currentActiveRules.get();
+        if (rules == null) {
+            return Collections.emptyList();
+        }
+        return rules;
+    }
+
+    public void updateActiveRules(@NonNull List<String> rules) {
+        if (rules == null) {
+            throw new IllegalArgumentException("rules == null");
+        }
+        List<String> snapshot = Collections.unmodifiableList(new ArrayList<>(rules));
+        currentActiveRules.set(snapshot);
+        activeRulesStream.postValue(snapshot);
+    }
+
+    public void clearActiveRules() {
+        currentActiveRules.set(Collections.emptyList());
+        activeRulesStream.postValue(Collections.emptyList());
     }
 }

@@ -4,7 +4,7 @@
     android:id="@+id/itemScoreMilestone"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical"
+    android:gravity="bottom"
     android:minHeight="72dp"
     android:orientation="horizontal"
     android:paddingStart="12dp"
@@ -15,19 +15,41 @@
     <TextView
         android:id="@+id/textScoreValue"
         style="@style/TextAppearance.Material3.TitleMedium"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textColor="?attr/colorOnSurface" />
-
-    <LinearLayout
-        android:id="@+id/layoutMilestoneRuleIcons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        android:gravity="bottom"
+        android:textColor="?attr/colorOnSurface"
+        tools:text="1,200" />
+
+    <FrameLayout
+        android:id="@+id/containerRuleIcons"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:layout_gravity="end|bottom"
+        android:gravity="end|bottom">
+
+        <HorizontalScrollView
+            android:id="@+id/scrollMilestoneIcons"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="false"
+            android:gravity="end|bottom"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/layoutMilestoneRuleIcons"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|end"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+        </HorizontalScrollView>
+
+    </FrameLayout>
 
 </LinearLayout>

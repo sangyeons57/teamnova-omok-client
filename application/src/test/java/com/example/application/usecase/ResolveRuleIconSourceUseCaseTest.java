@@ -67,6 +67,7 @@ public final class ResolveRuleIconSourceUseCaseTest {
                         RuleCode.of("STONE_CONVERSION"),
                         "Rule A",
                         "asset://rules/icons/stone.png",
+                        1200,
                         "Desc",
                         Instant.parse("2025-10-24T07:27:15Z")
                 ),
@@ -75,6 +76,7 @@ public final class ResolveRuleIconSourceUseCaseTest {
                         RuleCode.of("SPEED_GAME"),
                         "Rule B",
                         "@drawable/ic_rule_speed_game",
+                        800,
                         "Desc",
                         Instant.parse("2025-10-24T07:28:55Z")
                 )

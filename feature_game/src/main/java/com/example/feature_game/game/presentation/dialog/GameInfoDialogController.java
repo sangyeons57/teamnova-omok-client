@@ -14,6 +14,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.core_api.dialog.DialogController;
+import com.example.core_api.dialog.DialogHost;
+import com.example.core_api.dialog.DialogHostOwner;
 import com.example.core_api.dialog.DialogRequest;
 import com.example.core_api.dialog.MainDialogType;
 import com.example.designsystem.rule.RuleExplainDialog;
@@ -22,6 +24,8 @@ import com.example.feature_game.R;
 import com.example.feature_game.game.di.GameInfoDialogViewModelFactory;
 import com.example.feature_game.game.presentation.viewmodel.GameInfoDialogViewModel;
 import com.example.core_di.sound.SoundEffects;
+import com.example.feature_game.game.presentation.viewmodel.GameInfoDialogViewModel.RuleIconState;
+import com.example.feature_game.game.presentation.state.GameInfoDialogEvent;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -44,7 +48,7 @@ public final class GameInfoDialogController implements DialogController<MainDial
         GameInfoDialogViewModelFactory factory = GameInfoDialogViewModelFactory.create();
         GameInfoDialogViewModel viewModel = new ViewModelProvider(activity, factory)
                 .get(GameInfoDialogViewModel.class);
-        bind(contentView, dialog, viewModel, activity);
+        bind(contentView, dialog, viewModel, activity, request);
 
         dialog.setOnShowListener(ignored -> {
             if (dialog.getWindow() != null) {
@@ -58,19 +62,23 @@ public final class GameInfoDialogController implements DialogController<MainDial
     private void bind(@NonNull View root,
                       @NonNull AlertDialog dialog,
                       @NonNull GameInfoDialogViewModel viewModel,
-                      @NonNull FragmentActivity activity) {
+                      @NonNull FragmentActivity activity,
+                      @NonNull DialogRequest<MainDialogType> request) {
         MaterialButton closeButton = root.findViewById(R.id.buttonCloseInfo);
         LinearLayout ruleContainer = root.findViewById(R.id.layoutGameRuleIcons);
 
-        viewModel.getDismissEvent().observe(activity, dismiss -> {
-            if (dismiss) {
-                dialog.dismiss();
+        viewModel.getEvents().observe(activity, event -> {
+            if (event == null) {
+                return;
+            }
+            if (event == GameInfoDialogEvent.DISMISS) {
+                dismissThroughHost(activity, request.getType(), dialog);
                 viewModel.onEventHandled();
             }
         });
 
-        viewModel.getActiveRuleCodes().observe(activity, ruleCodes ->
-                populateRuleIcons(ruleContainer, activity, ruleCodes));
+        viewModel.getActiveRuleIcons().observe(activity, rules ->
+                populateRuleIcons(ruleContainer, activity, rules));
 
         closeButton.setOnClickListener(v -> {
             SoundEffects.playButtonClick();
@@ -80,18 +88,30 @@ public final class GameInfoDialogController implements DialogController<MainDial
 
     private void populateRuleIcons(@NonNull LinearLayout container,
                                    @NonNull FragmentActivity activity,
-                                   @Nullable List<String> ruleCodes) {
+                                   @Nullable List<RuleIconState> rules) {
         container.removeAllViews();
-        if (ruleCodes == null || ruleCodes.isEmpty()) {
+        if (rules == null || rules.isEmpty()) {
             container.setVisibility(View.GONE);
             return;
         }
         container.setVisibility(View.VISIBLE);
 
-        int maxCount = Math.min(ruleCodes.size(), 4);
+        int maxCount = Math.min(rules.size(), 4);
         for (int index = 0; index < maxCount; index++) {
-            String ruleCode = ruleCodes.get(index);
-            View iconView = RuleIconRenderer.createIconView(activity, ruleCode, container);
+            RuleIconState state = rules.get(index);
+            if (state == null) {
+                continue;
+            }
+            String ruleCode = state.getCode();
+            boolean allowAsync = state.getRule() == null || state.getIconSource() == null;
+            View iconView = RuleIconRenderer.createIconView(
+                    activity,
+                    ruleCode,
+                    state.getRule(),
+                    state.getIconSource(),
+                    container,
+                    allowAsync
+            );
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -107,6 +127,20 @@ public final class GameInfoDialogController implements DialogController<MainDial
                 RuleExplainDialog.present(activity.getSupportFragmentManager(), ruleCode);
             });
         }
+    }
+
+    private void dismissThroughHost(@NonNull FragmentActivity activity,
+                                    @NonNull MainDialogType type,
+                                    @NonNull AlertDialog dialog) {
+        if (activity instanceof DialogHostOwner<?> owner) {
+            @SuppressWarnings("unchecked")
+            DialogHost<MainDialogType> host = ((DialogHostOwner<MainDialogType>) owner).getDialogHost();
+            if (host != null && host.isAttached()) {
+                host.dismiss(type);
+                return;
+            }
+        }
+        dialog.dismiss();
     }
 
     private int dpToPx(@NonNull View view, int dp) {

@@ -55,7 +55,8 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
         gameInfoStore.postTurnEndEvent(new TurnEndEvent(sessionId, cause, status, timedOut));
 
         if (cause == TurnEndCause.MOVE && placementedStone != null) {
-            moveStone(placementedStone);
+            // 보드 업데이트 하는곳이 2군데여서 한군데 우선 막아둠
+            //moveStone(placementedStone);
         } else if (cause == TurnEndCause.TIMEOUT) {
             timeoutProcess(sessionId);
         } else {

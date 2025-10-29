@@ -15,25 +15,56 @@ public final class GameTurnState {
     private final int remainingSeconds;
     private final long startAt;
     private final long endAt;
+    private final int turnNumber;
+    private final int roundNumber;
+    private final int positionInRound;
+    private final int playerIndex;
 
-    private GameTurnState(boolean active, @Nullable String currentPlayerId, int remainingSeconds, long startAt, long endAt) {
+    private GameTurnState(boolean active,
+                          @Nullable String currentPlayerId,
+                          int remainingSeconds,
+                          long startAt,
+                          long endAt,
+                          int turnNumber,
+                          int roundNumber,
+                          int positionInRound,
+                          int playerIndex) {
         this.active = active;
         this.currentPlayerId = currentPlayerId;
         this.remainingSeconds = Math.max(remainingSeconds, 0);
         this.startAt = startAt;
         this.endAt = endAt;
+        this.turnNumber = Math.max(0, turnNumber);
+        this.roundNumber = Math.max(0, roundNumber);
+        this.positionInRound = Math.max(0, positionInRound);
+        this.playerIndex = playerIndex;
     }
 
     public static GameTurnState idle() {
-        return new GameTurnState(false, null, 0, 0L, 0L);
+        return new GameTurnState(false, null, 0, 0L, 0L, 0, 0, 0, -1);
     }
 
-    public static GameTurnState active(@NonNull String currentPlayerId, int remainingSeconds, long startAt, long endAt) {
-        return new GameTurnState(true, Objects.requireNonNull(currentPlayerId, "currentPlayerId"), remainingSeconds, startAt, endAt);
+    public static GameTurnState active(@NonNull String currentPlayerId,
+                                       int remainingSeconds,
+                                       long startAt,
+                                       long endAt,
+                                       int turnNumber,
+                                       int roundNumber,
+                                       int positionInRound,
+                                       int playerIndex) {
+        return new GameTurnState(true,
+                Objects.requireNonNull(currentPlayerId, "currentPlayerId"),
+                remainingSeconds,
+                startAt,
+                endAt,
+                turnNumber,
+                roundNumber,
+                positionInRound,
+                playerIndex);
     }
 
     private static GameTurnState idleWithSeconds(int seconds) {
-        return new GameTurnState(false, null, seconds, 0L, 0L);
+        return new GameTurnState(false, null, seconds, 0L, 0L, 0, 0, 0, -1);
     }
 
     public boolean isActive() {
@@ -57,9 +88,26 @@ public final class GameTurnState {
         return endAt;
     }
 
+    public int getTurnNumber() {
+        return turnNumber;
+    }
+
+    public int getRoundNumber() {
+        return roundNumber;
+    }
+
+    public int getPositionInRound() {
+        return positionInRound;
+    }
+
+    public int getPlayerIndex() {
+        return playerIndex;
+    }
+
     @NonNull
     public GameTurnState withRemainingSeconds(int seconds) {
-        return new GameTurnState(active, currentPlayerId, seconds, startAt, endAt);
+        return new GameTurnState(active, currentPlayerId, seconds, startAt, endAt,
+                turnNumber, roundNumber, positionInRound, playerIndex);
     }
 
     @NonNull
@@ -109,12 +157,17 @@ public final class GameTurnState {
                 && remainingSeconds == that.remainingSeconds
                 && startAt == that.startAt
                 && endAt == that.endAt
+                && turnNumber == that.turnNumber
+                && roundNumber == that.roundNumber
+                && positionInRound == that.positionInRound
+                && playerIndex == that.playerIndex
                 && Objects.equals(currentPlayerId, that.currentPlayerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(active, currentPlayerId, remainingSeconds, startAt, endAt);
+        return Objects.hash(active, currentPlayerId, remainingSeconds, startAt, endAt,
+                turnNumber, roundNumber, positionInRound, playerIndex);
     }
 
     @Override
@@ -125,6 +178,10 @@ public final class GameTurnState {
                 + ", remainingSeconds=" + remainingSeconds
                 + ", startAt=" + startAt
                 + ", endAt=" + endAt
+                + ", turnNumber=" + turnNumber
+                + ", roundNumber=" + roundNumber
+                + ", positionInRound=" + positionInRound
+                + ", playerIndex=" + playerIndex
                 + '}';
     }
 }

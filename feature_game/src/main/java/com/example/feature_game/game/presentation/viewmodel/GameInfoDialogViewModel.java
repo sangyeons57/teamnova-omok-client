@@ -56,6 +56,7 @@ public class GameInfoDialogViewModel extends ViewModel {
     private final MutableLiveData<GameParticipantInfo> activeParticipant = new MutableLiveData<>();
     private final MutableLiveData<List<String>> activeRuleCodes = new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<List<RuleIconState>> activeRuleIcons = new MutableLiveData<>(Collections.emptyList());
+    private final MutableLiveData<String> roundInfoText = new MutableLiveData<>(null);
 
     private final Observer<GameTurnState> turnObserver = this::onTurnUpdated;
     private final Observer<OmokBoardState> boardObserver = this::onBoardUpdated;
@@ -122,6 +123,11 @@ public class GameInfoDialogViewModel extends ViewModel {
     }
 
     @NonNull
+    public LiveData<String> getRoundInfoText() {
+        return roundInfoText;
+    }
+
+    @NonNull
     public LiveData<OmokBoardState> getBoardState() {
         return boardState;
     }
@@ -155,6 +161,26 @@ public class GameInfoDialogViewModel extends ViewModel {
         turnState.postValue(state);
         GameParticipantInfo participant = gameInfoStore.getCurrentTurnParticipant();
         activeParticipant.postValue(participant);
+        roundInfoText.postValue(buildRoundInfoText(state));
+    }
+
+    @Nullable
+    private String buildRoundInfoText(@NonNull GameTurnState state) {
+        if (!state.isActive()) {
+            return null;
+        }
+        int roundNumber = state.getRoundNumber();
+        int turnNumber = state.getTurnNumber();
+        if (roundNumber <= 0 && turnNumber <= 0) {
+            return null;
+        }
+        if (roundNumber > 0 && turnNumber > 0) {
+            return "라운드 " + roundNumber + " · 턴 " + turnNumber;
+        }
+        if (roundNumber > 0) {
+            return "라운드 " + roundNumber;
+        }
+        return "턴 " + turnNumber;
     }
 
     private void onBoardUpdated(@Nullable OmokBoardState state) {

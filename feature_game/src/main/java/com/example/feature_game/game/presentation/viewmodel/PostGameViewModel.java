@@ -284,9 +284,14 @@ public final class PostGameViewModel extends ViewModel {
     private void updateRemainingMillis(long millis) {
         PostGameUiState current = uiState.getValue();
         if (current == null) {
-            current = PostGameUiState.empty();
+            return;
         }
-        uiState.postValue(current.withRemainingMillis(millis));
+        PostGameUiState updated = current.withRemainingMillis(millis);
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            uiState.setValue(updated);
+        } else {
+            uiState.postValue(updated);
+        }
     }
 
     private void cancelCountdown() {

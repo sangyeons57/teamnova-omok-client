@@ -40,16 +40,31 @@ final class TurnPayloadProcessor {
         String currentPlayerId = turnJson.optString("currentPlayerId", null);
         long startAt = turnJson.optLong("startAt", 0L);
         long endAt = turnJson.optLong("endAt", 0L);
+        int turnNumber = turnJson.optInt("number", 0);
+        int roundNumber = turnJson.optInt("round", 0);
+        int positionInRound = turnJson.optInt("position", 0);
+        int playerIndex = turnJson.optInt("playerIndex", -1);
         int remainingSeconds = computeRemainingSeconds(endAt, nowSupplier);
 
         Log.d(tag, "Turn update "
                 + " currentPlayerId=" + currentPlayerId
                 + " remainingSeconds=" + remainingSeconds
                 + " startAt=" + startAt
-                + " endAt=" + endAt);
+                + " endAt=" + endAt
+                + " turnNumber=" + turnNumber
+                + " roundNumber=" + roundNumber
+                + " positionInRound=" + positionInRound
+                + " playerIndex=" + playerIndex);
 
         if (currentPlayerId != null) {
-            gameInfoStore.setTurnState(currentPlayerId, remainingSeconds, startAt, endAt);
+            gameInfoStore.setTurnState(currentPlayerId,
+                    remainingSeconds,
+                    startAt,
+                    endAt,
+                    turnNumber,
+                    roundNumber,
+                    positionInRound,
+                    playerIndex);
         } else {
             Log.w(tag, "Turn payload omitted current player. Clearing turn state.");
             gameInfoStore.clearTurnState();

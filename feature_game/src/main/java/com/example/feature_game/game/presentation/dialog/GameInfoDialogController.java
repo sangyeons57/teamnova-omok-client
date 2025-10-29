@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -66,6 +67,7 @@ public final class GameInfoDialogController implements DialogController<MainDial
                       @NonNull DialogRequest<MainDialogType> request) {
         MaterialButton closeButton = root.findViewById(R.id.buttonCloseInfo);
         LinearLayout ruleContainer = root.findViewById(R.id.layoutGameRuleIcons);
+        TextView roundInfoText = root.findViewById(R.id.textGameInfoRoundInfo);
 
         viewModel.getEvents().observe(activity, event -> {
             if (event == null) {
@@ -79,6 +81,16 @@ public final class GameInfoDialogController implements DialogController<MainDial
 
         viewModel.getActiveRuleIcons().observe(activity, rules ->
                 populateRuleIcons(ruleContainer, activity, rules));
+
+        viewModel.getRoundInfoText().observe(activity, text -> {
+            if (text == null || text.isEmpty()) {
+                roundInfoText.setVisibility(View.GONE);
+                roundInfoText.setText(null);
+            } else {
+                roundInfoText.setText(text);
+                roundInfoText.setVisibility(View.VISIBLE);
+            }
+        });
 
         closeButton.setOnClickListener(v -> {
             SoundEffects.playButtonClick();

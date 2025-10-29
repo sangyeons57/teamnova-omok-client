@@ -2,6 +2,7 @@ package com.example.feature_game.game.di;
 
 import androidx.annotation.NonNull;
 
+import com.example.core_api.dialog.DialogConfig;
 import com.example.core_api.dialog.DialogController;
 import com.example.core_api.dialog.DialogProvider;
 import com.example.core_api.dialog.MainDialogType;
@@ -28,5 +29,14 @@ public final class PostGameDialogProvider implements DialogProvider<MainDialogTy
     @Override
     public DialogController<MainDialogType> createController() {
         return new PostGameDialogController();
+    }
+
+    @NonNull
+    @Override
+    public DialogConfig getDialogConfig() {
+        return DialogConfig.builder()
+                .setCancelable(false)
+                .setCancelOnTouchOutside(false)
+                .build();
     }
 }

@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.application.port.out.realtime.PostGameDecisionAck;
@@ -82,8 +83,24 @@ public final class PostGameDialogController implements DialogController<MainDial
             viewModel.onLeaveClicked();
         });
 
-        viewModel.getUiState().observe(activity, state -> renderState(activity, holder, state));
-        viewModel.getViewEvents().observe(activity, event -> handleEvent(activity, dialog, viewModel, event));
+        Observer<PostGameUiState> stateObserver = state -> renderState(activity, holder, state);
+        viewModel.getUiState().observe(activity, stateObserver);
+
+        Observer<PostGameViewEvent> eventObserver = new Observer<>() {
+            @Override
+            public void onChanged(@Nullable PostGameViewEvent event) {
+                if (event == null) {
+                    return;
+                }
+                if (!dialog.isShowing()) {
+                    unbindObservers(viewModel, stateObserver, this);
+                    return;
+                }
+                handleEvent(activity, dialog, viewModel, event,
+                        () -> unbindObservers(viewModel, stateObserver, this));
+            }
+        };
+        viewModel.getViewEvents().observe(activity, eventObserver);
     }
 
     private void renderState(@NonNull FragmentActivity activity,
@@ -117,7 +134,8 @@ public final class PostGameDialogController implements DialogController<MainDial
     private void handleEvent(@NonNull FragmentActivity activity,
                              @NonNull AlertDialog dialog,
                              @NonNull PostGameViewModel viewModel,
-                             @Nullable PostGameViewEvent event) {
+                             @Nullable PostGameViewEvent event,
+                             @NonNull Runnable cleanup) {
         if (event == null) {
             return;
         }
@@ -126,10 +144,12 @@ public final class PostGameDialogController implements DialogController<MainDial
             Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
         } else if (event.getType() == PostGameViewEvent.Type.REMATCH_STARTED) {
             navigateTo(activity, AppNavigationKey.MATCHING, true);
+            cleanup.run();
             dialog.dismiss();
         } else if (event.getType() == PostGameViewEvent.Type.SESSION_TERMINATED
                 || event.getType() == PostGameViewEvent.Type.EXIT_TO_HOME) {
             navigateTo(activity, AppNavigationKey.HOME, false);
+            cleanup.run();
             dialog.dismiss();
         }
         viewModel.onEventHandled();
@@ -217,6 +237,13 @@ public final class PostGameDialogController implements DialogController<MainDial
                 yield activity.getString(R.string.post_game_error_generic);
             }
         };
+    }
+
+    private void unbindObservers(@NonNull PostGameViewModel viewModel,
+                                 @NonNull Observer<PostGameUiState> stateObserver,
+                                 @NonNull Observer<PostGameViewEvent> eventObserver) {
+        viewModel.getUiState().removeObserver(stateObserver);
+        viewModel.getViewEvents().removeObserver(eventObserver);
     }
 
     private int dpToPx(@NonNull FragmentActivity activity, float dp) {

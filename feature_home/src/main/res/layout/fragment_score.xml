@@ -20,7 +20,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.example.feature_home.home.presentation.ui.widget.WindowedGuageView
+        <com.example.feature_home.presentation.ui.widget.WindowedGuageView
             android:id="@+id/viewScoreGauge"
             android:layout_width="32dp"
             android:layout_height="match_parent"

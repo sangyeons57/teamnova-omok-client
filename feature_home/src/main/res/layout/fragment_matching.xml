@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
-    tools:context="com.example.feature_home.home.presentation.ui.MatchingFragment">
+    tools:context="com.example.feature_home.presentation.ui.MatchingFragment">
 
     <com.google.android.material.chip.Chip
         android:id="@+id/chipMatchStatus"
@@ -26,6 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:textColor="?attr/colorOnSurface"
         android:text="@string/matching_status"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -27,9 +27,11 @@ import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.core_api.navigation.FragmentNavigationHostOwner;
 import com.example.feature_game.R;
 import com.example.feature_game.game.di.PostGameViewModelFactory;
+import com.example.feature_game.game.presentation.model.GameResultOutcome;
 import com.example.feature_game.game.presentation.model.PostGameUiState;
 import com.example.feature_game.game.presentation.state.PostGameViewEvent;
 import com.example.feature_game.game.presentation.viewmodel.PostGameViewModel;
+import com.example.core_api.sound.SoundIds;
 import com.example.core_di.sound.SoundEffects;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -41,6 +43,9 @@ import java.util.Locale;
  * Dialog controller that presents post-game results and decision actions.
  */
 public final class PostGameDialogController implements DialogController<MainDialogType> {
+
+    @Nullable
+    private GameResultOutcome lastOutcomeSoundPlayed;
 
     @NonNull
     @Override
@@ -109,11 +114,13 @@ public final class PostGameDialogController implements DialogController<MainDial
         if (state == null) {
             return;
         }
-        switch (state.getOutcome()) {
+        GameResultOutcome outcome = state.getOutcome();
+        switch (outcome) {
             case WIN -> holder.resultText.setText(R.string.game_result_title_win);
             case LOSS -> holder.resultText.setText(R.string.game_result_title_loss);
             case DRAW -> holder.resultText.setText(R.string.game_result_title_draw);
         }
+        maybePlayOutcomeSound(outcome);
 
         holder.durationText.setText(activity.getString(
                 R.string.game_result_duration_format,
@@ -251,6 +258,18 @@ public final class PostGameDialogController implements DialogController<MainDial
                 TypedValue.COMPLEX_UNIT_DIP,
                 dp,
                 activity.getResources().getDisplayMetrics()));
+    }
+
+    private void maybePlayOutcomeSound(@NonNull GameResultOutcome outcome) {
+        if (outcome == lastOutcomeSoundPlayed) {
+            return;
+        }
+        if (outcome == GameResultOutcome.WIN) {
+            SoundEffects.play(SoundIds.GAME_SIMPLE_WIN);
+        } else if (outcome == GameResultOutcome.LOSS) {
+            SoundEffects.play(SoundIds.GAME_SIMPLE_DEFEAT);
+        }
+        lastOutcomeSoundPlayed = outcome;
     }
 
     private static final class ViewHolder {

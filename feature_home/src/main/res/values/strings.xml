@@ -21,6 +21,8 @@
 
     <!-- Dialog commons -->
     <string name="dialog_close">닫기</string>
+    <string name="dialog_exit_confirmation_message">종료하시겠습니까?</string>
+    <string name="dialog_exit_confirmation_confirm">종료</string>
 
     <!-- Game mode dialog -->
     <string name="dialog_game_mode_title">게임 모드 선택</string>

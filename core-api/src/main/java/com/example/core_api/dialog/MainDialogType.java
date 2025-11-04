@@ -12,5 +12,6 @@ public enum MainDialogType {
     ACCOUNT_DELETION_CONFIRMATION,
     GAME_INFO,
     GAME_RESULT,
-    POST_GAME
+    POST_GAME,
+    EXIT_CONFIRMATION
 }

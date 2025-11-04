@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
-    tools:context="com.example.feature_home.home.presentation.ui.HomeFragment">
+    tools:context="com.example.feature_home.presentation.ui.HomeFragment">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonRanking"
@@ -36,19 +36,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonLogOnly"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="24dp"
-        android:contentDescription="@string/home_log_only"
-        android:minHeight="48dp"
-        android:minWidth="48dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonSettings" />
-
-    <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonScore"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
@@ -62,16 +49,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonBannerAd"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/home_banner"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonMatching"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
@@ -81,7 +58,7 @@
         android:layout_marginBottom="48dp"
         android:text="@string/home_matching"
         app:layout_constraintHorizontal_weight="3"
-        app:layout_constraintBottom_toTopOf="@id/buttonBannerAd"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/buttonGameMode" />
 
@@ -95,7 +72,7 @@
         android:layout_marginBottom="48dp"
         android:text="@string/home_game_mode"
         app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintBottom_toTopOf="@id/buttonBannerAd"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/buttonMatching"
         app:layout_constraintStart_toStartOf="parent" />
 

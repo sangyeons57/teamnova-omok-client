@@ -55,10 +55,23 @@ public final class SoundManagerContainer {
                 false
         ));
 
-
         soundManager.register(new SoundManager.SoundRegistration(
                 SoundIds.SOUND_ID_PLACE_STONE,
                 R.raw.placing_stone_sound_effect,
+                1f,
+                false
+        ));
+
+        soundManager.register(new SoundManager.SoundRegistration(
+                SoundIds.GAME_SIMPLE_DEFEAT,
+                R.raw.simple_game_defeat_sound_effect,
+                1f,
+                false
+        ));
+
+        soundManager.register(new SoundManager.SoundRegistration(
+                SoundIds.GAME_SIMPLE_WIN,
+                R.raw.simple_game_winning_sound_effect,
                 1f,
                 false
         ));

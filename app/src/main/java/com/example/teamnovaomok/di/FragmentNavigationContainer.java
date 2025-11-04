@@ -7,9 +7,9 @@ import com.example.core_api.navigation.FragmentNavigationRegistry;
 import com.example.core_api.navigation.FragmentNavigator;
 import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.feature_auth.login.navigation.LoginNavigationProvider;
-import com.example.feature_home.home.navigation.HomeNavigationProvider;
-import com.example.feature_home.home.navigation.MatchingNavigationProvider;
-import com.example.feature_home.home.navigation.ScoreNavigationProvider;
+import com.example.feature_home.navigation.HomeNavigationProvider;
+import com.example.feature_home.navigation.MatchingNavigationProvider;
+import com.example.feature_home.navigation.ScoreNavigationProvider;
 import com.example.feature_game.game.navigation.GameNavigationProvider;
 
 /**

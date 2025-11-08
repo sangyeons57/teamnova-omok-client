@@ -29,7 +29,6 @@ import com.example.application.session.TurnEndEvent;
 import com.example.application.session.UserSessionStore;
 import com.example.application.usecase.ReadyInGameSessionUseCase;
 import com.example.application.usecase.PlaceStoneUseCase;
-import com.example.application.port.out.realtime.PlaceStoneResponse;
 import com.example.domain.user.entity.User;
 import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
@@ -71,7 +70,6 @@ public class GameViewModel extends ViewModel {
     private final MutableLiveData<MatchState> matchState = new MutableLiveData<>(MatchState.IDLE);
     private final MutableLiveData<OmokBoardState> boardState = new MutableLiveData<>(OmokBoardState.empty());
     private final MutableLiveData<GameViewEvent> viewEvents = new MutableLiveData<>();
-    private final MutableLiveData<PlaceStoneResponse.Status> placementErrors = new MutableLiveData<>();
     private final MutableLiveData<Integer> remainingSeconds = new MutableLiveData<>(TURN_TOTAL_SECONDS);
     private final Observer<GameMode> modeObserver = this::onModeChanged;
     private final Observer<MatchState> matchObserver = this::onMatchStateChanged;
@@ -185,11 +183,6 @@ public class GameViewModel extends ViewModel {
     }
 
     @NonNull
-    public LiveData<PlaceStoneResponse.Status> getPlacementErrors() {
-        return placementErrors;
-    }
-
-    @NonNull
     public LiveData<Integer> getRemainingSeconds() {
         return remainingSeconds;
     }
@@ -239,32 +232,18 @@ public class GameViewModel extends ViewModel {
         if (nextType == OmokStoneType.UNKNOWN || nextType == OmokStoneType.EMPTY) {
             return;
         }
-        dispatchPlaceStone(x, y, nextType);
+        dispatchPlaceStone(x, y);
     }
 
-    private void dispatchPlaceStone(int x, int y, @NonNull OmokStoneType expectedStone) {
+    private void dispatchPlaceStone(int x, int y) {
         placeStoneUseCase.executeAsync(new PlaceStoneUseCase.Params(x, y), realtimeExecutor)
                 .whenComplete((result, throwable) -> {
                     if (throwable != null) {
                         Log.e(TAG, "PLACE_STONE request failed for (" + x + "," + y + ")", throwable);
-                        placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
                         return;
                     }
                     if (result instanceof UResult.Err<?> err) {
                         Log.w(TAG, "PLACE_STONE rejected (" + x + "," + y + "): " + err.message());
-                        placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
-                        return;
-                    }
-                    if (result instanceof UResult.Ok<PlaceStoneResponse> ok && ok.value() != null) {
-                        PlaceStoneResponse response = ok.value();
-                        if (!response.isSuccess()) {
-                            placementErrors.postValue(response.status());
-                        }
-                        // No error to post if successful
-                    } else {
-                        // This case handles null result or non-PlaceStoneResponse types, which is unexpected.
-                        Log.e(TAG, "Unexpected result from PLACE_STONE: " + result);
-                        placementErrors.postValue(PlaceStoneResponse.Status.UNKNOWN);
                     }
                 });
     }
@@ -281,10 +260,6 @@ public class GameViewModel extends ViewModel {
 
      public void onEventHandled() {
         viewEvents.setValue(null);
-    }
-
-    public void onPlacementFeedbackHandled() {
-        placementErrors.setValue(null);
     }
 
     private void onModeChanged(@Nullable GameMode mode) {

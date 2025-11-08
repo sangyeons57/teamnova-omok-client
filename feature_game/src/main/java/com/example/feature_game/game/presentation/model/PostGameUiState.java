@@ -133,14 +133,6 @@ public final class PostGameUiState {
     }
 
     @NonNull
-    public PostGameUiState withDecision(PostGameDecisionOption decision, boolean submitted) {
-        PostGameDecisionOption resolved = decision != null ? decision : PostGameDecisionOption.UNKNOWN;
-        return new PostGameUiState(sessionId, outcome, rematchCount, leaveCount, waitingNames,
-                deadlineAtMillis, remainingMillis, submitted, resolved, autoAction,
-                rematchStarted, terminated, durationMillis, turnCount);
-    }
-
-    @NonNull
     public PostGameUiState withFlowFlags(boolean rematchStartedFlag, boolean terminatedFlag) {
         return new PostGameUiState(sessionId, outcome, rematchCount, leaveCount, waitingNames,
                 deadlineAtMillis, remainingMillis, decisionSubmitted, selfDecision,

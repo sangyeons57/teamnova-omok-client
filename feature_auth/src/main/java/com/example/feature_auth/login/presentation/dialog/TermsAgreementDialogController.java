@@ -167,20 +167,10 @@ public final class TermsAgreementDialogController implements DialogController<Ma
     }
 
     private void triggerTcpAuthHandshake(@NonNull TcpAuthUseCase tcpAuthUseCase, String accessToken) {
-        UResult<CompletableFuture<Boolean>> result = tcpAuthUseCase.execute(accessToken);
-        if (result instanceof UResult.Ok<CompletableFuture<Boolean>> ok) {
-            ok.value().whenComplete((success, throwable) -> {
-                if (throwable != null) {
-                    android.util.Log.e(LOG_TAG, "AUTH handshake failed", throwable);
-                    return;
-                }
-                if (Boolean.TRUE.equals(success)) {
-                    android.util.Log.d(LOG_TAG, "AUTH handshake succeeded");
-                } else {
-                    android.util.Log.w(LOG_TAG, "AUTH handshake reported failure");
-                }
-            });
-        } else if (result instanceof UResult.Err<CompletableFuture<Boolean>> err) {
+        UResult<UseCase.None> result = tcpAuthUseCase.execute(accessToken);
+        if (result instanceof UResult.Ok<UseCase.None>) {
+            android.util.Log.d(LOG_TAG, "AUTH handshake dispatched");
+        } else if (result instanceof UResult.Err<?> err) {
             android.util.Log.e(LOG_TAG, "TcpAuthUseCase execution error: " + err.code() + ", " + err.message());
         }
     }

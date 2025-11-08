@@ -6,9 +6,8 @@ import com.example.application.port.out.realtime.RealtimeRepository;
 import com.example.core_api.exception.UseCaseException;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
-public final class TcpAuthUseCase extends UseCase<String, CompletableFuture<Boolean>> {
+public final class TcpAuthUseCase extends UseCase<String, UseCase.None> {
 
     private final RealtimeRepository realtimeRepository;
 
@@ -18,8 +17,14 @@ public final class TcpAuthUseCase extends UseCase<String, CompletableFuture<Bool
     }
 
     @Override
-    protected CompletableFuture<Boolean> run(String input) throws UseCaseException {
+    protected UseCase.None run(String input) throws UseCaseException {
         String payload = input != null ? input : "";
-        return realtimeRepository.auth(payload);
+        try {
+            realtimeRepository.auth(payload);
+            return UseCase.None.INSTANCE;
+        } catch (RuntimeException e) {
+            throw new UseCaseException("REMOTE_FAILURE",
+                    e.getMessage() != null ? e.getMessage() : "AUTH request failed", e);
+        }
     }
 }

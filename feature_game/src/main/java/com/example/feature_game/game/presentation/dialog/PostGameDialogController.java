@@ -17,7 +17,6 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.application.port.out.realtime.PostGameDecisionAck;
 import com.example.application.port.out.realtime.PostGameDecisionOption;
 import com.example.core_api.dialog.DialogController;
 import com.example.core_api.dialog.DialogRequest;
@@ -131,11 +130,9 @@ public final class PostGameDialogController implements DialogController<MainDial
 
         updateRematchIcons(activity, holder.rematchIconsLayout, state.getRematchCount());
 
-        boolean decisionSubmitted = state.isDecisionSubmitted();
-        boolean rematchSelected = state.getSelfDecision() == PostGameDecisionOption.REMATCH;
-        boolean leaveSelected = state.getSelfDecision() == PostGameDecisionOption.LEAVE;
-        holder.rematchButton.setEnabled(!decisionSubmitted || rematchSelected);
-        holder.leaveButton.setEnabled(!decisionSubmitted || leaveSelected);
+        boolean lockActions = shouldLockActions(state);
+        holder.rematchButton.setEnabled(!lockActions);
+        holder.leaveButton.setEnabled(!lockActions);
     }
 
     private void handleEvent(@NonNull FragmentActivity activity,
@@ -222,28 +219,11 @@ public final class PostGameDialogController implements DialogController<MainDial
     @NonNull
     private String resolveErrorMessage(@NonNull FragmentActivity activity,
                                        @NonNull PostGameViewEvent event) {
-        PostGameDecisionAck.ErrorReason reason = event.getErrorReason();
-        if (reason == null) {
-            String message = event.getMessage();
-            return message != null && !message.isEmpty()
-                    ? message
-                    : activity.getString(R.string.post_game_error_generic);
+        String message = event.getMessage();
+        if (message != null && !message.isEmpty()) {
+            return message;
         }
-        return switch (reason) {
-            case INVALID_PLAYER -> activity.getString(R.string.post_game_error_invalid_player);
-            case ALREADY_DECIDED -> activity.getString(R.string.post_game_error_already_decided);
-            case TIME_WINDOW_CLOSED -> activity.getString(R.string.post_game_error_time_window_closed);
-            case SESSION_CLOSED -> activity.getString(R.string.post_game_error_session_closed);
-            case SESSION_NOT_FOUND -> activity.getString(R.string.post_game_error_session_not_found);
-            case INVALID_PAYLOAD -> activity.getString(R.string.post_game_error_invalid_payload);
-            case NONE, UNKNOWN -> {
-                String message = event.getMessage();
-                if (message != null && !message.isEmpty()) {
-                    yield message;
-                }
-                yield activity.getString(R.string.post_game_error_generic);
-            }
-        };
+        return activity.getString(R.string.post_game_error_generic);
     }
 
     private void unbindObservers(@NonNull PostGameViewModel viewModel,
@@ -270,6 +250,16 @@ public final class PostGameDialogController implements DialogController<MainDial
             SoundEffects.play(SoundIds.GAME_SIMPLE_DEFEAT);
         }
         lastOutcomeSoundPlayed = outcome;
+    }
+
+    private boolean shouldLockActions(@NonNull PostGameUiState state) {
+        if (state.isRematchStarted() || state.isTerminated()) {
+            return true;
+        }
+        boolean everyoneReadyForRematch = state.getWaitingNames().isEmpty()
+                && state.getRematchCount() > 0
+                && state.getLeaveCount() == 0;
+        return everyoneReadyForRematch;
     }
 
     private static final class ViewHolder {

@@ -15,7 +15,6 @@ import java.util.Objects;
  */
 public final class AndroidSoundManager implements SoundManager {
 
-    private final Context appContext;
     private final SoundPoolAdapter soundPoolAdapter;
     private final SoundCallbackDispatcher callbackDispatcher;
     private final SoundPlaybackController playbackController;
@@ -24,7 +23,7 @@ public final class AndroidSoundManager implements SoundManager {
     private volatile boolean released;
 
     public AndroidSoundManager(@NonNull Context context) {
-        this.appContext = Objects.requireNonNull(context, "context").getApplicationContext();
+        Context appContext = Objects.requireNonNull(context, "context").getApplicationContext();
         this.soundPoolAdapter = new SoundPoolAdapter(appContext);
         this.callbackDispatcher = new SoundCallbackDispatcher();
         this.playbackController = new SoundPlaybackController(soundPoolAdapter, callbackDispatcher);

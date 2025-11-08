@@ -1,32 +1,33 @@
 package com.example.data.repository.realtime.codec;
 
-import com.example.application.port.out.realtime.PostGameDecisionAck;
 import com.example.application.port.out.realtime.PostGameDecisionOption;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertThrows;
 
 public final class PostGameDecisionMessageCodecTest {
 
     @Test
-    public void decodeAck_returnsOkForValidSuccessPayload() {
-        String payload = "{\"status\":\"OK\",\"decision\":\"REMATCH\"}";
+    public void encode_rematchProducesUppercaseBytes() {
+        byte[] encoded = PostGameDecisionMessageCodec.encode(PostGameDecisionOption.REMATCH);
 
-        PostGameDecisionAck ack = PostGameDecisionMessageCodec.decodeAck(payload.getBytes());
-
-        assertEquals(PostGameDecisionAck.Status.OK, ack.status());
-        assertEquals(PostGameDecisionOption.REMATCH, ack.decision());
-        assertEquals(PostGameDecisionAck.ErrorReason.NONE, ack.errorReason());
+        assertArrayEquals("REMATCH".getBytes(StandardCharsets.UTF_8), encoded);
     }
 
     @Test
-    public void decodeAck_returnsErrorForReasonPayload() {
-        String payload = "{\"status\":\"ERROR\",\"reason\":\"ALREADY_DECIDED\"}";
+    public void encode_leaveProducesUppercaseBytes() {
+        byte[] encoded = PostGameDecisionMessageCodec.encode(PostGameDecisionOption.LEAVE);
 
-        PostGameDecisionAck ack = PostGameDecisionMessageCodec.decodeAck(payload.getBytes());
+        assertArrayEquals("LEAVE".getBytes(StandardCharsets.UTF_8), encoded);
+    }
 
-        assertEquals(PostGameDecisionAck.Status.ERROR, ack.status());
-        assertEquals(PostGameDecisionAck.ErrorReason.ALREADY_DECIDED, ack.errorReason());
+    @Test
+    public void encode_unknownThrows() {
+        assertThrows(IllegalArgumentException.class,
+                () -> PostGameDecisionMessageCodec.encode(PostGameDecisionOption.UNKNOWN));
     }
 }

@@ -18,7 +18,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.application.session.OmokBoardState;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
-import com.example.application.port.out.realtime.PlaceStoneResponse;
 import com.example.core_api.dialog.DialogHost;
 import com.example.core_api.dialog.DialogHostOwner;
 import com.example.core_api.dialog.MainDialogType;
@@ -152,7 +151,6 @@ public class GameFragment extends Fragment {
         viewModel.getRemainingSeconds().observe(getViewLifecycleOwner(), this::remainingSecondsObserve);
         viewModel.getBoardState().observe(getViewLifecycleOwner(), this::renderBoard);
         viewModel.getViewEvents().observe(getViewLifecycleOwner(), this::viewEventObserve);
-        viewModel.getPlacementErrors().observe(getViewLifecycleOwner(), this::placementErrorObserve);
     }
 
 
@@ -191,22 +189,6 @@ public class GameFragment extends Fragment {
         remainingTimeText.setText(formatted);
     }
 
-    private int resolvePlacementErrorMessage(@NonNull PlaceStoneResponse.Status status) {
-        switch (status) {
-            case OUT_OF_TURN:
-                return R.string.game_place_stone_error_out_of_turn;
-            case CELL_OCCUPIED:
-                return R.string.game_place_stone_error_cell_occupied;
-            case OUT_OF_BOUNDS:
-                return R.string.game_place_stone_error_out_of_bounds;
-            case INVALID:
-                return R.string.game_place_stone_error_invalid;
-            case GAME_NOT_STARTED:
-                return R.string.game_place_stone_error_game_not_started;
-            default:
-                return R.string.game_place_stone_error_unknown;
-        }
-    }
 
     private void updatePlayerSlots() {
         for (GamePlayerSlot slot : latestSlots) {
@@ -324,15 +306,6 @@ public class GameFragment extends Fragment {
                 break;
         }
         viewModel.onEventHandled();
-    }
-
-    private void placementErrorObserve(PlaceStoneResponse.Status status) {
-        if (status == null) {
-            return;
-        }
-        int messageRes = resolvePlacementErrorMessage(status);
-        Toast.makeText(requireContext(), messageRes, Toast.LENGTH_SHORT).show();
-        viewModel.onPlacementFeedbackHandled();
     }
 
 }

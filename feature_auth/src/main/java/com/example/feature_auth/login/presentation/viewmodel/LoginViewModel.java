@@ -13,7 +13,6 @@ import com.example.application.dto.response.LoginResponse;
 import com.example.application.port.in.UResult;
 import com.example.application.port.in.UseCase;
 import com.example.application.usecase.CreateAccountUseCase;
-import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.LoginUseCase;
 import com.example.application.usecase.TcpAuthUseCase;
 import com.example.core_api.navigation.AppNavigationKey;
@@ -23,7 +22,6 @@ import com.example.domain.common.value.AuthProvider;
 import com.example.domain.user.entity.Identity;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -37,21 +35,18 @@ public class LoginViewModel extends ViewModel {
     private final ExecutorService executorService;
     private final CreateAccountUseCase createAccountUseCase;
     private final LoginUseCase loginUseCase;
-    private final HelloHandshakeUseCase helloHandshakeUseCase;
     private final TokenStore tokenManager;
     private final TcpAuthUseCase tcpAuthUseCase;
     private final FragmentNavigationHost<AppNavigationKey> host;
 
     public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
                           @NonNull LoginUseCase loginUseCase,
-                          @NonNull HelloHandshakeUseCase helloHandshakeUseCase,
                           @NonNull TcpAuthUseCase tcpAuthUseCase,
                           @NonNull TokenStore tokenManager,
                           @NonNull ExecutorService executorservice,
                           @NonNull FragmentNavigationHost<AppNavigationKey> host) {
         this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
         this.loginUseCase = Objects.requireNonNull(loginUseCase, "loginUseCase");
-        this.helloHandshakeUseCase =  Objects.requireNonNull(helloHandshakeUseCase, "helloHandshakeUseCase");
         this.tcpAuthUseCase = Objects.requireNonNull(tcpAuthUseCase, "tcpAuthUseCase");
         this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
         this.executorService = Objects.requireNonNull(executorservice, "executorService");
@@ -131,20 +126,10 @@ public class LoginViewModel extends ViewModel {
     }
 
     private void triggerTcpAuthHandshake(String accessToken) {
-        UResult<CompletableFuture<Boolean>> result = tcpAuthUseCase.execute(accessToken);
-        if (result instanceof UResult.Ok<CompletableFuture<Boolean>> ok) {
-            ok.value().whenComplete((success, throwable) -> {
-                if (throwable != null) {
-                    Log.e(TAG, "AUTH handshake failed", throwable);
-                    return;
-                }
-                if (Boolean.TRUE.equals(success)) {
-                    Log.d(TAG, "AUTH handshake succeeded");
-                } else {
-                    Log.w(TAG, "AUTH handshake reported failure");
-                }
-            });
-        } else if (result instanceof UResult.Err<CompletableFuture<Boolean>> err) {
+        UResult<UseCase.None> result = tcpAuthUseCase.execute(accessToken);
+        if (result instanceof UResult.Ok<UseCase.None>) {
+            Log.d(TAG, "AUTH handshake dispatched");
+        } else if (result instanceof UResult.Err<?> err) {
             Log.e(TAG, "TcpAuthUseCase execution error: " + err.code() + ", " + err.message());
         }
     }

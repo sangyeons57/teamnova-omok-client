@@ -12,7 +12,6 @@ import com.example.application.port.in.UseCase;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.GameMode;
 import com.example.application.session.UserSessionStore;
-import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.SelfDataUseCase;
 import com.example.feature_home.presentation.state.HomeViewEvent;
 import com.example.domain.user.entity.User;
@@ -30,17 +29,14 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<HomeViewEvent> viewEvents = new MutableLiveData<>();
     private final LiveData<User> userStream;
     private final SelfDataUseCase selfDataUseCase;
-    private final HelloHandshakeUseCase helloHandshakeUseCase;
     private final GameInfoStore gameInfoStore;
     private final LiveData<GameMode> gameModeStream;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public HomeViewModel(@NonNull SelfDataUseCase selfDataUseCase,
-                         @NonNull HelloHandshakeUseCase helloHandshakeUseCase,
                          @NonNull UserSessionStore userSessionStore,
                          @NonNull GameInfoStore gameInfoStore) {
         this.selfDataUseCase = selfDataUseCase;
-        this.helloHandshakeUseCase = helloHandshakeUseCase;
         this.gameInfoStore = gameInfoStore;
         this.userStream = userSessionStore.getUserStream();
         this.gameModeStream = gameInfoStore.getModeStream();

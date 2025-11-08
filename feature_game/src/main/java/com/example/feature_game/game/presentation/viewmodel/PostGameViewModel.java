@@ -13,7 +13,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application.port.in.UResult;
 import com.example.application.port.in.UseCase;
-import com.example.application.port.out.realtime.PostGameDecisionAck;
 import com.example.application.port.out.realtime.PostGameDecisionOption;
 import com.example.application.session.GameInfoStore;
 import com.example.application.session.GameParticipantInfo;
@@ -332,34 +331,14 @@ public final class PostGameViewModel extends ViewModel {
                     if (throwable != null) {
                         Log.e(TAG, "Failed to send decision", throwable);
                         viewEvents.postValue(new PostGameViewEvent(PostGameViewEvent.Type.SHOW_ERROR,
-                                "결정을 전송할 수 없습니다.", null));
+                                "결정을 전송할 수 없습니다."));
                         return;
                     }
                     if (result instanceof UResult.Err<?> err) {
                         viewEvents.postValue(new PostGameViewEvent(PostGameViewEvent.Type.SHOW_ERROR,
-                                err.message(), null));
-                    } else if (result instanceof UResult.Ok<?>) {
-                        Object value = ((UResult.Ok<?>) result).value();
-                        if (value instanceof PostGameDecisionAck ack) {
-                            handleDecisionAck(ack);
-                        }
+                                err.message()));
                     }
                 });
-    }
-
-    private void handleDecisionAck(@NonNull PostGameDecisionAck ack) {
-        if (ack.isOk()) {
-            PostGameUiState current = uiState.getValue();
-            if (current != null) {
-                uiState.postValue(current.withDecision(ack.decision(), true));
-            }
-            return;
-        }
-        viewEvents.postValue(new PostGameViewEvent(
-                PostGameViewEvent.Type.SHOW_ERROR,
-                ack.rawMessage(),
-                ack.errorReason()
-        ));
     }
 
     private void triggerSelfProfileRefresh() {

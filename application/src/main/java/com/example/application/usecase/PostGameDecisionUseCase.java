@@ -4,18 +4,16 @@ import androidx.annotation.NonNull;
 
 import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseConfig;
-import com.example.application.port.out.realtime.PostGameDecisionAck;
 import com.example.application.port.out.realtime.PostGameDecisionOption;
 import com.example.application.port.out.realtime.RealtimeRepository;
 import com.example.core_api.exception.UseCaseException;
 
 import java.util.Objects;
-import java.util.concurrent.CompletionException;
 
 /**
  * Sends the player's post-game decision (rematch or leave) to the realtime server.
  */
-public final class PostGameDecisionUseCase extends UseCase<PostGameDecisionUseCase.Params, PostGameDecisionAck> {
+public final class PostGameDecisionUseCase extends UseCase<PostGameDecisionUseCase.Params, UseCase.None> {
 
     private final RealtimeRepository realtimeRepository;
 
@@ -26,7 +24,7 @@ public final class PostGameDecisionUseCase extends UseCase<PostGameDecisionUseCa
     }
 
     @Override
-    protected PostGameDecisionAck run(Params input) throws UseCaseException {
+    protected UseCase.None run(Params input) throws UseCaseException {
         if (input == null || input.decision == null) {
             throw UseCaseException.of("INVALID_INPUT", "decision == null");
         }
@@ -34,16 +32,8 @@ public final class PostGameDecisionUseCase extends UseCase<PostGameDecisionUseCa
             throw UseCaseException.of("INVALID_INPUT", "decision must be REMATCH or LEAVE");
         }
         try {
-            return realtimeRepository.postGameDecision(input.decision).join();
-        } catch (CompletionException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
-            if (cause instanceof UseCaseException useCaseException) {
-                throw useCaseException;
-            }
-            String message = cause != null && cause.getMessage() != null
-                    ? cause.getMessage()
-                    : "POST_GAME_DECISION request failed";
-            throw new UseCaseException("REMOTE_FAILURE", message, cause);
+            realtimeRepository.postGameDecision(input.decision);
+            return UseCase.None.INSTANCE;
         } catch (RuntimeException e) {
             String message = e.getMessage() != null ? e.getMessage() : "POST_GAME_DECISION request failed";
             throw new UseCaseException("REMOTE_FAILURE", message, e);

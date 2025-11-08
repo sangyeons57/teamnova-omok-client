@@ -15,7 +15,6 @@ import com.example.application.usecase.ChangeProfileIconUseCase;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.DeactivateAccountUseCase;
 import com.example.application.usecase.FindRuleByCodeUseCase;
-import com.example.application.usecase.HelloHandshakeUseCase;
 import com.example.application.usecase.JoinMatchUseCase;
 import com.example.application.usecase.LeaveMatchUseCase;
 import com.example.application.usecase.LinkGoogleAccountUseCase;
@@ -101,8 +100,6 @@ public final class UseCaseContainer {
         registry.register(UserDataUseCase.class,
                 UseCaseProviders.singleton(() -> new UserDataUseCase(defaultConfig, userRepository)));
 
-        registry.register(HelloHandshakeUseCase.class,
-                UseCaseProviders.singleton(() -> new HelloHandshakeUseCase(defaultConfig, realtimeRepository)));
         registry.register(TcpAuthUseCase.class,
                 UseCaseProviders.singleton(() -> new TcpAuthUseCase(defaultConfig, realtimeRepository)));
         registry.register(JoinMatchUseCase.class,
@@ -112,7 +109,7 @@ public final class UseCaseContainer {
         registry.register(ReadyInGameSessionUseCase.class,
                 UseCaseProviders.singleton(() -> new ReadyInGameSessionUseCase(defaultConfig, realtimeRepository)));
         registry.register(PlaceStoneUseCase.class,
-                UseCaseProviders.singleton(() -> new PlaceStoneUseCase(defaultConfig, realtimeRepository, soundManager)));
+                UseCaseProviders.singleton(() -> new PlaceStoneUseCase(defaultConfig, realtimeRepository)));
         registry.register(PostGameDecisionUseCase.class,
                 UseCaseProviders.singleton(() -> new PostGameDecisionUseCase(defaultConfig, realtimeRepository)));
         registry.register(LoadRulesCatalogUseCase.class,

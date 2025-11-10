@@ -14,13 +14,14 @@ import com.example.application.session.MatchState;
 import com.example.core_api.network.tcp.dispatcher.ClientDispatchResult;
 import com.example.core_api.network.tcp.protocol.Frame;
 import com.example.core_api.network.tcp.protocol.FrameType;
-import com.example.core_di.tcp.JoinInGameSessionHandler.Logger;
+import com.example.core_di.tcp.handler.JoinInGameSessionHandler;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Logger;
 
 /**
  * Unit tests for {@link JoinInGameSessionHandler}.
@@ -32,13 +33,11 @@ public class JoinInGameSessionHandlerTest {
 
     private TrackingGameInfoStore gameInfoStore;
     private JoinInGameSessionHandler handler;
-    private TestLogger logger;
 
     @Before
     public void setUp() {
         gameInfoStore = new TrackingGameInfoStore();
-        logger = new TestLogger();
-        handler = new JoinInGameSessionHandler(gameInfoStore, logger);
+        handler = new JoinInGameSessionHandler(gameInfoStore);
     }
 
     @Test
@@ -56,8 +55,6 @@ public class JoinInGameSessionHandlerTest {
         ClientDispatchResult result = handler.handle(null, frame);
 
         assertSame(ClientDispatchResult.continueDispatch(), result);
-        assertNull("no warnings expected but got: " + logger.getLastWarning(), logger.getLastWarning());
-        assertNull("no errors expected but got: " + logger.getLastError(), logger.getLastError());
         assertNotNull("game session should be stored", gameInfoStore.lastSession);
         assertEquals("session-123", gameInfoStore.lastSession.getSessionId());
         assertEquals(1700000000L, gameInfoStore.lastSession.getCreatedAt());
@@ -72,7 +69,6 @@ public class JoinInGameSessionHandlerTest {
 
         handler.handle(null, frame);
 
-        assertNotNull("error should be logged", logger.getLastError());
         assertNull("game session should not be stored", gameInfoStore.lastSession);
         assertNull("match state should not change", gameInfoStore.lastMatchState);
     }
@@ -92,36 +88,6 @@ public class JoinInGameSessionHandlerTest {
         public void updateMatchState(@NonNull MatchState state) {
             super.updateMatchState(state);
             lastMatchState = state;
-        }
-    }
-
-    private static final class TestLogger implements Logger {
-        private String lastWarning;
-        private String lastError;
-        private Throwable lastThrowable;
-
-        @Override
-        public void warn(@NonNull String message) {
-            lastWarning = message;
-        }
-
-        @Override
-        public void error(@NonNull String message, @NonNull Throwable throwable) {
-            lastError = message + ": " + throwable.getClass().getSimpleName()
-                    + " - " + throwable.getMessage();
-            lastThrowable = throwable;
-        }
-
-        String getLastWarning() {
-            return lastWarning;
-        }
-
-        String getLastError() {
-            return lastError;
-        }
-
-        Throwable getLastThrowable() {
-            return lastThrowable;
         }
     }
 }

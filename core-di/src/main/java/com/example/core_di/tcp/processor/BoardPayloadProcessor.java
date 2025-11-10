@@ -1,4 +1,4 @@
-package com.example.core_di.tcp;
+package com.example.core_di.tcp.processor;
 
 import android.util.Base64;
 import android.util.Log;
@@ -8,10 +8,11 @@ import androidx.annotation.Nullable;
 
 import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStoneType;
+import com.example.core_di.tcp.StoneTypeMapper;
 
 import org.json.JSONObject;
 
-final class BoardPayloadProcessor {
+public final class BoardPayloadProcessor {
 
     private static final String KEY_BOARD_WIDTH = "width";
     private static final String KEY_BOARD_HEIGHT = "height";
@@ -20,7 +21,7 @@ final class BoardPayloadProcessor {
     private BoardPayloadProcessor() {
     }
 
-    static boolean applyBoardSnapshot(@Nullable JSONObject boardJson,
+    public static boolean applyBoardSnapshot(@Nullable JSONObject boardJson,
                                       @NonNull OmokBoardStore boardStore,
                                       @NonNull String logTag) {
         if (boardJson == null) {

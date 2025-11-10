@@ -8,6 +8,7 @@ import android.util.Base64;
 import com.example.application.session.OmokBoardState;
 import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStoneType;
+import com.example.core_di.tcp.processor.BoardPayloadProcessor;
 
 import org.json.JSONObject;
 import org.junit.Before;

@@ -7,18 +7,19 @@ import com.example.core_api.network.tcp.TcpClientConfig;
 import com.example.core_api.network.tcp.dispatcher.ClientDispatcher;
 import com.example.core_api.network.tcp.protocol.FrameType;
 import com.example.core_api.sound.SoundManager;
-import com.example.core_di.tcp.BoardUpdatedHandler;
-import com.example.core_di.tcp.GamePostDecisionPromptHandler;
-import com.example.core_di.tcp.GamePostDecisionUpdateHandler;
-import com.example.core_di.tcp.GameSessionStartedHandler;
-import com.example.core_di.tcp.GameSessionCompletedHandler;
-import com.example.core_di.tcp.GameSessionRematchStartedHandler;
-import com.example.core_di.tcp.GameSessionPlayerDisconnectedHandler;
-import com.example.core_di.tcp.GameSessionTerminatedHandler;
-import com.example.core_di.tcp.JoinInGameSessionHandler;
-import com.example.core_di.tcp.ReadyInGameSessionHandler;
-import com.example.core_di.tcp.TurnEndedHandler;
-import com.example.core_di.tcp.TurnStartedHandler;
+import com.example.core_di.tcp.handler.BoardUpdatedHandler;
+import com.example.core_di.tcp.handler.GamePostDecisionPromptHandler;
+import com.example.core_di.tcp.handler.GamePostDecisionUpdateHandler;
+import com.example.core_di.tcp.handler.GameSessionStartedHandler;
+import com.example.core_di.tcp.handler.GameSessionCompletedHandler;
+import com.example.core_di.tcp.handler.GameSessionRematchStartedHandler;
+import com.example.core_di.tcp.handler.GameSessionPlayerDisconnectedHandler;
+import com.example.core_di.tcp.handler.GameSessionTerminatedHandler;
+import com.example.core_di.tcp.handler.JoinInGameSessionHandler;
+import com.example.core_di.tcp.handler.ReadyInGameSessionHandler;
+import com.example.core_di.tcp.handler.ReconnectingHandler;
+import com.example.core_di.tcp.handler.TurnEndedHandler;
+import com.example.core_di.tcp.handler.TurnStartedHandler;
 import com.example.infra.tcp.provider.FramedTcpClientProvider;
 
 /**
@@ -89,6 +90,8 @@ public final class TcpClientContainer {
                 () -> new GameSessionTerminatedHandler(postGameSessionStore, gameInfoStore));
         dispatcher.register(FrameType.GAME_SESSION_PLAYER_DISCONNECTED,
                 () -> new GameSessionPlayerDisconnectedHandler(postGameSessionStore));
+        dispatcher.register(FrameType.RECONNECTING,
+                () -> new ReconnectingHandler(gameInfoStore));
     }
 
     public TcpClient getClient() {

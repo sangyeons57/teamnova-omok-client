@@ -1,4 +1,4 @@
-package com.example.core_di.tcp;
+package com.example.core_di.tcp.handler;
 
 import android.util.Log;
 
@@ -16,24 +16,19 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * Handles JOIN_IN_GAME_SESSION frames and updates shared game session state.
  */
 public final class JoinInGameSessionHandler extends AbstractJsonFrameHandler {
     private final GameInfoStore gameInfoStore;
-    private final Logger logger;
     private static final String TAG = "JoinInGameSessionHandler";
 
-    public JoinInGameSessionHandler(@NonNull GameInfoStore gameInfoStore) {
-        this(gameInfoStore, new AndroidLogger());
-    }
 
-    public JoinInGameSessionHandler(@NonNull GameInfoStore gameInfoStore,
-                                    @NonNull Logger logger) {
+    public JoinInGameSessionHandler(@NonNull GameInfoStore gameInfoStore) {
         super(TAG, FrameType.JOIN_IN_GAME_SESSION.name());
         this.gameInfoStore = Objects.requireNonNull(gameInfoStore, "gameInfoStore");
-        this.logger = Objects.requireNonNull(logger, "logger");
     }
 
     @Override
@@ -64,23 +59,5 @@ public final class JoinInGameSessionHandler extends AbstractJsonFrameHandler {
         GameSessionInfo sessionInfo = new GameSessionInfo(sessionId, createdAt, participants);
         gameInfoStore.updateGameSession(sessionInfo);
         gameInfoStore.updateMatchState(MatchState.MATCHED);
-    }
-
-    public interface Logger {
-        void warn(@NonNull String message);
-
-        void error(@NonNull String message, @NonNull Throwable throwable);
-    }
-
-    private static final class AndroidLogger implements Logger {
-        @Override
-        public void warn(@NonNull String message) {
-            android.util.Log.w("JoinInGameSessionHandler", message);
-        }
-
-        @Override
-        public void error(@NonNull String message, @NonNull Throwable throwable) {
-            android.util.Log.e("JoinInGameSessionHandler", message, throwable);
-        }
     }
 }

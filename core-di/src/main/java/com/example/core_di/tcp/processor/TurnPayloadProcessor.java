@@ -1,4 +1,4 @@
-package com.example.core_di.tcp;
+package com.example.core_di.tcp.processor;
 
 import android.util.Log;
 
@@ -6,8 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.application.session.GameInfoStore;
-import com.example.application.session.GameParticipantInfo;
-import com.example.application.session.GameSessionInfo;
 
 import org.json.JSONObject;
 
@@ -16,19 +14,19 @@ import java.util.function.LongSupplier;
 /**
  * Applies turn payload updates coming from realtime frames.
  */
-final class TurnPayloadProcessor {
+public final class TurnPayloadProcessor {
 
     private TurnPayloadProcessor() {
         // Utility class
     }
 
-    static void applyTurn(@NonNull GameInfoStore gameInfoStore,
+    public static void applyTurn(@NonNull GameInfoStore gameInfoStore,
                           @Nullable JSONObject turnJson,
                           @NonNull String tag) {
         applyTurn(gameInfoStore, turnJson, tag, System::currentTimeMillis);
     }
 
-    static void applyTurn(@NonNull GameInfoStore gameInfoStore,
+    public static void applyTurn(@NonNull GameInfoStore gameInfoStore,
                           @Nullable JSONObject turnJson,
                           @NonNull String tag,
                           @NonNull LongSupplier nowSupplier) {

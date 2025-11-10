@@ -41,7 +41,6 @@ public final class FramedTcpClient implements TcpClient {
     private final int port;
     private final FrameDecoder decoder = new FrameDecoder();
     private final AtomicLong requestSequence = new AtomicLong(1);
-    private final Map<Long, CompletableFuture<Frame>> pending = new ConcurrentHashMap<>();
     private final AtomicBoolean running = new AtomicBoolean();
     private final AtomicBoolean allowReconnect = new AtomicBoolean(true);
     private final Object writeLock = new Object();
@@ -100,17 +99,10 @@ public final class FramedTcpClient implements TcpClient {
     }
 
     @Override
-    public CompletableFuture<Frame> send(byte type, byte[] payload, Duration timeout) throws IOException {
+    public void send(byte type, byte[] payload) throws IOException {
         SocketChannel ch = ensureConnected();
-
         long requestId = requestSequence.getAndIncrement() & 0xFFFF_FFFFL;
-
-        CompletableFuture<Frame> future = new CompletableFuture<>();
-        pending.put(requestId, future);
-
         writeFrame(ch, new Frame(type, requestId, payload));
-        scheduledFuture(requestId, future, timeout);
-        return future;
     }
 
 
@@ -136,22 +128,7 @@ public final class FramedTcpClient implements TcpClient {
             }
             readerThread = null;
         }
-        IOException closed = new ClosedChannelException();
-        pending.forEach((id, future) -> future.completeExceptionally(closed));
-        pending.clear();
         dispatcher.close();
-    }
-
-    private void scheduledFuture(long requestId, CompletableFuture<Frame> future, Duration timeout) {
-        ScheduledFuture<?> task = scheduler.schedule(()-> {
-            CompletableFuture<Frame> f = pending.remove(requestId);
-            if (f != null) {
-                f.completeExceptionally(new TimeoutException("requestId=" + requestId));
-            }
-
-        }, timeout.toMillis(), TimeUnit.MILLISECONDS);
-
-        future.whenComplete((ok, ex) -> task.cancel(false));
     }
 
     private SocketChannel ensureConnected() throws IOException {
@@ -239,33 +216,19 @@ public final class FramedTcpClient implements TcpClient {
                 readBuffer.get(chunk);
                 List<Frame> frames = decoder.feed(chunk, chunk.length);
                 for (Frame frame : frames) {
-                    handleInboundFrame(frame);
+                    Log.d("FramedTcpClient", "[" + frame.requestId() + "] type:" + frame.frameType() + " length:" + frame.payloadLength());
+                    dispatcher.dispatch(this, frame);
                 }
+
             }
         } catch (FrameDecodingException e) {
-            failPending(new IOException("Failed to decode inbound frame: " + e.getMessage(), e));
+            Log.w("FramedTcpClient", "Frame decoding failed", e);
         } catch (IOException e) {
-            failPending(e);
+            Log.w("FramedTcpClient", "Read failed", e);
         } finally {
             running.set(false);
             closeQuietly();
         }
-    }
-
-    private void handleInboundFrame(Frame frame) {
-        CompletableFuture<Frame> future = pending.remove(frame.requestId());
-        if (future != null) {
-            future.complete(frame);
-        }
-
-        Log.d("FramedTcpClient", "[" + frame.requestId() + "] type:" + frame.frameType() + " length:" + frame.payloadLength());
-
-        dispatcher.dispatch(this, frame);
-    }
-
-    private void failPending(IOException error) {
-        pending.forEach((id, future) -> future.completeExceptionally(error));
-        pending.clear();
     }
 
     private void closeQuietly() {

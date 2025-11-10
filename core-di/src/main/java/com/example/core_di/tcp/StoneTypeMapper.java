@@ -7,13 +7,13 @@ import com.example.application.session.OmokStoneType;
 
 import java.util.Locale;
 
-final class StoneTypeMapper {
+public final class StoneTypeMapper {
 
     private StoneTypeMapper() {
     }
 
     @NonNull
-    static OmokStoneType fromNetworkLabel(@Nullable String stoneLabel) {
+    public static OmokStoneType fromNetworkLabel(@Nullable String stoneLabel) {
         if (stoneLabel == null) {
             return OmokStoneType.UNKNOWN;
         }
@@ -54,7 +54,7 @@ final class StoneTypeMapper {
     }
 
     @NonNull
-    static OmokStoneType fromCellValue(int cellValue) {
+    public static OmokStoneType fromCellValue(int cellValue) {
         if (cellValue == -1) {
             return OmokStoneType.EMPTY;
         }

@@ -28,6 +28,7 @@ public enum FrameType {
     GAME_SESSION_PLAYER_DISCONNECTED((byte)17),
     BOARD_UPDATED((byte)18),
     LEAVE_MATCH((byte)19),
+    RECONNECTING((byte)20),
 
     ERROR((byte)255)
     ;

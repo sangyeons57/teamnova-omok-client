@@ -1,4 +1,4 @@
-package com.example.core_di.tcp;
+package com.example.core_di.tcp.handler;
 
 import android.util.Log;
 
@@ -12,6 +12,7 @@ import com.example.application.session.TurnEndEvent;
 import com.example.core_api.network.model.TurnEndCause;
 import com.example.core_api.network.model.TurnEndStatus;
 import com.example.core_api.network.tcp.protocol.FrameType;
+import com.example.core_di.tcp.StoneTypeMapper;
 
 import org.json.JSONObject;
 import java.util.Objects;

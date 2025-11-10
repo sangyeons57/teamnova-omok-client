@@ -35,6 +35,15 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
     }
 
     @Override
+    public void reconnectTcp(String accessToken, String gameSessionId) {
+        String combineText = accessToken + ":" + gameSessionId;
+        byte[] requestPayload = combineText.getBytes(StandardCharsets.UTF_8);
+
+        TcpRequest request = TcpRequest.of(FrameType.RECONNECTING, requestPayload, Duration.ofSeconds(5));
+        tcpServerDataSource.send(request);
+    }
+
+    @Override
     public void joinMatch(String match) {
         byte[] requestPayload = match != null
                 ? match.getBytes(StandardCharsets.UTF_8)
@@ -49,6 +58,7 @@ public final class RealtimeRepositoryImpl implements RealtimeRepository {
         TcpRequest request = TcpRequest.of(FrameType.LEAVE_MATCH, new byte[0], Duration.ofSeconds(5));
         tcpServerDataSource.send(request);
     }
+
 
     @Override
     public void readyInGameSession() {

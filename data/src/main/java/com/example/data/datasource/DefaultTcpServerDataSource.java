@@ -41,9 +41,7 @@ public final class DefaultTcpServerDataSource {
     private void performSend(TcpRequest request) {
         try {
             tcpClient.connect();
-            Duration timeout = sanitizeTimeout(request.timeoutSeconds());
-            tcpClient.send(request.frameType(), request.payload(), timeout)
-                    .exceptionally(throwable -> null); // Ignore expected timeouts for fire-and-forget frames
+            tcpClient.send(request.frameType(), request.payload());
         } catch (IOException e) {
             Log.e(TAG, "Failed to send " + request.frameType().name() + " request", e);
         }

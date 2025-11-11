@@ -9,6 +9,7 @@ import com.example.application.session.OmokBoardStore;
 import com.example.application.session.OmokStonePlacement;
 import com.example.application.session.OmokStoneType;
 import com.example.application.session.TurnEndEvent;
+import com.example.application.session.postgame.PostGameSessionStore;
 import com.example.core_api.network.model.TurnEndCause;
 import com.example.core_api.network.model.TurnEndStatus;
 import com.example.core_api.network.tcp.protocol.FrameType;
@@ -22,16 +23,21 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
 
     private final GameInfoStore gameInfoStore;
     private final OmokBoardStore boardStore;
+    private final PostGameSessionStore postGameSessionStore;
 
-    public TurnEndedHandler( @NonNull GameInfoStore gameInfoStore) {
-        this(gameInfoStore, gameInfoStore.getBoardStore());
+    public TurnEndedHandler(@NonNull GameInfoStore gameInfoStore,
+                            @NonNull PostGameSessionStore postGameSessionStore) {
+        this(gameInfoStore, gameInfoStore.getBoardStore(), postGameSessionStore);
     }
 
-    private TurnEndedHandler (GameInfoStore gameInfoStore, OmokBoardStore omokBoardStore) {
+    private TurnEndedHandler (GameInfoStore gameInfoStore,
+                              OmokBoardStore omokBoardStore,
+                              PostGameSessionStore postGameSessionStore) {
         super(TAG, FrameType.TURN_ENDED.name());
 
         this.gameInfoStore = Objects.requireNonNull(gameInfoStore, "gameInfoStore");
         this.boardStore = Objects.requireNonNull(omokBoardStore, "boardStore");
+        this.postGameSessionStore = Objects.requireNonNull(postGameSessionStore, "postGameSessionStore");
     }
 
 
@@ -55,7 +61,8 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
         // Post TurnEndEvent to GameInfoStore
         gameInfoStore.postTurnEndEvent(new TurnEndEvent(sessionId, cause, status, timedOut));
 
-        if (cause == TurnEndCause.MOVE && placementedStone != null) {
+        if (cause == TurnEndCause.MOVE && placementedStone != null && !timedOut) {
+            cancelDisconnectIfActive(sessionId, playerId);
             // 보드 업데이트 하는곳이 2군데여서 한군데 우선 막아둠
             //moveStone(placementedStone);
         } else if (cause == TurnEndCause.TIMEOUT) {
@@ -89,6 +96,16 @@ public class TurnEndedHandler extends AbstractJsonFrameHandler{
     protected void timeoutProcess(String sessionId) {
         Log.i(TAG, "Turn timeout → sessionId=" + sessionId);
 
+    }
+
+    private void cancelDisconnectIfActive(@NonNull String sessionId,
+                                          @NonNull String playerId) {
+        if (sessionId.isEmpty() || playerId.isEmpty()) {
+            return;
+        }
+        Log.d(TAG, "Player activity detected, clearing disconnect → sessionId=" + sessionId
+                + ", userId=" + playerId);
+        postGameSessionStore.markPlayerReconnected(sessionId, playerId);
     }
 
     public static class PlacementedStone {

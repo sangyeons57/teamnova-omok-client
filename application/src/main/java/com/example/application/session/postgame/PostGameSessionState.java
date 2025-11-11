@@ -305,6 +305,37 @@ public final class PostGameSessionState {
     }
 
     @NonNull
+    public PostGameSessionState withPlayerReconnected(@NonNull String sourceSessionId,
+                                                      @NonNull String userId) {
+        Objects.requireNonNull(sourceSessionId, "sourceSessionId");
+        Objects.requireNonNull(userId, "userId");
+        if (userId.isEmpty()) {
+            return this;
+        }
+        PostGameSessionState base = normalizeForSession(sourceSessionId);
+        LinkedHashMap<String, PlayerDisconnectReason> updated = new LinkedHashMap<>(base.disconnectedPlayers);
+        if (!updated.containsKey(userId)) {
+            return base;
+        }
+        updated.remove(userId);
+        return new PostGameSessionState(
+                base.sessionId,
+                base.outcomes,
+                base.prompt,
+                base.decisionStatus,
+                base.rematchStarted,
+                base.rematchSessionId,
+                base.rematchParticipants,
+                base.terminated,
+                updated,
+                base.startedAtMillis,
+                base.endedAtMillis,
+                base.durationMillis,
+                base.turnCount
+        );
+    }
+
+    @NonNull
     public PostGameSessionState cleared() {
         return empty();
     }

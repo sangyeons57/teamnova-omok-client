@@ -103,6 +103,16 @@ public final class PostGameSessionStore {
         update(previous -> previous.withPlayerDisconnected(sessionId, userId, reason));
     }
 
+    public void markPlayerReconnected(@NonNull String sessionId,
+                                      @NonNull String userId) {
+        Objects.requireNonNull(sessionId, "sessionId");
+        Objects.requireNonNull(userId, "userId");
+        if (sessionId.isEmpty() || userId.isEmpty()) {
+            return;
+        }
+        update(previous -> previous.withPlayerReconnected(sessionId, userId));
+    }
+
     public void markTerminated(@NonNull String sessionId,
                                @NonNull List<String> disconnectedUserIds) {
         Objects.requireNonNull(sessionId, "sessionId");

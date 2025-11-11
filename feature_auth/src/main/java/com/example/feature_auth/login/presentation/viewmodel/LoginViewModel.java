@@ -14,7 +14,8 @@ import com.example.application.port.in.UResult;
 import com.example.application.port.in.UseCase;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
-import com.example.application.usecase.TcpAuthUseCase;
+import com.example.core_api.event.AppEventBus;
+import com.example.core_api.event.TcpAuthRequestedEvent;
 import com.example.core_api.navigation.AppNavigationKey;
 import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.core_api.token.TokenStore;
@@ -36,19 +37,19 @@ public class LoginViewModel extends ViewModel {
     private final CreateAccountUseCase createAccountUseCase;
     private final LoginUseCase loginUseCase;
     private final TokenStore tokenManager;
-    private final TcpAuthUseCase tcpAuthUseCase;
+    private final AppEventBus eventBus;
     private final FragmentNavigationHost<AppNavigationKey> host;
 
     public LoginViewModel(@NonNull CreateAccountUseCase createAccountUseCase,
                           @NonNull LoginUseCase loginUseCase,
-                          @NonNull TcpAuthUseCase tcpAuthUseCase,
                           @NonNull TokenStore tokenManager,
+                          @NonNull AppEventBus eventBus,
                           @NonNull ExecutorService executorservice,
                           @NonNull FragmentNavigationHost<AppNavigationKey> host) {
         this.createAccountUseCase = Objects.requireNonNull(createAccountUseCase, "createAccountUseCase");
         this.loginUseCase = Objects.requireNonNull(loginUseCase, "loginUseCase");
-        this.tcpAuthUseCase = Objects.requireNonNull(tcpAuthUseCase, "tcpAuthUseCase");
         this.tokenManager = Objects.requireNonNull(tokenManager, "tokenManager");
+        this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
         this.executorService = Objects.requireNonNull(executorservice, "executorService");
         this.host = host;
 
@@ -56,7 +57,7 @@ public class LoginViewModel extends ViewModel {
             Log.d("LoginViewModel", "loginUseCase.executeAsync: " + result);
             if(result instanceof UResult.Ok<LoginResponse> data) {
                 Log.d("LoginViewModel", "loginUseCase.executeAsync: " + data.value().toString());
-                triggerTcpAuthHandshake(this.tokenManager.getAccessToken());
+                requestTcpAuthHandshake();
                 host.clearBackStack();
                 host.navigateTo(AppNavigationKey.HOME, false);
             } else if (result instanceof UResult.Err<LoginResponse> err) {
@@ -115,7 +116,7 @@ public class LoginViewModel extends ViewModel {
     private void handleSuccessCreateAccount(Identity response, AuthProvider action, boolean isNew) {
         String accessToken = response.getAccessToken().getValue();
         tokenManager.saveTokens(accessToken, response.getRefreshToken().getValue());
-        triggerTcpAuthHandshake(accessToken);
+        requestTcpAuthHandshake();
         if (isNew) {
             loginAction.postValue(action);
         } else {
@@ -125,13 +126,8 @@ public class LoginViewModel extends ViewModel {
         }
     }
 
-    private void triggerTcpAuthHandshake(String accessToken) {
-        UResult<UseCase.None> result = tcpAuthUseCase.execute(accessToken);
-        if (result instanceof UResult.Ok<UseCase.None>) {
-            Log.d(TAG, "AUTH handshake dispatched");
-        } else if (result instanceof UResult.Err<?> err) {
-            Log.e(TAG, "TcpAuthUseCase execution error: " + err.code() + ", " + err.message());
-        }
+    private void requestTcpAuthHandshake() {
+        eventBus.postAsync(TcpAuthRequestedEvent.INSTANCE);
     }
 
     private void handleFailureCreateAccount(String message) {

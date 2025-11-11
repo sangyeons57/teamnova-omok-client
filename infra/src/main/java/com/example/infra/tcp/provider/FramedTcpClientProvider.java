@@ -1,5 +1,6 @@
 package com.example.infra.tcp.provider;
 
+import com.example.core_api.event.AppEventBus;
 import com.example.core_api.network.tcp.TcpClient;
 import com.example.infra.tcp.FramedTcpClient;
 
@@ -17,13 +18,19 @@ public final class FramedTcpClientProvider {
 
     public static TcpClient init(String host,
                                  int port) {
+        return init(host, port, null);
+    }
+
+    public static TcpClient init(String host,
+                                 int port,
+                                 AppEventBus eventBus) {
         Objects.requireNonNull(host, "host");
         if (instance != null) {
             return instance;
         }
         synchronized (FramedTcpClientProvider.class) {
             if (instance == null) {
-                instance = new FramedTcpClient(host, port);
+                instance = new FramedTcpClient(host, port, eventBus);
             }
             return instance;
         }

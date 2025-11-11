@@ -20,7 +20,8 @@ import com.example.application.port.in.UseCase;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.usecase.AllTermsAcceptancesUseCase;
 import com.example.application.usecase.LoginUseCase;
-import com.example.application.usecase.TcpAuthUseCase;
+import com.example.core_api.event.AppEventBus;
+import com.example.core_api.event.TcpAuthRequestedEvent;
 import com.example.core_api.dialog.DialogArgumentKeys;
 import com.example.core_api.dialog.DialogController;
 import com.example.core_api.dialog.DialogHost;
@@ -32,6 +33,7 @@ import com.example.core_api.navigation.AppNavigationKey;
 import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.core_api.navigation.FragmentNavigationHostOwner;
 import com.example.core_api.token.TokenStore;
+import com.example.core_di.EventBusContainer;
 import com.example.core_di.TokenContainer;
 import com.example.core_di.UseCaseContainer;
 import com.example.feature_auth.R;
@@ -55,8 +57,8 @@ public final class TermsAgreementDialogController implements DialogController<Ma
 
         AllTermsAcceptancesUseCase allTermsAcceptancesUseCase = registry.get(AllTermsAcceptancesUseCase.class);
         LoginUseCase loginUseCase = registry.get(LoginUseCase.class);
-        TcpAuthUseCase tcpAuthUseCase = registry.get(TcpAuthUseCase.class);
         TokenStore tokenManager = TokenContainer.getInstance();
+        AppEventBus eventBus = EventBusContainer.getInstance();
         //noinspection unchecked
         FragmentNavigationHost<AppNavigationKey> host = ((FragmentNavigationHostOwner<AppNavigationKey>)activity).getFragmentNavigatorHost();
 
@@ -98,7 +100,7 @@ public final class TermsAgreementDialogController implements DialogController<Ma
 
         buttonConfirm.setOnClickListener(v -> {
             android.util.Log.d(LOG_TAG, "Confirm button clicked");
-            handleConfirmClicked(activity, dialog, buttonConfirm, allTermsAcceptancesUseCase, loginUseCase, tcpAuthUseCase, tokenManager, host);
+            handleConfirmClicked(activity, dialog, buttonConfirm, allTermsAcceptancesUseCase, loginUseCase, tokenManager, eventBus, host);
         });
 
         dialog.setOnShowListener(ignored -> {
@@ -126,8 +128,8 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                                       @NonNull MaterialButton buttonConfirm,
                                       @NonNull AllTermsAcceptancesUseCase allTermsAcceptancesUseCase,
                                       @NonNull LoginUseCase loginUseCase,
-                                      @NonNull TcpAuthUseCase tcpAuthUseCase,
                                       @NonNull TokenStore tokenManager,
+                                      @NonNull AppEventBus eventBus,
                                       FragmentNavigationHost<AppNavigationKey> host
     ) {
         String accessToken = tokenManager.getAccessToken();
@@ -153,7 +155,7 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                         dialog.dismiss();
                         host.clearBackStack();
                         host.navigateTo(AppNavigationKey.HOME, false);
-                        triggerTcpAuthHandshake(tcpAuthUseCase, tokenManager.getAccessToken());
+                        eventBus.postAsync(TcpAuthRequestedEvent.INSTANCE);
                     } else if (result instanceof UResult.Err<?> err) {
                         android.util.Log.d(LOG_TAG, "LoginUseCase.executeAsync: " + err.message());
                         buttonConfirm.setEnabled(true);
@@ -164,15 +166,6 @@ public final class TermsAgreementDialogController implements DialogController<Ma
                         Toast.makeText(dialog.getContext(), message, Toast.LENGTH_SHORT).show();
                     }
                 });
-    }
-
-    private void triggerTcpAuthHandshake(@NonNull TcpAuthUseCase tcpAuthUseCase, String accessToken) {
-        UResult<UseCase.None> result = tcpAuthUseCase.execute(accessToken);
-        if (result instanceof UResult.Ok<UseCase.None>) {
-            android.util.Log.d(LOG_TAG, "AUTH handshake dispatched");
-        } else if (result instanceof UResult.Err<?> err) {
-            android.util.Log.e(LOG_TAG, "TcpAuthUseCase execution error: " + err.code() + ", " + err.message());
-        }
     }
 
     private void showGeneralInfoDialog(@NonNull FragmentActivity activity,

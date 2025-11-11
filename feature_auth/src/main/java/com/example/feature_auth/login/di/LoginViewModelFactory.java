@@ -7,11 +7,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.application.port.in.UseCaseRegistry;
 import com.example.application.usecase.CreateAccountUseCase;
 import com.example.application.usecase.LoginUseCase;
-import com.example.application.usecase.TcpAuthUseCase;
+import com.example.core_api.event.AppEventBus;
 import com.example.core_api.navigation.AppNavigationKey;
 import com.example.core_api.navigation.FragmentNavigationHost;
 import com.example.core_api.navigation.FragmentNavigationHostOwner;
 import com.example.core_api.token.TokenStore;
+import com.example.core_di.EventBusContainer;
 import com.example.core_di.TokenContainer;
 import com.example.core_di.UseCaseContainer;
 import com.example.feature_auth.login.presentation.viewmodel.LoginViewModel;
@@ -46,8 +47,8 @@ public final class LoginViewModelFactory implements ViewModelProvider.Factory {
         if (modelClass.isAssignableFrom(LoginViewModel.class)) {
             CreateAccountUseCase createAccountUseCase = useCaseRegistry.get(CreateAccountUseCase.class);
             LoginUseCase loginUseCase = useCaseRegistry.get(LoginUseCase.class);
-            TcpAuthUseCase tcpAuthUseCase = useCaseRegistry.get(TcpAuthUseCase.class);
-            return (T) new LoginViewModel(createAccountUseCase, loginUseCase, tcpAuthUseCase, tokenManager, executorService, host);
+            AppEventBus eventBus = EventBusContainer.getInstance();
+            return (T) new LoginViewModel(createAccountUseCase, loginUseCase, tokenManager, eventBus, executorService, host);
         }
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());
     }

@@ -10,18 +10,16 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.example.core_api.event.AppEventBus;
+import com.example.core_api.event.TcpConnectionEvent;
 import com.example.core_api.network.tcp.TcpClient;
 import com.example.core_api.network.tcp.dispatcher.ClientDispatcher;
 import com.example.core_api.network.tcp.protocol.Frame;
@@ -45,6 +43,8 @@ public final class FramedTcpClient implements TcpClient {
     private final AtomicBoolean allowReconnect = new AtomicBoolean(true);
     private final Object writeLock = new Object();
     private final ClientDispatcher dispatcher;
+    private final AppEventBus eventBus;
+    private final AtomicBoolean reconnectRequested = new AtomicBoolean(false);
 
     private SocketChannel channel;
     private Thread readerThread;
@@ -58,9 +58,14 @@ public final class FramedTcpClient implements TcpClient {
             });
 
     public FramedTcpClient(String host, int port) {
+        this(host, port, null);
+    }
+
+    public FramedTcpClient(String host, int port, AppEventBus eventBus) {
         this.host = Objects.requireNonNull(host, "host");
         this.port = port;
         this.dispatcher = ClientDispatcher.newAsyncDispatcher(1);
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -74,6 +79,7 @@ public final class FramedTcpClient implements TcpClient {
         if (isConnected()) {
             return;
         }
+        boolean reconnect = reconnectRequested.get();
         SocketChannel ch = SocketChannel.open();
         Log.d("FramedTcpClient", "Socket Channel Open");
         try {
@@ -86,6 +92,10 @@ public final class FramedTcpClient implements TcpClient {
             readerThread.setDaemon(true);
             readerThread.start();
             startPingLoop();
+            if (reconnect) {
+                reconnectRequested.set(false);
+            }
+            postConnected(reconnect);
         } catch (IOException e) {
             try { ch.close(); } catch (IOException ignored) { }
             throw e;
@@ -172,6 +182,7 @@ public final class FramedTcpClient implements TcpClient {
         if (!allowReconnect.get() || isConnected()) {
             return;
         }
+        reconnectRequested.set(true);
         try {
             connect();
         } catch (IOException e) {
@@ -201,6 +212,7 @@ public final class FramedTcpClient implements TcpClient {
             return;
         }
         ByteBuffer readBuffer = ByteBuffer.allocate(READ_BUFFER_SIZE);
+        Throwable failure = null;
         try {
             while (running.get()) {
                 readBuffer.clear();
@@ -223,11 +235,14 @@ public final class FramedTcpClient implements TcpClient {
             }
         } catch (FrameDecodingException e) {
             Log.w("FramedTcpClient", "Frame decoding failed", e);
+            failure = e;
         } catch (IOException e) {
             Log.w("FramedTcpClient", "Read failed", e);
+            failure = e;
         } finally {
             running.set(false);
             closeQuietly();
+            postDisconnected(failure);
         }
     }
 
@@ -239,6 +254,18 @@ public final class FramedTcpClient implements TcpClient {
                 ch.close();
             } catch (IOException ignored) {
             }
+        }
+    }
+
+    private void postConnected(boolean reconnected) {
+        if (eventBus != null) {
+            eventBus.post(TcpConnectionEvent.connected(reconnected));
+        }
+    }
+
+    private void postDisconnected(Throwable cause) {
+        if (eventBus != null) {
+            eventBus.post(TcpConnectionEvent.disconnected(cause));
         }
     }
 }

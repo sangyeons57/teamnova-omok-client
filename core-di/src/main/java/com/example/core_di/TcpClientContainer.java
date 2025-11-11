@@ -7,6 +7,7 @@ import com.example.core_api.network.tcp.TcpClientConfig;
 import com.example.core_api.network.tcp.dispatcher.ClientDispatcher;
 import com.example.core_api.network.tcp.protocol.FrameType;
 import com.example.core_api.sound.SoundManager;
+import com.example.core_di.tcp.handler.AuthHandler;
 import com.example.core_di.tcp.handler.BoardUpdatedHandler;
 import com.example.core_di.tcp.handler.GamePostDecisionPromptHandler;
 import com.example.core_di.tcp.handler.GamePostDecisionUpdateHandler;
@@ -17,7 +18,6 @@ import com.example.core_di.tcp.handler.GameSessionPlayerDisconnectedHandler;
 import com.example.core_di.tcp.handler.GameSessionTerminatedHandler;
 import com.example.core_di.tcp.handler.JoinInGameSessionHandler;
 import com.example.core_di.tcp.handler.ReadyInGameSessionHandler;
-import com.example.core_di.tcp.handler.ReconnectingHandler;
 import com.example.core_di.tcp.handler.TurnEndedHandler;
 import com.example.core_di.tcp.handler.TurnStartedHandler;
 import com.example.infra.tcp.provider.FramedTcpClientProvider;
@@ -57,7 +57,8 @@ public final class TcpClientContainer {
                                PostGameSessionStore postGameSessionStore) {
         this.tcpClient = FramedTcpClientProvider.init(
                 config.host(),
-                config.port()
+                config.port(),
+                EventBusContainer.getInstance()
         );
         registerFrameHandlers(gameInfoStore, postGameSessionStore);
     }
@@ -66,6 +67,8 @@ public final class TcpClientContainer {
                                        PostGameSessionStore postGameSessionStore) {
         SoundManager soundManager = SoundManagerContainer.getInstance().getSoundManager();
         ClientDispatcher dispatcher = tcpClient.dispatcher();
+        dispatcher.register(FrameType.AUTH,
+                () -> new AuthHandler());
         dispatcher.register(FrameType.JOIN_IN_GAME_SESSION,
                 () -> new JoinInGameSessionHandler(gameInfoStore));
         dispatcher.register(FrameType.READY_IN_GAME_SESSION,
@@ -75,7 +78,7 @@ public final class TcpClientContainer {
         dispatcher.register(FrameType.TURN_STARTED,
                 () -> new TurnStartedHandler(gameInfoStore));
         dispatcher.register(FrameType.TURN_ENDED,
-                () -> new TurnEndedHandler(gameInfoStore));
+                () -> new TurnEndedHandler(gameInfoStore, postGameSessionStore));
         dispatcher.register(FrameType.BOARD_UPDATED,
                 () -> new BoardUpdatedHandler(gameInfoStore, soundManager));
         dispatcher.register(FrameType.GAME_SESSION_COMPLETED,
@@ -90,8 +93,6 @@ public final class TcpClientContainer {
                 () -> new GameSessionTerminatedHandler(postGameSessionStore, gameInfoStore));
         dispatcher.register(FrameType.GAME_SESSION_PLAYER_DISCONNECTED,
                 () -> new GameSessionPlayerDisconnectedHandler(postGameSessionStore));
-        dispatcher.register(FrameType.RECONNECTING,
-                () -> new ReconnectingHandler(gameInfoStore));
     }
 
     public TcpClient getClient() {

@@ -20,16 +20,11 @@ public final class TurnPayloadProcessor {
         // Utility class
     }
 
-    public static void applyTurn(@NonNull GameInfoStore gameInfoStore,
-                          @Nullable JSONObject turnJson,
-                          @NonNull String tag) {
-        applyTurn(gameInfoStore, turnJson, tag, System::currentTimeMillis);
-    }
 
     public static void applyTurn(@NonNull GameInfoStore gameInfoStore,
                           @Nullable JSONObject turnJson,
                           @NonNull String tag,
-                          @NonNull LongSupplier nowSupplier) {
+                          @NonNull Long now) {
         if (turnJson == null) {
             Log.d(tag, "Turn payload missing. Clearing local turn state.");
             gameInfoStore.clearTurnState();
@@ -42,7 +37,7 @@ public final class TurnPayloadProcessor {
         int roundNumber = turnJson.optInt("round", 0);
         int positionInRound = turnJson.optInt("position", 0);
         int playerIndex = turnJson.optInt("playerIndex", -1);
-        int remainingSeconds = computeRemainingSeconds(endAt, nowSupplier);
+        int remainingSeconds = computeRemainingSeconds(endAt, now);
 
         Log.d(tag, "Turn update "
                 + " currentPlayerId=" + currentPlayerId
@@ -54,27 +49,21 @@ public final class TurnPayloadProcessor {
                 + " positionInRound=" + positionInRound
                 + " playerIndex=" + playerIndex);
 
-        if (currentPlayerId != null) {
-            gameInfoStore.setTurnState(currentPlayerId,
-                    remainingSeconds,
-                    startAt,
-                    endAt,
-                    turnNumber,
-                    roundNumber,
-                    positionInRound,
-                    playerIndex);
-        } else {
-            Log.w(tag, "Turn payload omitted current player. Clearing turn state.");
-            gameInfoStore.clearTurnState();
-        }
+        gameInfoStore.setTurnState(currentPlayerId,
+                remainingSeconds,
+                startAt,
+                endAt,
+                turnNumber,
+                roundNumber,
+                positionInRound,
+                playerIndex);
     }
 
     private static int computeRemainingSeconds(long endAtMillis,
-                                               @NonNull LongSupplier nowSupplier) {
+                                               @NonNull Long now) {
         if (endAtMillis <= 0L) {
             return 0;
         }
-        long now = nowSupplier.getAsLong();
         long remainingMillis = endAtMillis - now;
         if (remainingMillis <= 0L) {
             return 0;

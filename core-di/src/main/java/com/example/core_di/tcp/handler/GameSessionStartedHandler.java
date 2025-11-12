@@ -21,7 +21,7 @@ import java.util.List;
  */
 public final class GameSessionStartedHandler extends AbstractJsonFrameHandler {
 
-    private static final String TAG = "GameSessionStartedHdl";
+    private static final String TAG = "GameSessionStartedHandle";
 
     private final GameInfoStore gameInfoStore;
     private final OmokBoardStore boardStore;

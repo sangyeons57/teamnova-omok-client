@@ -1,5 +1,6 @@
 package com.example.infra.tcp;
 
+import android.nfc.Tag;
 import android.util.Log;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import com.example.core_api.network.tcp.protocol.FrameType;
  * TCP client capable of speaking the Omok framed binary protocol.
  */
 public final class FramedTcpClient implements TcpClient {
+    private static final String TAG = "FramedTcpClient";
     private static final int READ_BUFFER_SIZE = 4096;
     private static final Duration PING_INTERVAL = Duration.ofSeconds(45);
 
@@ -57,10 +59,6 @@ public final class FramedTcpClient implements TcpClient {
                 return t;
             });
 
-    public FramedTcpClient(String host, int port) {
-        this(host, port, null);
-    }
-
     public FramedTcpClient(String host, int port, AppEventBus eventBus) {
         this.host = Objects.requireNonNull(host, "host");
         this.port = port;
@@ -81,10 +79,10 @@ public final class FramedTcpClient implements TcpClient {
         }
         boolean reconnect = reconnectRequested.get();
         SocketChannel ch = SocketChannel.open();
-        Log.d("FramedTcpClient", "Socket Channel Open");
+        Log.d(FramedTcpClient.TAG, "Socket Channel Open");
         try {
             ch.configureBlocking(true);
-            Log.d("FramedTcpClient", "Connecting to " + host + ":" + port);
+            Log.d(FramedTcpClient.TAG, "Connecting to " + host + ":" + port);
             ch.connect(new InetSocketAddress(host, port));
             channel = ch;
             running.set(true);
@@ -171,7 +169,7 @@ public final class FramedTcpClient implements TcpClient {
         try {
             sendPingFrame();
         } catch (IOException e) {
-            Log.w("FramedTcpClient", "Ping failed, attempting reconnect", e);
+            Log.w(FramedTcpClient.TAG, "Ping failed, attempting reconnect", e);
             running.set(false);
             closeQuietly();
             tryReconnect();
@@ -186,7 +184,7 @@ public final class FramedTcpClient implements TcpClient {
         try {
             connect();
         } catch (IOException e) {
-            Log.w("FramedTcpClient", "Reconnect attempt after ping failure failed", e);
+            Log.w(FramedTcpClient.TAG, "Reconnect attempt after ping failure failed", e);
         }
     }
 
@@ -197,6 +195,7 @@ public final class FramedTcpClient implements TcpClient {
     }
 
     private void writeFrame(SocketChannel ch, Frame frame) throws IOException {
+        Log.d(FramedTcpClient.TAG, "[" + frame.requestId() + "] type:" + frame.frameType() + " length:" + frame.payloadLength());
         byte[] encoded = FrameEncoder.encode(frame);
         ByteBuffer buffer = ByteBuffer.wrap(encoded);
         synchronized (writeLock) {
@@ -228,16 +227,16 @@ public final class FramedTcpClient implements TcpClient {
                 readBuffer.get(chunk);
                 List<Frame> frames = decoder.feed(chunk, chunk.length);
                 for (Frame frame : frames) {
-                    Log.d("FramedTcpClient", "[" + frame.requestId() + "] type:" + frame.frameType() + " length:" + frame.payloadLength());
+                    Log.d(FramedTcpClient.TAG, "[" + frame.requestId() + "] type:" + frame.frameType() + " length:" + frame.payloadLength());
                     dispatcher.dispatch(this, frame);
                 }
 
             }
         } catch (FrameDecodingException e) {
-            Log.w("FramedTcpClient", "Frame decoding failed", e);
+            Log.w(FramedTcpClient.TAG, "Frame decoding failed", e);
             failure = e;
         } catch (IOException e) {
-            Log.w("FramedTcpClient", "Read failed", e);
+            Log.w(FramedTcpClient.TAG, "Read failed", e);
             failure = e;
         } finally {
             running.set(false);

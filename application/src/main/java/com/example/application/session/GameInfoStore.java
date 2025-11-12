@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -36,6 +37,7 @@ public class GameInfoStore {
             new MutableLiveData<>(Collections.emptyList());
 
     private final OmokBoardStore boardStore;
+    private final AtomicLong serverTimeOffsetMillis = new AtomicLong(0L);
 
     public GameInfoStore(@NonNull OmokBoardStore boardStore) {
         this.boardStore = Objects.requireNonNull(boardStore, "boardStore");
@@ -135,26 +137,6 @@ public class GameInfoStore {
         return turnEndEventStream;
     }
 
-    public void updateTurnState(@NonNull GameTurnState turnState) {
-        if (turnState == null) {
-            throw new IllegalArgumentException("turnState == null");
-        }
-        GameTurnState adjusted = turnState.normalize(); // No participantCount needed here anymore
-        currentTurnState.set(adjusted);
-        turnStateStream.postValue(adjusted);
-    }
-
-    public void updateRemainingSeconds(int seconds) {
-        GameTurnState base = currentTurnState.get();
-        if (base == null) {
-            base = GameTurnState.idle();
-        }
-        GameTurnState updated = base.withRemainingSeconds(seconds);
-        GameTurnState normalized = updated.normalize(); // No participantCount needed here anymore
-        currentTurnState.set(normalized);
-        turnStateStream.postValue(normalized);
-    }
-
     public void postTurnEndEvent(@NonNull TurnEndEvent event) {
         if (event == null) {
             throw new IllegalArgumentException("event == null");
@@ -239,5 +221,14 @@ public class GameInfoStore {
     public void clearActiveRules() {
         currentActiveRules.set(Collections.emptyList());
         activeRulesStream.postValue(Collections.emptyList());
+    }
+
+    public void updateServerTimeOffset(long serverTimeMillis, long clientReceivedAtMillis) {
+        long offset = serverTimeMillis - clientReceivedAtMillis;
+        serverTimeOffsetMillis.set(offset);
+    }
+
+    public long getServerTimeOffsetMillis() {
+        return serverTimeOffsetMillis.get();
     }
 }

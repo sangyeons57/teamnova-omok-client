@@ -28,6 +28,7 @@ import com.example.feature_game.game.presentation.model.GamePlayerSlot;
 import com.example.feature_game.game.presentation.state.GameViewEvent;
 import com.example.feature_game.game.presentation.viewmodel.GameViewModel;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.util.ArrayList;
@@ -50,6 +51,9 @@ public class GameFragment extends Fragment {
     private int latestActiveIndex = 0;
     private OmokBoardView boardView;
     private MaterialTextView remainingTimeText;
+    private View rootContainer;
+    private int defaultBackgroundColor;
+    private int selfTurnBackgroundColor;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable pendingAutoDismiss;
 
@@ -75,6 +79,7 @@ public class GameFragment extends Fragment {
         clearPendingAutoDismiss();
         slotViews.clear();
         boardView = null;
+        rootContainer = null;
         super.onDestroyView();
     }
 
@@ -95,6 +100,13 @@ public class GameFragment extends Fragment {
     }
 
     private void bindViews(@NonNull View root) {
+        rootContainer = root.findViewById(R.id.layoutGameRoot);
+        if (rootContainer != null) {
+            defaultBackgroundColor = MaterialColors.getColor(rootContainer, com.google.android.material.R.attr.colorSurface);
+            selfTurnBackgroundColor = MaterialColors.getColor(rootContainer, com.google.android.material.R.attr.colorPrimaryContainer);
+            updateRootBackground(false);
+        }
+
         PlayerSlotView topLeft = PlayerSlotView.create(
                 root.findViewById(R.id.cardPlayerTopLeft),
                 root.findViewById(R.id.imagePlayerTopLeft),
@@ -150,6 +162,7 @@ public class GameFragment extends Fragment {
         viewModel.getActivePlayerIndex().observe(getViewLifecycleOwner(), this::activePlayerIndexObserve);
         viewModel.getRemainingSeconds().observe(getViewLifecycleOwner(), this::remainingSecondsObserve);
         viewModel.getBoardState().observe(getViewLifecycleOwner(), this::renderBoard);
+        viewModel.getSelfTurnHighlight().observe(getViewLifecycleOwner(), this::selfTurnHighlightObserve);
         viewModel.getViewEvents().observe(getViewLifecycleOwner(), this::viewEventObserve);
     }
 
@@ -187,6 +200,19 @@ public class GameFragment extends Fragment {
         int clamped = Math.max(0, seconds);
         String formatted = String.format(Locale.getDefault(), "%02d", clamped % 60);
         remainingTimeText.setText(formatted);
+    }
+
+    private void selfTurnHighlightObserve(@Nullable Boolean active) {
+        boolean highlight = active != null && active;
+        updateRootBackground(highlight);
+    }
+
+    private void updateRootBackground(boolean highlightActive) {
+        if (rootContainer == null) {
+            return;
+        }
+        int color = highlightActive ? selfTurnBackgroundColor : defaultBackgroundColor;
+        rootContainer.setBackgroundColor(color);
     }
 
 

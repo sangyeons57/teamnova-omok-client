@@ -56,6 +56,7 @@ public class GameViewModel extends ViewModel {
             OmokStoneType.YELLOW,
             OmokStoneType.GREEN
     };
+    private static final int MAX_PLAYER_SLOTS = 4;
 
     private final GameInfoStore gameInfoStore;
     private final UserSessionStore userSessionStore;
@@ -71,6 +72,7 @@ public class GameViewModel extends ViewModel {
     private final MutableLiveData<OmokBoardState> boardState = new MutableLiveData<>(OmokBoardState.empty());
     private final MutableLiveData<GameViewEvent> viewEvents = new MutableLiveData<>();
     private final MutableLiveData<Integer> remainingSeconds = new MutableLiveData<>(TURN_TOTAL_SECONDS);
+    private final MutableLiveData<Boolean> selfTurnHighlight = new MutableLiveData<>(false);
     private final Observer<GameMode> modeObserver = this::onModeChanged;
     private final Observer<MatchState> matchObserver = this::onMatchStateChanged;
     private final Observer<GameSessionInfo> sessionObserver = this::onSessionChanged;
@@ -187,6 +189,11 @@ public class GameViewModel extends ViewModel {
         return remainingSeconds;
     }
 
+    @NonNull
+    public LiveData<Boolean> getSelfTurnHighlight() {
+        return selfTurnHighlight;
+    }
+
     public void notifyGameReady() {
         if (readySignalSent.getAndSet(true)) {
             return;
@@ -250,12 +257,26 @@ public class GameViewModel extends ViewModel {
 
 
     private boolean isSelfTurn() {
-        GameTurnState turnState = gameInfoStore.getCurrentTurnState();
-        if (!turnState.isActive()) {
+        return isSelfTurn(gameInfoStore.getCurrentTurnState());
+    }
+
+    private boolean isSelfTurn(@Nullable GameTurnState turnState) {
+        if (turnState == null || !turnState.isActive()) {
             return false;
         }
-        String selfPlayerId = selfUserId; // Use selfUserId directly
-        return selfPlayerId != null && selfPlayerId.equals(turnState.getCurrentPlayerId());
+        String currentPlayerId = turnState.getCurrentPlayerId();
+        return currentPlayerId != null && currentPlayerId.equals(selfUserId);
+    }
+
+    private void updateSelfTurnHighlight(boolean isActive) {
+        Boolean current = selfTurnHighlight.getValue();
+        if (current == null || current != isActive) {
+            selfTurnHighlight.postValue(isActive);
+        }
+    }
+
+    private void refreshSelfTurnHighlight() {
+        updateSelfTurnHighlight(isSelfTurn());
     }
 
      public void onEventHandled() {
@@ -302,6 +323,9 @@ public class GameViewModel extends ViewModel {
             }
             // lastTurnParticipantIndex = -1; // No longer needed
         }
+        if (sessionInfo == null) {
+            updateSelfTurnHighlight(false);
+        }
         GameMode mode = currentMode.getValue();
         if (mode == null) {
             mode = gameInfoStore.getCurrentMode();
@@ -318,6 +342,7 @@ public class GameViewModel extends ViewModel {
             selfUserId = user.getUserId().getValue();
         }
         rebuildSlots(currentMode.getValue());
+        refreshSelfTurnHighlight();
     }
 
     private void onBoardStateChanged(@Nullable OmokBoardState state) {
@@ -331,6 +356,7 @@ public class GameViewModel extends ViewModel {
         if (state == null || !state.isActive()) {
             activePlayerIndex.postValue(0);
             // lastTurnParticipantIndex = -1; // No longer needed
+            updateSelfTurnHighlight(false);
             return;
         }
         // currentIndex is no longer available in GameTurnState
@@ -338,8 +364,11 @@ public class GameViewModel extends ViewModel {
         GameSessionInfo session = latestSessionInfo;
         if (session == null || state.getCurrentPlayerId() == null) {
             activePlayerIndex.postValue(0);
+            updateSelfTurnHighlight(false);
             return;
         }
+
+        updateSelfTurnHighlight(isSelfTurn(state));
 
         int currentParticipantIndex = -1;
         currentParticipantIndex = session.getUids().indexOf(state.getCurrentPlayerId());
@@ -389,6 +418,19 @@ public class GameViewModel extends ViewModel {
         if (event.isTimedOut()) {
             viewEvents.postValue(GameViewEvent.SHOW_TURN_TIMEOUT_MESSAGE);
         }
+        GameSessionInfo sessionInfo = latestSessionInfo;
+        if (sessionInfo == null) {
+            updateSelfTurnHighlight(false);
+            return;
+        }
+        String sessionId = sessionInfo.getSessionId();
+        if (sessionId == null || sessionId.isEmpty()) {
+            updateSelfTurnHighlight(false);
+            return;
+        }
+        if (sessionId.equals(event.getSessionId())) {
+            updateSelfTurnHighlight(false);
+        }
     }
 
     private OmokStoneType resolveStoneForActiveTurn() {
@@ -417,19 +459,18 @@ public class GameViewModel extends ViewModel {
 
     private void rebuildSlots(@Nullable GameMode mode) {
         GameMode safeMode = mode != null ? mode : GameMode.TWO_PLAYER;
-        int participantCount = resolveParticipantCount(safeMode);
 
-        // Get participants from the session info's map values
         List<GameParticipantInfo> participants = latestSessionInfo != null
                 ? new ArrayList<>(latestSessionInfo.getParticipants())
                 : new ArrayList<>();
 
+        int participantCount = resolveParticipantCount(participants, safeMode);
         if (participants.size() > participantCount) {
             participants = new ArrayList<>(participants.subList(0, participantCount));
         }
 
         cachedSlots.clear();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < MAX_PLAYER_SLOTS; i++) {
             boolean withinParticipantRange = i < participantCount;
             GameParticipantInfo participant = withinParticipantRange && i < participants.size()
                     ? participants.get(i)
@@ -518,8 +559,8 @@ public class GameViewModel extends ViewModel {
         uiCountdownRunnable = new Runnable() {
             @Override
             public void run() {
-                long now = System.currentTimeMillis();
-                long remainingMillis = endAtMillis - now;
+                long serverNow = currentServerTimeMillis();
+                long remainingMillis = endAtMillis - serverNow;
                 int seconds = (int) Math.max(0, remainingMillis / 1000);
                 remainingSeconds.postValue(seconds);
 
@@ -540,16 +581,24 @@ public class GameViewModel extends ViewModel {
         }
     }
 
-    private int resolveParticipantCount(@NonNull GameMode mode) {
+    private long currentServerTimeMillis() {
+        return System.currentTimeMillis() + gameInfoStore.getServerTimeOffsetMillis();
+    }
+
+    private int resolveParticipantCount(@NonNull List<GameParticipantInfo> participants,
+                                        @NonNull GameMode mode) {
+        if (!participants.isEmpty()) {
+            return Math.min(MAX_PLAYER_SLOTS, participants.size());
+        }
         switch (mode) {
             case FOUR_PLAYER:
-                return 4;
+                return MAX_PLAYER_SLOTS;
             case THREE_PLAYER:
-                return 3;
+                return Math.min(3, MAX_PLAYER_SLOTS);
             case TWO_PLAYER:
-                return 2;
+                return Math.min(2, MAX_PLAYER_SLOTS);
             case FREE:
-                return 2;
+                return Math.min(2, MAX_PLAYER_SLOTS);
             default:
                 throw new IllegalStateException("Unknown mode: " + mode);
         }
